@@ -1,0 +1,367 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ─── Font Face Declarations ─────────────────────────────────────────────── */
+@font-face {
+  font-family: "Fraunces";
+  src: url("/assets/fonts/Fraunces.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("/assets/fonts/InstrumentSerif.woff2") format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Geist Mono";
+  src: url("/assets/fonts/GeistMono.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Sora";
+  src: url("/assets/fonts/Sora.woff2") format("woff2");
+  font-weight: 100 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ─── STEMONEF Design Tokens ─────────────────────────────────────────────── */
+@layer base {
+  :root {
+    --radius: 0.5rem;
+
+    /* STEMONEF deep-institutional dark theme */
+    --background: 0.08 0.005 250;
+    --foreground: 0.97 0 0;
+
+    --card: 0.11 0.008 245;
+    --card-foreground: 0.95 0 0;
+
+    --popover: 0.13 0.01 245;
+    --popover-foreground: 0.95 0 0;
+
+    /* Primary: deep institutional blue */
+    --primary: 0.45 0.18 255;
+    --primary-foreground: 0.98 0 0;
+
+    /* Secondary: slightly lighter blue surface */
+    --secondary: 0.18 0.025 250;
+    --secondary-foreground: 0.9 0 0;
+
+    --muted: 0.16 0.015 245;
+    --muted-foreground: 0.65 0 0;
+
+    /* Accent: controlled yellow-gold glow */
+    --accent: 0.82 0.18 88;
+    --accent-foreground: 0.08 0 0;
+
+    --destructive: 0.55 0.22 30;
+    --destructive-foreground: 0.98 0 0;
+
+    --border: 1 0 0 / 8%;
+    --input: 1 0 0 / 12%;
+    --ring: 0.45 0.18 255;
+
+    /* Chart colors — domain-specific */
+    --chart-1: 0.7 0.18 145;   /* Climate: green */
+    --chart-2: 0.55 0.2 255;   /* AI: blue */
+    --chart-3: 0.6 0.22 25;    /* Health: warm red */
+    --chart-4: 0.82 0.18 88;   /* Education: yellow */
+    --chart-5: 0.6 0.2 300;    /* Ethics: purple */
+
+    --sidebar: 0.1 0.006 248;
+    --sidebar-foreground: 0.95 0 0;
+    --sidebar-primary: 0.45 0.18 255;
+    --sidebar-primary-foreground: 0.98 0 0;
+    --sidebar-accent: 0.82 0.18 88;
+    --sidebar-accent-foreground: 0.08 0 0;
+    --sidebar-border: 1 0 0 / 8%;
+    --sidebar-ring: 0.45 0.18 255;
+
+    /* Custom STEMONEF tokens */
+    --neural-bg: #04050e;
+    --glass-bg: rgba(255, 255, 255, 0.04);
+    --glass-border: rgba(255, 255, 255, 0.08);
+    --glass-hover: rgba(255, 255, 255, 0.07);
+    --glow-yellow: #d4a017;
+    --glow-blue: #2a5cf6;
+    --glow-intensity: 0 0 20px rgba(212, 160, 23, 0.3);
+    --glow-blue-intensity: 0 0 30px rgba(42, 92, 246, 0.3);
+  }
+
+  /* Force dark mode — STEMONEF is always dark institutional */
+  html {
+    color-scheme: dark;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    background-color: var(--neural-bg);
+    font-family: "Sora", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar {
+    width: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0a0b14;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(212, 160, 23, 0.4);
+    border-radius: 2px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(212, 160, 23, 0.7);
+  }
+}
+
+/* ─── Glass Morphism Utilities ───────────────────────────────────────────── */
+@layer utilities {
+  .glass {
+    background: var(--glass-bg);
+    backdrop-filter: blur(16px) saturate(180%);
+    -webkit-backdrop-filter: blur(16px) saturate(180%);
+    border: 1px solid var(--glass-border);
+  }
+
+  .glass-strong {
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(24px) saturate(200%);
+    -webkit-backdrop-filter: blur(24px) saturate(200%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  .glass-nav {
+    background: rgba(4, 5, 14, 0.75);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  }
+
+  .glow-yellow {
+    box-shadow: 0 0 15px rgba(212, 160, 23, 0.25), 0 0 40px rgba(212, 160, 23, 0.1);
+  }
+
+  .glow-yellow-hover:hover {
+    box-shadow: 0 0 20px rgba(212, 160, 23, 0.4), 0 0 60px rgba(212, 160, 23, 0.15);
+    border-color: rgba(212, 160, 23, 0.5) !important;
+  }
+
+  .glow-blue {
+    box-shadow: 0 0 15px rgba(42, 92, 246, 0.2), 0 0 40px rgba(42, 92, 246, 0.08);
+  }
+
+  .glow-blue-hover:hover {
+    box-shadow: 0 0 20px rgba(42, 92, 246, 0.35), 0 0 60px rgba(42, 92, 246, 0.15);
+  }
+
+  .text-gradient-hero {
+    background: linear-gradient(135deg, #4a7ef7 0%, #8ab4ff 40%, #ffffff 80%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #d4a017 0%, #f0c843 50%, #d4a017 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .neural-grid-bg {
+    background-image:
+      linear-gradient(rgba(42, 92, 246, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(42, 92, 246, 0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .font-display {
+    font-family: "Fraunces", serif;
+  }
+
+  .font-serif-instrument {
+    font-family: "Instrument Serif", serif;
+  }
+
+  .font-mono-geist {
+    font-family: "Geist Mono", monospace;
+  }
+
+  .institutional-tracking {
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+}
+
+/* ─── Animations ─────────────────────────────────────────────────────────── */
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.6; box-shadow: 0 0 10px rgba(212, 160, 23, 0.3); }
+  50% { opacity: 1; box-shadow: 0 0 25px rgba(212, 160, 23, 0.6), 0 0 50px rgba(212, 160, 23, 0.2); }
+}
+
+@keyframes breathing-network {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.7; }
+}
+
+@keyframes slide-in-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes slide-out-right {
+  from { transform: translateX(0); opacity: 1; }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes neural-boot {
+  0% { opacity: 0; transform: scale(0.95); }
+  20% { opacity: 1; transform: scale(1); }
+  80% { opacity: 1; }
+  100% { opacity: 0; transform: scale(1.02); }
+}
+
+@keyframes node-pulse {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.4); opacity: 1; }
+}
+
+@keyframes line-draw {
+  from { stroke-dashoffset: 200; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes progress-flow {
+  0% { background-position: -200% center; }
+  100% { background-position: 200% center; }
+}
+
+@keyframes float-up {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes chevron-bounce {
+  0%, 100% { transform: translateY(0); opacity: 0.7; }
+  50% { transform: translateY(8px); opacity: 1; }
+}
+
+@keyframes slide-in-bottom {
+  from { transform: translateY(100px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2.5s ease-in-out infinite;
+}
+
+.animate-breathing {
+  animation: breathing-network 4s ease-in-out infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slide-out-right {
+  animation: slide-out-right 0.3s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.7s ease forwards;
+}
+
+.animate-neural-boot {
+  animation: neural-boot 2.5s ease-in-out forwards;
+}
+
+.animate-node-pulse {
+  animation: node-pulse 2s ease-in-out infinite;
+}
+
+.animate-chevron-bounce {
+  animation: chevron-bounce 1.8s ease-in-out infinite;
+}
+
+.animate-slide-in-bottom {
+  animation: slide-in-bottom 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-float-up {
+  animation: float-up 6s ease-in-out infinite;
+}
+
+/* ─── Section Reveal Animations ─────────────────────────────────────────── */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.reveal-delay-1 { transition-delay: 0.1s; }
+.reveal-delay-2 { transition-delay: 0.2s; }
+.reveal-delay-3 { transition-delay: 0.3s; }
+.reveal-delay-4 { transition-delay: 0.4s; }
+.reveal-delay-5 { transition-delay: 0.5s; }
+.reveal-delay-6 { transition-delay: 0.6s; }
+
+/* ─── Pillar Connection Lines ────────────────────────────────────────────── */
+.pillar-connection-svg line {
+  stroke-dasharray: 6 4;
+  animation: line-draw 1.5s ease forwards, breathing-network 4s ease-in-out 1.5s infinite;
+}
+
+/* ─── Neural Boot Screen ─────────────────────────────────────────────────── */
+.boot-screen {
+  position: fixed;
+  inset: 0;
+  background: #020309;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+
+/* ─── Progress Flow Line ─────────────────────────────────────────────────── */
+.progress-flow-line {
+  background: linear-gradient(90deg, transparent, #d4a017, #4a7ef7, #d4a017, transparent);
+  background-size: 200% 100%;
+  animation: progress-flow 3s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
