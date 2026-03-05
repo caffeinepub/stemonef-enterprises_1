@@ -196,8 +196,11 @@ function FeaturedPillarCard({
 
   return (
     <div
-      className="relative flex flex-col h-full reveal animate-float-up"
-      style={{ animationDelay: pillar.delay, transitionDelay: pillar.delay }}
+      className="relative flex flex-col h-full animate-float-up"
+      style={{
+        animationDelay: pillar.delay,
+        transitionDelay: pillar.delay,
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
@@ -389,9 +392,11 @@ function PillarCard({
       type="button"
       data-ocid={`pillars.item.${index + 1}`}
       onClick={onClick}
-      className="text-left w-full group transition-all duration-300 reveal"
+      className="text-left w-full group transition-all duration-300"
       style={{
+        animation: "fade-in-up 0.7s ease forwards",
         animationDelay: `${index * 0.1}s`,
+        opacity: 0,
         background: "none",
         border: "none",
         cursor: "pointer",
@@ -550,7 +555,10 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
       {/* ── FEATURED PILLARS BLOCK ────────────────────────────────────────── */}
       <div className="max-w-7xl mx-auto mb-28">
         {/* Featured heading */}
-        <div className="mb-12 reveal">
+        <div
+          className="mb-12"
+          style={{ animation: "fade-in-up 0.7s ease forwards" }}
+        >
           <div
             className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-4"
             style={{ color: "rgba(212,160,23,0.7)" }}
