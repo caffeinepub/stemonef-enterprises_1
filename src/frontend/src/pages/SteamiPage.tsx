@@ -1,27 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useState } from "react";
 
 interface SteamiPageProps {
   onBack: () => void;
-}
-
-function useRevealObserver(containerRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        }
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
-    );
-    const els = container.querySelectorAll(".reveal");
-    for (const el of els) observer.observe(el);
-    return () => observer.disconnect();
-  }, [containerRef]);
 }
 
 const LEGAL_NOTE =
@@ -29,25 +9,43 @@ const LEGAL_NOTE =
 
 const CORE_FUNCTIONS = [
   {
-    title: "Research Direction",
-    desc: "Sets the strategic research agenda across all STEMONEF knowledge domains.",
+    label: "Research Direction",
+    glyph: "◈",
+    description:
+      "Sets the research agenda and prioritizes intelligence domains for investigation.",
   },
   {
-    title: "Intelligence Synthesis",
-    desc: "Aggregates, contextualizes, and validates cross-domain intelligence outputs.",
+    label: "Intelligence Synthesis",
+    glyph: "◇",
+    description:
+      "Aggregates and synthesizes multi-domain data into decision-grade intelligence products.",
   },
   {
-    title: "Ethics Review",
-    desc: "Every intelligence product passes an independent ethical review layer.",
+    label: "Ethics Review",
+    glyph: "◆",
+    description:
+      "Ensures all knowledge products meet rigorous ethical and accuracy standards before release.",
   },
   {
-    title: "Strategic Foresight",
-    desc: "Models emerging futures and risk vectors across social and technological landscapes.",
+    label: "Strategic Foresight",
+    glyph: "▷",
+    description:
+      "Projects future trajectories using advanced modeling and scenario planning.",
   },
   {
-    title: "Publication Standards",
-    desc: "Enforces rigorous standards for all public and restricted knowledge outputs.",
+    label: "Publication Standards",
+    glyph: "◎",
+    description:
+      "Maintains the highest standards of evidence, citation, and institutional accountability.",
   },
+];
+
+const FEEDBACK_STEPS = [
+  { label: "Research", color: "#4a7ef7" },
+  { label: "Review", color: "#d4a017" },
+  { label: "Distribution", color: "#22d3b0" },
+  { label: "Public Feedback", color: "#a78bfa" },
+  { label: "New Research", color: "#4a7ef7" },
 ];
 
 const DISTRIBUTION_CHANNELS = [
@@ -59,637 +57,664 @@ const DISTRIBUTION_CHANNELS = [
   "Policy Publications",
 ];
 
-const FEEDBACK_LOOP = [
-  "Research",
-  "Review",
-  "Distribution",
-  "Public Feedback",
-  "New Research",
+const INTELLIGENCE_DOMAINS = [
+  "Knowledge ingestion",
+  "Modeling",
+  "Forecasting",
+  "Risk analysis",
+  "Framework development",
 ];
 
-export default function SteamiPage({ onBack }: SteamiPageProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useRevealObserver(containerRef);
+function FeedbackLoopAnimation() {
+  const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const interval = setInterval(() => {
+      setActiveIndex((prev) => (prev + 1) % FEEDBACK_STEPS.length);
+    }, 1500);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        background: "var(--neural-bg)",
-        minHeight: "100vh",
-        overflowX: "hidden",
-      }}
-    >
-      {/* ─── Top Navigation Bar ─────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+    <div className="flex flex-wrap justify-center items-center gap-2">
+      {FEEDBACK_STEPS.map((step, i) => (
+        <div key={step.label} className="flex items-center gap-2">
+          <div
+            className="px-5 py-3 rounded-sm transition-all duration-500"
+            style={{
+              background:
+                activeIndex === i
+                  ? `${step.color}18`
+                  : "rgba(255,255,255,0.03)",
+              border:
+                activeIndex === i
+                  ? `1px solid ${step.color}55`
+                  : "1px solid rgba(255,255,255,0.07)",
+              boxShadow:
+                activeIndex === i ? `0 0 18px ${step.color}22` : "none",
+              transform: activeIndex === i ? "scale(1.05)" : "scale(1)",
+            }}
+          >
+            <span
+              className="font-display text-sm font-light tracking-widest uppercase"
+              style={{
+                color: activeIndex === i ? step.color : "rgba(255,255,255,0.4)",
+                letterSpacing: "0.12em",
+                transition: "color 0.5s ease",
+              }}
+            >
+              {step.label}
+            </span>
+          </div>
+          {i < FEEDBACK_STEPS.length - 1 && (
+            <div
+              className="font-mono-geist text-xs transition-all duration-300"
+              style={{
+                color:
+                  activeIndex === i ? step.color : "rgba(255,255,255,0.15)",
+              }}
+            >
+              →
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function NetworkDiagram() {
+  const nodes = [
+    {
+      label: "STEAMI PARENT",
+      sublabel: "Strategic Oversight",
+      color: "#d4a017",
+      y: 0,
+    },
+    {
+      label: "STEAMI INTELLIGENCE",
+      sublabel: "Research Synthesis",
+      color: "#4a7ef7",
+      y: 1,
+    },
+    {
+      label: "STEAMI NETWORK",
+      sublabel: "Distribution Layer",
+      color: "#22d3b0",
+      y: 2,
+    },
+  ];
+
+  return (
+    <div className="flex flex-col items-center gap-0">
+      {nodes.map((node, i) => (
+        <div key={node.label} className="flex flex-col items-center">
+          <div
+            className="w-full max-w-sm px-8 py-6 rounded-sm text-center transition-all duration-300"
+            style={{
+              background: `${node.color}0a`,
+              border: `1px solid ${node.color}35`,
+              backdropFilter: "blur(12px)",
+              cursor: "default",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget as HTMLDivElement;
+              el.style.background = `${node.color}15`;
+              el.style.borderColor = `${node.color}60`;
+              el.style.boxShadow = `0 0 20px ${node.color}18`;
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget as HTMLDivElement;
+              el.style.background = `${node.color}0a`;
+              el.style.borderColor = `${node.color}35`;
+              el.style.boxShadow = "none";
+            }}
+          >
+            <div
+              className="font-mono-geist text-[9px] tracking-[0.2em] uppercase mb-1"
+              style={{ color: "rgba(255,255,255,0.3)" }}
+            >
+              LAYER {String(i + 1).padStart(2, "0")}
+            </div>
+            <div
+              className="font-display text-xl font-light tracking-widest uppercase mb-1"
+              style={{ color: node.color, letterSpacing: "0.12em" }}
+            >
+              {node.label}
+            </div>
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.15em]"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              {node.sublabel}
+            </div>
+          </div>
+          {i < nodes.length - 1 && (
+            <div className="flex flex-col items-center py-3">
+              <svg width="2" height="32" aria-hidden="true">
+                <line
+                  x1="1"
+                  y1="0"
+                  x2="1"
+                  y2="32"
+                  stroke={`url(#grad-${i})`}
+                  strokeWidth="2"
+                  strokeDasharray="4 3"
+                  className="animate-breathing"
+                />
+                <defs>
+                  <linearGradient id={`grad-${i}`} x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="0%"
+                      stopColor={nodes[i].color}
+                      stopOpacity="0.6"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor={nodes[i + 1].color}
+                      stopOpacity="0.6"
+                    />
+                  </linearGradient>
+                </defs>
+              </svg>
+              <span
+                className="font-mono-geist text-xs"
+                style={{ color: "rgba(255,255,255,0.2)" }}
+              >
+                ↓
+              </span>
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+export default function SteamiPage({ onBack }: SteamiPageProps) {
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
+    );
+    const els = document.querySelectorAll(".steami-reveal");
+    for (const el of els) observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div style={{ background: "var(--neural-bg)", minHeight: "100vh" }}>
+      {/* Section Nav */}
+      <div
+        className="sticky top-[65px] z-40 px-6 py-3 flex items-center justify-between"
         style={{
-          background: "rgba(4,5,14,0.92)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(4,5,14,0.9)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <button
           type="button"
-          data-ocid="steami.button"
+          data-ocid="steami.back.button"
           onClick={onBack}
-          className="flex items-center gap-3"
-          style={{ background: "none", border: "none", cursor: "pointer" }}
+          className="flex items-center gap-2 font-mono-geist text-xs tracking-widest uppercase transition-all duration-200"
+          style={{
+            color: "rgba(255,255,255,0.45)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            letterSpacing: "0.15em",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(212,160,23,0.9)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(255,255,255,0.45)";
+          }}
         >
-          <span
-            className="font-mono-geist text-xs tracking-widest"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ←
-          </span>
-          <span
-            className="font-mono-geist text-xs tracking-[0.25em] uppercase transition-colors duration-200"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(212,160,23,0.8)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(255,255,255,0.5)";
-            }}
-          >
-            STEMONEF
-          </span>
+          ← STEMONEF
         </button>
         <div
-          className="font-mono-geist text-[10px] tracking-[0.4em] uppercase"
-          style={{ color: "rgba(212,160,23,0.55)" }}
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
+          style={{ color: "rgba(74,126,247,0.7)" }}
         >
-          ◆ STEAMI™ — INTELLIGENCE PILLAR
+          STEAMI™
         </div>
-      </nav>
+      </div>
 
-      {/* ─── Hero Section ───────────────────────────────────── */}
+      {/* Hero */}
       <section
-        data-ocid="steami.section"
-        className="relative flex flex-col items-center justify-center text-center px-6"
-        style={{ minHeight: "82vh", paddingTop: "6rem", paddingBottom: "6rem" }}
+        className="relative min-h-[80vh] flex items-center px-6 overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(8,14,40,0.95) 0%, rgba(4,5,14,1) 65%)",
+        }}
       >
         <div
-          className="absolute inset-0 pointer-events-none overflow-hidden"
+          className="neural-grid-bg absolute inset-0 opacity-25"
           aria-hidden="true"
-        >
-          <svg
-            role="img"
-            aria-label="Decorative intelligence data stream background"
-            className="absolute inset-0 w-full h-full"
-            style={{ opacity: 0.15 }}
-          >
-            <defs>
-              <radialGradient id="steamiHeroGrad" cx="50%" cy="30%" r="70%">
-                <stop offset="0%" stopColor="#a78bfa" stopOpacity="0.25" />
-                <stop offset="100%" stopColor="#04050e" stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#steamiHeroGrad)" />
-            {/* Data stream lines */}
-            {[0, 1, 2, 3, 4, 5].map((i) => (
-              <line
-                key={`stream-${i}`}
-                x1={`${10 + i * 16}%`}
-                y1="0"
-                x2={`${5 + i * 18}%`}
-                y2="100%"
-                stroke="#a78bfa"
-                strokeWidth="0.5"
-                strokeDasharray="3 8"
-                opacity="0.3"
-                className="animate-breathing"
-                style={{ animationDelay: `${i * 0.5}s` }}
-              />
-            ))}
-            {[
-              [20, 25],
-              [40, 55],
-              [60, 35],
-              [75, 70],
-              [35, 85],
-              [55, 15],
-              [85, 45],
-            ].map(([cx, cy]) => (
-              <circle
-                key={`sint-${cx}-${cy}`}
-                cx={`${cx}%`}
-                cy={`${cy}%`}
-                r="2.5"
-                fill="#a78bfa"
-                opacity="0.4"
-                className="animate-breathing"
-              />
-            ))}
-          </svg>
-        </div>
+        />
 
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-7xl mx-auto w-full pt-16 pb-20">
           <div
-            className="font-mono-geist text-xs tracking-[0.45em] uppercase mb-6 reveal"
-            style={{ color: "rgba(212,160,23,0.7)" }}
+            className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-6 animate-fade-in-up"
+            style={{ color: "rgba(74,126,247,0.7)" }}
           >
-            ◆ INTELLIGENCE & KNOWLEDGE PLATFORM
+            ◆ INTELLIGENCE &amp; KNOWLEDGE PLATFORM
           </div>
+
           <h1
-            className="font-display font-light mb-4 reveal reveal-delay-1"
+            className="font-display font-light text-gradient-hero mb-4 animate-fade-in-up"
             style={{
-              fontSize: "clamp(3rem, 9vw, 6.5rem)",
-              letterSpacing: "0.18em",
-              lineHeight: 1,
-              background:
-                "linear-gradient(135deg, #a78bfa 0%, #4a7ef7 50%, #ffffff 80%)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
+              fontSize: "clamp(3.5rem, 11vw, 8rem)",
+              letterSpacing: "0.1em",
+              lineHeight: 0.9,
+              animationDelay: "0.1s",
             }}
           >
             STEAMI™
           </h1>
+
           <p
-            className="font-display font-light text-xl mb-2 reveal reveal-delay-2"
-            style={{ color: "rgba(255,255,255,0.5)", letterSpacing: "0.06em" }}
-          >
-            Intelligence & Knowledge Platform
-          </p>
-          <p
-            className="font-display font-light text-2xl mb-6 reveal reveal-delay-3"
-            style={{ color: "#d4a017", letterSpacing: "0.06em" }}
+            className="font-display text-xl md:text-2xl font-light mb-8 animate-fade-in-up"
+            style={{
+              color: "rgba(255,255,255,0.55)",
+              letterSpacing: "0.05em",
+              maxWidth: "500px",
+              animationDelay: "0.2s",
+            }}
           >
             Intelligence Finds Its Voice.
           </p>
 
-          {/* Important callout */}
+          {/* Positioning statement */}
           <div
-            className="inline-block px-6 py-4 rounded-sm reveal reveal-delay-4"
+            className="glass-strong p-6 max-w-xl rounded-sm animate-fade-in-up"
             style={{
-              background: "rgba(167,139,250,0.07)",
-              border: "1px solid rgba(167,139,250,0.2)",
-              backdropFilter: "blur(16px)",
+              borderLeft: "3px solid rgba(74,126,247,0.6)",
+              animationDelay: "0.3s",
             }}
           >
             <p
-              className="font-mono-geist text-xs tracking-wider"
-              style={{ color: "rgba(255,255,255,0.65)" }}
+              className="font-mono-geist text-sm leading-relaxed"
+              style={{
+                color: "rgba(255,255,255,0.75)",
+                letterSpacing: "0.05em",
+              }}
             >
-              <span style={{ color: "#a78bfa" }}>STEAMI is not media.</span> It
-              is a{" "}
-              <span style={{ color: "#d4a017" }}>
-                decision-grade intelligence system.
+              STEAMI is{" "}
+              <span style={{ color: "rgba(212,160,23,0.9)" }}>not media</span>.
+              It is a{" "}
+              <span
+                style={{
+                  background: "linear-gradient(135deg, #4a7ef7, #8ab4ff)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  fontWeight: 600,
+                }}
+              >
+                decision-grade intelligence system
               </span>
+              .
             </p>
           </div>
         </div>
+
         <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-chevron-bounce"
-          aria-hidden="true"
-        >
-          <div
-            className="w-px h-10 mx-auto"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(167,139,250,0.5), transparent)",
-            }}
-          />
-        </div>
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, var(--neural-bg))",
+          }}
+        />
       </section>
 
-      {/* ─── Core Functions ─────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(167,139,250,0.7)" }}
-          >
-            ◈ CORE FUNCTIONS
-          </div>
-          <h2
-            className="font-display text-3xl font-light"
-            style={{
-              letterSpacing: "0.12em",
-              background: "linear-gradient(135deg, #a78bfa, #4a7ef7, #ffffff)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-              backgroundClip: "text",
-            }}
-          >
-            Operational Mandate
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {CORE_FUNCTIONS.map((fn, i) => (
+      {/* Core Functions */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 steami-reveal reveal">
             <div
-              key={fn.title}
-              data-ocid={`steami.card.${i + 1}`}
-              className="p-6 rounded-sm reveal transition-all duration-300"
-              style={{
-                background:
-                  "radial-gradient(ellipse at top left, rgba(167,139,250,0.07), rgba(4,5,14,0.8))",
-                border: "1px solid rgba(167,139,250,0.12)",
-                backdropFilter: "blur(16px)",
-                transitionDelay: `${i * 0.06}s`,
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top left, rgba(167,139,250,0.14), rgba(4,5,14,0.88))";
-                el.style.borderColor = "rgba(167,139,250,0.3)";
-                el.style.transform = "translateY(-5px)";
-                el.style.boxShadow = "0 12px 32px rgba(0,0,0,0.4)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top left, rgba(167,139,250,0.07), rgba(4,5,14,0.8))";
-                el.style.borderColor = "rgba(167,139,250,0.12)";
-                el.style.transform = "translateY(0)";
-                el.style.boxShadow = "none";
-              }}
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
             >
-              <div
-                className="w-2 h-2 rounded-full mb-4"
-                style={{
-                  background: "#d4a017",
-                  boxShadow: "0 0 8px rgba(212,160,23,0.5)",
-                }}
-              />
-              <h3
-                className="font-mono-geist text-xs tracking-wider mb-3"
-                style={{
-                  color: "rgba(255,255,255,0.75)",
-                  letterSpacing: "0.12em",
-                }}
-              >
-                {fn.title}
-              </h3>
-              <p
-                className="text-xs leading-relaxed"
-                style={{
-                  color: "rgba(255,255,255,0.38)",
-                  fontFamily: "Sora, sans-serif",
-                }}
-              >
-                {fn.desc}
-              </p>
+              ◈ CORE FUNCTIONS
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Organizational Structure ───────────────────────── */}
-      <section className="max-w-3xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ ORGANIZATIONAL STRUCTURE
+            <h2
+              className="font-display text-4xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              What STEAMI Does
+            </h2>
           </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Network Hierarchy
-          </h2>
-        </div>
 
-        <div className="flex flex-col items-center gap-0 reveal">
-          {[
-            {
-              label: "STEAMI Parent",
-              role: "Strategic governance and editorial direction for the entire intelligence ecosystem.",
-              color: "#a78bfa",
-            },
-            {
-              label: "STEAMI Intelligence",
-              role: "Research synthesis, forecasting, and decision-grade intelligence production.",
-              color: "#4a7ef7",
-            },
-            {
-              label: "STEAMI Network",
-              role: "Distribution, communication, and public engagement channels.",
-              color: "#22d3b0",
-            },
-          ].map((node, i) => (
-            <div key={node.label} className="flex flex-col items-center w-full">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {CORE_FUNCTIONS.map((fn, i) => (
               <div
-                data-ocid={`steami.card.${i + 1}`}
-                className="w-full max-w-md p-6 rounded-sm transition-all duration-300 text-center"
+                key={fn.label}
+                data-ocid={`steami.function.card.${i + 1}`}
+                className="glass-strong p-6 rounded-sm transition-all duration-300 steami-reveal reveal"
                 style={{
-                  background: `rgba(${i === 0 ? "167,139,250" : i === 1 ? "74,126,247" : "34,211,176"},0.06)`,
-                  border: `1px solid rgba(${i === 0 ? "167,139,250" : i === 1 ? "74,126,247" : "34,211,176"},0.18)`,
-                  backdropFilter: "blur(16px)",
+                  borderTop: "2px solid rgba(74,126,247,0.3)",
+                  transitionDelay: `${i * 0.08}s`,
+                  cursor: "default",
                 }}
                 onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background =
-                    `rgba(${i === 0 ? "167,139,250" : i === 1 ? "74,126,247" : "34,211,176"},0.12)`;
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderTopColor = "rgba(74,126,247,0.7)";
+                  el.style.boxShadow =
+                    "0 0 20px rgba(74,126,247,0.08), 0 8px 32px rgba(0,0,0,0.4)";
+                  el.style.transform = "translateY(-4px)";
                 }}
                 onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.background =
-                    `rgba(${i === 0 ? "167,139,250" : i === 1 ? "74,126,247" : "34,211,176"},0.06)`;
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderTopColor = "rgba(74,126,247,0.3)";
+                  el.style.boxShadow = "none";
+                  el.style.transform = "none";
                 }}
               >
                 <div
-                  className="font-display text-lg font-light mb-2"
-                  style={{ color: node.color, letterSpacing: "0.15em" }}
+                  className="text-2xl mb-4"
+                  style={{ color: "rgba(74,126,247,0.5)" }}
+                  aria-hidden="true"
                 >
-                  {node.label}
+                  {fn.glyph}
+                </div>
+                <div
+                  className="font-mono-geist text-[10px] tracking-[0.2em] uppercase mb-3"
+                  style={{ color: "rgba(74,126,247,0.8)" }}
+                >
+                  {fn.label}
                 </div>
                 <p
                   className="text-xs leading-relaxed"
                   style={{
-                    color: "rgba(255,255,255,0.4)",
+                    color: "rgba(255,255,255,0.5)",
                     fontFamily: "Sora, sans-serif",
                   }}
                 >
-                  {node.role}
+                  {fn.description}
                 </p>
               </div>
-              {i < 2 && (
-                <div className="flex flex-col items-center py-1">
-                  <div
-                    className="w-px h-6"
-                    style={{ background: "rgba(74,126,247,0.3)" }}
-                  />
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      background: "#4a7ef7",
-                      boxShadow: "0 0 8px rgba(74,126,247,0.5)",
-                      animation: "node-pulse 2s ease-in-out infinite",
-                      animationDelay: `${i * 0.5}s`,
-                    }}
-                  />
-                  <div
-                    className="w-px h-4"
-                    style={{ background: "rgba(74,126,247,0.2)" }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── STEAMI Intelligence ────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-8 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ STEAMI INTELLIGENCE
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Decision-Grade Intelligence
-          </h2>
-        </div>
-
-        <div
-          className="p-8 rounded-sm reveal"
-          style={{
-            background: "rgba(74,126,247,0.04)",
-            border: "1px solid rgba(74,126,247,0.14)",
-            borderLeft: "3px solid #4a7ef7",
-            backdropFilter: "blur(16px)",
-          }}
-        >
-          <div
-            className="font-mono-geist text-[9px] tracking-[0.4em] uppercase mb-4"
-            style={{ color: "rgba(74,126,247,0.6)" }}
-          >
-            OPERATIONAL DOMAINS
-          </div>
-          <div className="flex flex-wrap gap-2 mb-6">
-            {[
-              "Knowledge Ingestion",
-              "Modeling",
-              "Forecasting",
-              "Risk Analysis",
-              "Framework Development",
-            ].map((domain) => (
-              <span
-                key={domain}
-                className="px-3 py-1.5 rounded-sm font-mono-geist text-[10px] tracking-wider"
-                style={{
-                  background: "rgba(74,126,247,0.08)",
-                  border: "1px solid rgba(74,126,247,0.2)",
-                  color: "rgba(74,126,247,0.8)",
-                }}
-              >
-                {domain}
-              </span>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* Structure */}
+      <section className="py-20 px-6">
+        <div className="max-w-3xl mx-auto">
+          <div className="mb-12 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ ORGANIZATIONAL STRUCTURE
+            </div>
+            <h2
+              className="font-display text-4xl font-light"
+              style={{
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              Network Architecture
+            </h2>
+          </div>
 
           <div
-            className="font-mono-geist text-[9px] tracking-[0.4em] uppercase mb-3"
-            style={{ color: "rgba(255,255,255,0.3)" }}
+            className="steami-reveal reveal"
+            style={{ transitionDelay: "0.1s" }}
           >
-            OUTPUT CLASSIFICATIONS
-          </div>
-          <div className="flex flex-wrap gap-3">
-            <span
-              className="px-4 py-2 rounded-sm font-mono-geist text-[10px] tracking-wider"
-              style={{
-                background: "rgba(239,68,68,0.08)",
-                border: "1px solid rgba(239,68,68,0.2)",
-                color: "rgba(239,68,68,0.75)",
-              }}
-            >
-              ⊘ Intelligence Briefs — RESTRICTED
-            </span>
-            <span
-              className="px-4 py-2 rounded-sm font-mono-geist text-[10px] tracking-wider"
-              style={{
-                background: "rgba(34,197,94,0.08)",
-                border: "1px solid rgba(34,197,94,0.2)",
-                color: "rgba(34,197,94,0.75)",
-              }}
-            >
-              ◈ Validated Frameworks — PUBLIC
-            </span>
+            <NetworkDiagram />
           </div>
         </div>
       </section>
 
-      {/* ─── STEAMI Network / Distribution ─────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-8 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(34,211,176,0.7)" }}
-          >
-            ◈ DISTRIBUTION CHANNELS
+      {/* STEAMI Intelligence */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-10 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ INTELLIGENCE LAYER
+            </div>
+            <h2
+              className="font-display text-4xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              STEAMI Intelligence
+            </h2>
           </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            STEAMI Network
-          </h2>
-        </div>
 
-        <div className="flex flex-wrap gap-3 reveal">
-          {DISTRIBUTION_CHANNELS.map((channel, i) => (
-            <span
-              key={channel}
-              className="px-4 py-2 rounded-sm font-mono-geist text-xs tracking-wider transition-all duration-200"
+          <div
+            className="glass-strong p-8 rounded-sm steami-reveal reveal"
+            style={{
+              borderLeft: "3px solid rgba(74,126,247,0.5)",
+              transitionDelay: "0.1s",
+            }}
+          >
+            <p
+              className="text-sm leading-relaxed mb-8"
               style={{
-                background: "rgba(34,211,176,0.05)",
-                border: "1px solid rgba(34,211,176,0.15)",
-                color: "rgba(34,211,176,0.7)",
-                transitionDelay: `${i * 0.06}s`,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLSpanElement).style.background =
-                  "rgba(34,211,176,0.12)";
-                (e.currentTarget as HTMLSpanElement).style.borderColor =
-                  "rgba(34,211,176,0.35)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLSpanElement).style.background =
-                  "rgba(34,211,176,0.05)";
-                (e.currentTarget as HTMLSpanElement).style.borderColor =
-                  "rgba(34,211,176,0.15)";
+                color: "rgba(255,255,255,0.6)",
+                fontFamily: "Sora, sans-serif",
               }}
             >
-              {channel}
-            </span>
-          ))}
-        </div>
-      </section>
+              Focus: Research synthesis and decision-grade intelligence. STEAMI
+              Intelligence operates as the analytical core of the platform —
+              transforming raw data into structured, actionable knowledge
+              products.
+            </p>
 
-      {/* ─── Feedback Loop ──────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(212,160,23,0.7)" }}
-          >
-            ◈ INTELLIGENCE FEEDBACK LOOP
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Continuous Intelligence Cycle
-          </h2>
-        </div>
-
-        <div className="reveal" style={{ overflowX: "auto" }}>
-          <div
-            className="flex items-center gap-0 min-w-max mx-auto pb-4"
-            style={{ padding: "2rem 0" }}
-          >
-            {FEEDBACK_LOOP.map((step, i) => (
-              <div key={step} className="flex items-center">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Domains */}
+              <div>
                 <div
-                  data-ocid={`steami.card.${i + 1}`}
-                  className="flex flex-col items-center p-5 rounded-sm transition-all duration-300"
-                  style={{
-                    background: "rgba(212,160,23,0.05)",
-                    border: "1px solid rgba(212,160,23,0.15)",
-                    backdropFilter: "blur(16px)",
-                    minWidth: "130px",
-                    textAlign: "center",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "rgba(212,160,23,0.12)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      "rgba(212,160,23,0.35)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow =
-                      "0 0 20px rgba(212,160,23,0.15)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "rgba(212,160,23,0.05)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      "rgba(212,160,23,0.15)";
-                    (e.currentTarget as HTMLDivElement).style.boxShadow =
-                      "none";
-                  }}
+                  className="font-mono-geist text-[9px] tracking-[0.35em] uppercase mb-4"
+                  style={{ color: "rgba(74,126,247,0.7)" }}
                 >
-                  <div
-                    className="w-3 h-3 rounded-full mb-3"
-                    style={{
-                      background: "#d4a017",
-                      boxShadow: "0 0 10px rgba(212,160,23,0.6)",
-                      animation: "node-pulse 2s ease-in-out infinite",
-                      animationDelay: `${i * 0.35}s`,
-                    }}
-                  />
-                  <span
-                    className="font-mono-geist text-[9px] tracking-wider"
-                    style={{ color: "rgba(212,160,23,0.8)" }}
-                  >
-                    {step}
-                  </span>
+                  OPERATIONAL DOMAINS
                 </div>
-                {/* Arrow connector — last one loops back */}
-                <div
-                  className="flex-shrink-0 flex flex-col items-center"
-                  style={{ width: "40px" }}
-                >
-                  {i < FEEDBACK_LOOP.length - 1 ? (
-                    <div className="w-full flex items-center justify-center gap-1">
+                <ul className="space-y-3">
+                  {INTELLIGENCE_DOMAINS.map((d) => (
+                    <li key={d} className="flex items-center gap-3">
                       <div
-                        className="flex-1 h-px"
-                        style={{ background: "rgba(212,160,23,0.3)" }}
+                        className="w-1.5 h-1.5 rounded-full animate-node-pulse flex-shrink-0"
+                        style={{ background: "rgba(74,126,247,0.7)" }}
                       />
                       <span
-                        className="font-mono-geist text-[8px]"
-                        style={{ color: "rgba(212,160,23,0.5)" }}
+                        className="text-sm capitalize"
+                        style={{
+                          color: "rgba(255,255,255,0.65)",
+                          fontFamily: "Sora, sans-serif",
+                        }}
                       >
-                        →
+                        {d}
                       </span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+
+              {/* Outputs */}
+              <div>
+                <div
+                  className="font-mono-geist text-[9px] tracking-[0.35em] uppercase mb-4"
+                  style={{ color: "rgba(212,160,23,0.7)" }}
+                >
+                  OUTPUT PRODUCTS
+                </div>
+                <div className="space-y-4">
+                  <div
+                    className="px-5 py-4 rounded-sm"
+                    style={{
+                      background: "rgba(212,160,23,0.06)",
+                      border: "1px solid rgba(212,160,23,0.25)",
+                    }}
+                  >
+                    <div
+                      className="font-mono-geist text-xs tracking-[0.15em] uppercase mb-1"
+                      style={{ color: "#d4a017" }}
+                    >
+                      Intelligence Briefs
                     </div>
-                  ) : (
-                    <div className="flex items-center justify-center">
-                      <span
-                        className="font-mono-geist text-[8px]"
-                        style={{ color: "rgba(212,160,23,0.4)" }}
-                      >
-                        ↺
-                      </span>
+                    <div
+                      className="font-mono-geist text-[9px] tracking-[0.2em] uppercase"
+                      style={{ color: "rgba(212,160,23,0.5)" }}
+                    >
+                      ● RESTRICTED ACCESS
                     </div>
-                  )}
+                  </div>
+                  <div
+                    className="px-5 py-4 rounded-sm"
+                    style={{
+                      background: "rgba(34,211,176,0.06)",
+                      border: "1px solid rgba(34,211,176,0.25)",
+                    }}
+                  >
+                    <div
+                      className="font-mono-geist text-xs tracking-[0.15em] uppercase mb-1"
+                      style={{ color: "#22d3b0" }}
+                    >
+                      Validated Frameworks
+                    </div>
+                    <div
+                      className="font-mono-geist text-[9px] tracking-[0.2em] uppercase"
+                      style={{ color: "rgba(34,211,176,0.5)" }}
+                    >
+                      ● PUBLIC ACCESS
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Legal Footer ──────────────────────────────────── */}
-      <footer
-        className="px-6 py-12 text-center"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      {/* STEAMI Network */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-10 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ DISTRIBUTION LAYER
+            </div>
+            <h2
+              className="font-display text-4xl font-light"
+              style={{
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              STEAMI Network
+            </h2>
+          </div>
+
+          <div
+            className="glass p-8 rounded-sm steami-reveal reveal"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            <div className="flex flex-wrap gap-3">
+              {DISTRIBUTION_CHANNELS.map((ch, i) => (
+                <div
+                  key={ch}
+                  className="px-4 py-2.5 rounded-sm animate-fade-in-up transition-all duration-300"
+                  style={{
+                    background: "rgba(74,126,247,0.06)",
+                    border: "1px solid rgba(74,126,247,0.2)",
+                    animationDelay: `${i * 0.1}s`,
+                    cursor: "default",
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.background = "rgba(74,126,247,0.14)";
+                    el.style.borderColor = "rgba(74,126,247,0.5)";
+                    el.style.boxShadow = "0 0 10px rgba(74,126,247,0.12)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.background = "rgba(74,126,247,0.06)";
+                    el.style.borderColor = "rgba(74,126,247,0.2)";
+                    el.style.boxShadow = "none";
+                  }}
+                >
+                  <span
+                    className="font-mono-geist text-xs tracking-[0.1em] uppercase"
+                    style={{ color: "rgba(138,180,255,0.8)" }}
+                  >
+                    {ch}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Feedback Loop */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ FEEDBACK LOOP
+            </div>
+            <h2
+              className="font-display text-4xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              Intelligence Cycle
+            </h2>
+          </div>
+
+          <div
+            className="glass-strong p-10 rounded-sm steami-reveal reveal"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            <FeedbackLoopAnimation />
+            <p
+              className="text-center text-xs mt-6"
+              style={{
+                color: "rgba(255,255,255,0.25)",
+                fontFamily: "Sora, sans-serif",
+                letterSpacing: "0.05em",
+              }}
+            >
+              Every output feeds the next cycle of intelligence
+            </p>
+          </div>
+        </div>
+      </section>
+
+      {/* Legal Footer Note */}
+      <div
+        className="py-8 px-6"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
       >
-        <p
-          className="font-mono-geist text-[10px] tracking-wider"
-          style={{
-            color: "rgba(255,255,255,0.25)",
-            maxWidth: "600px",
-            margin: "0 auto",
-            lineHeight: 1.8,
-          }}
-        >
-          {LEGAL_NOTE}
-        </p>
-      </footer>
+        <div className="max-w-5xl mx-auto">
+          <p
+            className="font-mono-geist text-[10px] text-center leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}
+          >
+            {LEGAL_NOTE}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

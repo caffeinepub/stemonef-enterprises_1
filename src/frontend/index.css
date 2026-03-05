@@ -358,6 +358,50 @@
   animation: progress-flow 3s linear infinite;
 }
 
+/* ─── Featured Pillar Card Animations ───────────────────────────────────── */
+
+/* Scan line that sweeps down the card */
+@keyframes card-scan {
+  0%   { top: -2px; opacity: 0; }
+  5%   { opacity: 0.5; }
+  85%  { opacity: 0.3; }
+  100% { top: 100%; opacity: 0; }
+}
+
+/* Pulsing border glow — color driven by --card-glow-color */
+@keyframes featured-glow {
+  0%, 100% {
+    box-shadow:
+      0 0 15px var(--card-glow-color, rgba(74,126,247,0.15)),
+      0 12px 48px rgba(0,0,0,0.6);
+  }
+  50% {
+    box-shadow:
+      0 0 35px var(--card-glow-color, rgba(74,126,247,0.35)),
+      0 0 60px var(--card-glow-color, rgba(74,126,247,0.15)),
+      0 12px 48px rgba(0,0,0,0.6);
+  }
+}
+
+/* Glyph accent pulse */
+@keyframes glyph-pulse {
+  0%, 100% { transform: scale(1);   opacity: 0.45; }
+  50%       { transform: scale(1.3); opacity: 1;    }
+}
+
+.animate-card-scan {
+  animation: card-scan 5s ease-in-out infinite;
+  animation-delay: var(--scan-delay, 0s);
+}
+
+.animate-glyph-pulse {
+  animation: glyph-pulse 3s ease-in-out infinite;
+}
+
+.animate-featured-glow {
+  animation: featured-glow 2.5s ease-in-out infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

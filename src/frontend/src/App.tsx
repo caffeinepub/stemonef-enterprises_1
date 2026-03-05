@@ -50,23 +50,11 @@ export default function App() {
   const interactedRef = useRef(false);
   const { isLoginSuccess, identity } = useInternetIdentity();
 
-  // Detect special routes on initial load
+  // Detect admin route
   useEffect(() => {
     const path = window.location.pathname;
     if (path === "/admin") {
       setView("admin");
-      setBootDone(true);
-    } else if (path === "/epochs") {
-      setView("epochs");
-      setBootDone(true);
-    } else if (path === "/humanon") {
-      setView("humanon");
-      setBootDone(true);
-    } else if (path === "/steami") {
-      setView("steami");
-      setBootDone(true);
-    } else if (path === "/elpis") {
-      setView("elpis");
       setBootDone(true);
     }
   }, []);
@@ -196,78 +184,55 @@ export default function App() {
     );
   }
 
-  if (view === "epochs") {
-    return (
-      <>
-        <EpochsPage onBack={() => setView("home")} />
-        <Toaster
-          toastOptions={{
-            style: {
-              background: "rgba(4,6,18,0.97)",
-              border: "1px solid rgba(212,160,23,0.3)",
-              color: "rgba(255,255,255,0.8)",
-              fontFamily: "Geist Mono, monospace",
-              fontSize: "11px",
-            },
-          }}
-        />
-      </>
-    );
-  }
+  // ── Pillar pages ───────────────────────────────────────────────────────────
+  const PILLAR_TOASTER = (
+    <Toaster
+      toastOptions={{
+        style: {
+          background: "rgba(4,6,18,0.97)",
+          border: "1px solid rgba(212,160,23,0.3)",
+          color: "rgba(255,255,255,0.8)",
+          fontFamily: "Geist Mono, monospace",
+          fontSize: "11px",
+        },
+      }}
+    />
+  );
 
-  if (view === "humanon") {
+  if (
+    view === "epochs" ||
+    view === "humanon" ||
+    view === "steami" ||
+    view === "elpis"
+  ) {
     return (
       <>
-        <HumanonPage onBack={() => setView("home")} />
-        <Toaster
-          toastOptions={{
-            style: {
-              background: "rgba(4,6,18,0.97)",
-              border: "1px solid rgba(212,160,23,0.3)",
-              color: "rgba(255,255,255,0.8)",
-              fontFamily: "Geist Mono, monospace",
-              fontSize: "11px",
-            },
-          }}
-        />
-      </>
-    );
-  }
+        <div style={{ background: "var(--neural-bg)", minHeight: "100vh" }}>
+          {/* NavBar stays on pillar pages */}
+          <NavBar
+            onCompanionToggle={() => setCompanionOpen((p) => !p)}
+            companionOpen={companionOpen}
+            onScrollTo={(id) => {
+              setView("home");
+              // allow home to mount, then scroll
+              setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el)
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 300);
+            }}
+            onDashboard={() => setView("dashboard")}
+            onNavigatePillar={(page) => setView(page)}
+          />
 
-  if (view === "steami") {
-    return (
-      <>
-        <SteamiPage onBack={() => setView("home")} />
-        <Toaster
-          toastOptions={{
-            style: {
-              background: "rgba(4,6,18,0.97)",
-              border: "1px solid rgba(212,160,23,0.3)",
-              color: "rgba(255,255,255,0.8)",
-              fontFamily: "Geist Mono, monospace",
-              fontSize: "11px",
-            },
-          }}
-        />
-      </>
-    );
-  }
+          {view === "epochs" && <EpochsPage onBack={() => setView("home")} />}
+          {view === "humanon" && <HumanonPage onBack={() => setView("home")} />}
+          {view === "steami" && <SteamiPage onBack={() => setView("home")} />}
+          {view === "elpis" && <ElpisPage onBack={() => setView("home")} />}
 
-  if (view === "elpis") {
-    return (
-      <>
-        <ElpisPage onBack={() => setView("home")} />
-        <Toaster
-          toastOptions={{
-            style: {
-              background: "rgba(4,6,18,0.97)",
-              border: "1px solid rgba(212,160,23,0.3)",
-              color: "rgba(255,255,255,0.8)",
-              fontFamily: "Geist Mono, monospace",
-              fontSize: "11px",
-            },
-          }}
-        />
+          <Footer />
+        </div>
+        {PILLAR_TOASTER}
       </>
     );
   }
@@ -291,11 +256,12 @@ export default function App() {
           companionOpen={companionOpen}
           onScrollTo={scrollTo}
           onDashboard={() => setView("dashboard")}
+          onNavigatePillar={(page) => setView(page)}
         />
 
         <main>
           <HeroSection onScrollTo={scrollTo} />
-          <PillarsSection onNavigate={(path) => setView(path as AppView)} />
+          <PillarsSection onNavigate={(page) => setView(page)} />
           <DualMissionSection />
           <IntelligenceFeed />
           <PathwaySection

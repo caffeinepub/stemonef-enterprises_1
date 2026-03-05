@@ -1,27 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface HumanonPageProps {
   onBack: () => void;
-}
-
-function useRevealObserver(containerRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        }
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
-    );
-    const els = container.querySelectorAll(".reveal");
-    for (const el of els) observer.observe(el);
-    return () => observer.disconnect();
-  }, [containerRef]);
 }
 
 const LEGAL_NOTE =
@@ -29,563 +9,551 @@ const LEGAL_NOTE =
 
 const VALUE_PROPS = [
   {
-    icon: "◎",
-    title: "Scale of Operation",
-    desc: "A global ecosystem spanning multiple continents, connecting diverse talent to mission-critical research opportunities.",
+    label: "Scale of Operation",
+    glyph: "⬡",
+    description:
+      "A global network spanning multiple continents, reaching thousands of learners and researchers simultaneously.",
   },
   {
-    icon: "◈",
-    title: "Research Focus",
-    desc: "Every participant engages in real, structured research — not simulations or case studies.",
+    label: "Research Focus",
+    glyph: "◈",
+    description:
+      "Every engagement is anchored in real research problems — not simulations or hypothetical scenarios.",
   },
   {
-    icon: "⬡",
-    title: "Industry Integration",
-    desc: "Deeply embedded partnerships with industry leaders who co-design the research problems.",
+    label: "Industry Integration",
+    glyph: "◇",
+    description:
+      "Deep partnerships with leading organizations provide authentic industry exposure and live problem-solving.",
   },
   {
-    icon: "◆",
-    title: "Problem-Oriented Learning",
-    desc: "Participants solve actual institutional and societal problems under expert guidance.",
+    label: "Problem-Oriented Learning",
+    glyph: "◆",
+    description:
+      "Participants work on unsolved challenges from day one, building judgment through genuine uncertainty.",
   },
   {
-    icon: "◇",
-    title: "Career Security",
-    desc: "Structured pathways that translate research experience into verified career opportunities.",
+    label: "Career Security",
+    glyph: "◎",
+    description:
+      "Structured pathways ensure each participant exits with verifiable credentials and direct career opportunities.",
   },
+];
+
+const PARTICIPANTS = [
+  "STEM students",
+  "Graduate researchers",
+  "Early-career scientists",
+  "Career switchers",
+  "Global scholars",
 ];
 
 const FLOW_STEPS = [
-  "Industry Problem",
-  "Research Team",
-  "Mentorship",
-  "Solution Development",
-  "Career Opportunities",
+  { label: "Industry Problem", color: "#d4a017" },
+  { label: "Research Team", color: "#4a7ef7" },
+  { label: "Mentorship", color: "#22d3b0" },
+  { label: "Solution Development", color: "#a78bfa" },
+  { label: "Career Opportunities", color: "#34d399" },
 ];
 
 const METRICS = [
-  { label: "Career Placement Rate", value: "94%", ring: 94 },
-  { label: "Research Output", value: "2.4×", ring: 80 },
-  { label: "Partner Satisfaction", value: "97%", ring: 97 },
-  { label: "Skill Development", value: "98%", ring: 98 },
-  { label: "Network Expansion", value: "68%", ring: 68 },
+  { label: "Career Placement Rate", value: 87, color: "#d4a017" },
+  { label: "Research Output", value: 72, color: "#4a7ef7" },
+  { label: "Partner Satisfaction", value: 94, color: "#22d3b0" },
+  { label: "Skill Development", value: 91, color: "#a78bfa" },
+  { label: "Network Expansion", value: 78, color: "#34d399" },
 ];
 
+function MetricBar({
+  label,
+  value,
+  color,
+  index,
+}: {
+  label: string;
+  value: number;
+  color: string;
+  index: number;
+}) {
+  const [animated, setAnimated] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setTimeout(() => setAnimated(true), index * 100);
+        }
+      },
+      { threshold: 0.5 },
+    );
+    if (ref.current) observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [index]);
+
+  return (
+    <div ref={ref} className="space-y-2">
+      <div className="flex items-center justify-between">
+        <span
+          className="font-mono-geist text-xs tracking-[0.1em] uppercase"
+          style={{ color: "rgba(255,255,255,0.65)" }}
+        >
+          {label}
+        </span>
+        <span className="font-mono-geist text-sm font-bold" style={{ color }}>
+          {value}%
+        </span>
+      </div>
+      <div
+        className="h-1.5 rounded-full overflow-hidden"
+        style={{ background: "rgba(255,255,255,0.06)" }}
+      >
+        <div
+          className="h-full rounded-full transition-all duration-1000 ease-out"
+          style={{
+            width: animated ? `${value}%` : "0%",
+            background: `linear-gradient(90deg, ${color}88, ${color})`,
+            boxShadow: `0 0 8px ${color}44`,
+          }}
+        />
+      </div>
+    </div>
+  );
+}
+
 export default function HumanonPage({ onBack }: HumanonPageProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useRevealObserver(containerRef);
+  const [activeStep, setActiveStep] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
+    );
+    const els = document.querySelectorAll(".humanon-reveal");
+    for (const el of els) observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setActiveStep((prev) => (prev + 1) % FLOW_STEPS.length);
+    }, 1800);
+    return () => clearInterval(interval);
   }, []);
 
   return (
-    <div
-      ref={containerRef}
-      style={{
-        background: "var(--neural-bg)",
-        minHeight: "100vh",
-        overflowX: "hidden",
-      }}
-    >
-      {/* ─── Top Navigation Bar ─────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+    <div style={{ background: "var(--neural-bg)", minHeight: "100vh" }}>
+      {/* Section Nav */}
+      <div
+        className="sticky top-[65px] z-40 px-6 py-3 flex items-center justify-between"
         style={{
-          background: "rgba(4,5,14,0.92)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(4,5,14,0.9)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <button
           type="button"
-          data-ocid="humanon.button"
+          data-ocid="humanon.back.button"
           onClick={onBack}
-          className="flex items-center gap-3"
-          style={{ background: "none", border: "none", cursor: "pointer" }}
+          className="flex items-center gap-2 font-mono-geist text-xs tracking-widest uppercase transition-all duration-200"
+          style={{
+            color: "rgba(255,255,255,0.45)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            letterSpacing: "0.15em",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(212,160,23,0.9)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(255,255,255,0.45)";
+          }}
         >
-          <span
-            className="font-mono-geist text-xs tracking-widest"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ←
-          </span>
-          <span
-            className="font-mono-geist text-xs tracking-[0.25em] uppercase transition-colors duration-200"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(212,160,23,0.8)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(255,255,255,0.5)";
-            }}
-          >
-            STEMONEF
-          </span>
+          ← STEMONEF
         </button>
         <div
-          className="font-mono-geist text-[10px] tracking-[0.4em] uppercase"
-          style={{ color: "rgba(212,160,23,0.55)" }}
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
+          style={{ color: "rgba(34,211,176,0.7)" }}
         >
-          ◇ HUMANON™ — TALENT PILLAR
+          HUMANON™
         </div>
-      </nav>
+      </div>
 
-      {/* ─── Hero Section ───────────────────────────────────── */}
+      {/* Hero */}
       <section
-        data-ocid="humanon.section"
-        className="relative flex flex-col items-center justify-center text-center px-6"
-        style={{ minHeight: "82vh", paddingTop: "6rem", paddingBottom: "6rem" }}
+        className="relative min-h-[80vh] flex items-center px-6 overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(8,28,36,0.9) 0%, rgba(4,5,14,1) 60%)",
+        }}
       >
-        {/* Animated background: flowing connection lines */}
         <div
-          className="absolute inset-0 pointer-events-none overflow-hidden"
+          className="neural-grid-bg absolute inset-0 opacity-20"
           aria-hidden="true"
-        >
-          <svg
-            role="img"
-            aria-label="Decorative talent connection flow background"
-            className="absolute inset-0 w-full h-full"
-            style={{ opacity: 0.15 }}
-          >
-            <defs>
-              <linearGradient
-                id="humanonHeroFlow1"
-                x1="0%"
-                y1="0%"
-                x2="100%"
-                y2="100%"
-              >
-                <stop offset="0%" stopColor="#4a7ef7" stopOpacity="0" />
-                <stop offset="50%" stopColor="#4a7ef7" stopOpacity="0.6" />
-                <stop offset="100%" stopColor="#22d3b0" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            {[0, 1, 2, 3, 4].map((i) => (
-              <path
-                key={`flow-${i}`}
-                d={`M ${-100 + i * 250} 0 Q ${100 + i * 200} 400 ${200 + i * 150} 800`}
-                fill="none"
-                stroke="url(#humanonHeroFlow1)"
-                strokeWidth="1"
-                className="animate-breathing"
-                style={{ animationDelay: `${i * 0.4}s` }}
-              />
-            ))}
-            {/* Scatter nodes */}
-            {[
-              [10, 15],
-              [25, 65],
-              [45, 30],
-              [60, 75],
-              [80, 20],
-              [70, 55],
-              [35, 85],
-            ].map(([cx, cy]) => (
-              <circle
-                key={`hnode-${cx}-${cy}`}
-                cx={`${cx}%`}
-                cy={`${cy}%`}
-                r="2.5"
-                fill="#4a7ef7"
-                opacity="0.5"
-                className="animate-breathing"
-              />
-            ))}
-          </svg>
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 65% 55% at 50% 40%, rgba(74,126,247,0.06), transparent 70%)",
-            }}
-          />
-        </div>
+        />
 
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-7xl mx-auto w-full pt-16 pb-20">
           <div
-            className="font-mono-geist text-xs tracking-[0.45em] uppercase mb-6 reveal"
-            style={{ color: "rgba(212,160,23,0.7)" }}
+            className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-6 animate-fade-in-up"
+            style={{ color: "rgba(34,211,176,0.7)" }}
           >
-            ◆ TALENT & FIELD INCUBATION INITIATIVE
+            ◇ TALENT &amp; FIELD INCUBATION INITIATIVE
           </div>
+
           <h1
-            className="font-display font-light mb-4 reveal reveal-delay-1 text-gradient-hero"
+            className="font-display font-light mb-6 animate-fade-in-up"
             style={{
-              fontSize: "clamp(3rem, 9vw, 6.5rem)",
-              letterSpacing: "0.15em",
-              lineHeight: 1,
+              fontSize: "clamp(3.5rem, 11vw, 8rem)",
+              letterSpacing: "0.1em",
+              lineHeight: 0.9,
+              background:
+                "linear-gradient(135deg, #22d3b0 0%, #8ab4ff 50%, #ffffff 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+              animationDelay: "0.1s",
             }}
           >
             HUMANON™
           </h1>
+
           <p
-            className="font-display font-light text-2xl mb-5 reveal reveal-delay-2"
-            style={{ color: "#d4a017", letterSpacing: "0.06em" }}
+            className="font-display text-2xl md:text-3xl font-light mb-6 animate-fade-in-up"
+            style={{
+              color: "rgba(255,255,255,0.65)",
+              letterSpacing: "0.05em",
+              maxWidth: "600px",
+              animationDelay: "0.2s",
+            }}
           >
             Connecting Potential to Purpose.
           </p>
+
           <p
-            className="text-sm reveal reveal-delay-3"
+            className="animate-fade-in-up text-base leading-relaxed max-w-xl"
             style={{
-              color: "rgba(255,255,255,0.38)",
+              color: "rgba(255,255,255,0.45)",
               fontFamily: "Sora, sans-serif",
-              maxWidth: "500px",
-              margin: "0 auto",
-              lineHeight: 1.7,
+              animationDelay: "0.3s",
             }}
           >
             Create the world's most comprehensive talent incubation ecosystem
             linking learners, researchers, and industry.
           </p>
         </div>
+
         <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-chevron-bounce"
-          aria-hidden="true"
-        >
-          <div
-            className="w-px h-10 mx-auto"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(74,126,247,0.5), transparent)",
-            }}
-          />
-        </div>
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, var(--neural-bg))",
+          }}
+        />
       </section>
 
-      {/* ─── Value Proposition ─────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 py-20">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ VALUE PROPOSITION
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Why HUMANON
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {VALUE_PROPS.map((vp, i) => (
+      {/* Value Proposition */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 humanon-reveal reveal">
             <div
-              key={vp.title}
-              data-ocid={`humanon.card.${i + 1}`}
-              className="p-6 rounded-sm reveal transition-all duration-300"
-              style={{
-                background:
-                  "radial-gradient(ellipse at top left, rgba(74,126,247,0.07), rgba(4,5,14,0.8))",
-                border: "1px solid rgba(74,126,247,0.12)",
-                backdropFilter: "blur(16px)",
-                transitionDelay: `${i * 0.06}s`,
-              }}
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top left, rgba(74,126,247,0.14), rgba(4,5,14,0.88))";
-                el.style.borderColor = "rgba(74,126,247,0.3)";
-                el.style.transform = "translateY(-5px)";
-                el.style.boxShadow = "0 12px 32px rgba(0,0,0,0.4)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top left, rgba(74,126,247,0.07), rgba(4,5,14,0.8))";
-                el.style.borderColor = "rgba(74,126,247,0.12)";
-                el.style.transform = "translateY(0)";
-                el.style.boxShadow = "none";
-              }}
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
             >
-              <div className="text-2xl mb-4" style={{ color: "#4a7ef7" }}>
-                {vp.icon}
-              </div>
-              <h3
-                className="font-mono-geist text-xs tracking-wider mb-3"
-                style={{
-                  color: "rgba(255,255,255,0.75)",
-                  letterSpacing: "0.1em",
-                }}
-              >
-                {vp.title}
-              </h3>
-              <p
-                className="text-xs leading-relaxed"
-                style={{
-                  color: "rgba(255,255,255,0.4)",
-                  fontFamily: "Sora, sans-serif",
-                }}
-              >
-                {vp.desc}
-              </p>
+              ◆ VALUE PROPOSITION
             </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Program Structure ─────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(212,160,23,0.7)" }}
-          >
-            ◈ PROGRAM PARTICIPANTS
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Who We Serve
-          </h2>
-        </div>
-
-        <div className="flex flex-wrap gap-3">
-          {[
-            "STEM Students",
-            "Graduate Researchers",
-            "Early-Career Scientists",
-            "Career Switchers",
-            "Global Scholars",
-          ].map((participant, i) => (
-            <span
-              key={participant}
-              className="reveal px-5 py-2.5 rounded-sm font-mono-geist text-xs tracking-wider transition-all duration-200"
+            <h2
+              className="font-display text-4xl font-light"
               style={{
-                background: "rgba(212,160,23,0.06)",
-                border: "1px solid rgba(212,160,23,0.2)",
-                color: "rgba(212,160,23,0.8)",
-                transitionDelay: `${i * 0.07}s`,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLSpanElement).style.background =
-                  "rgba(212,160,23,0.14)";
-                (e.currentTarget as HTMLSpanElement).style.borderColor =
-                  "rgba(212,160,23,0.45)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLSpanElement).style.background =
-                  "rgba(212,160,23,0.06)";
-                (e.currentTarget as HTMLSpanElement).style.borderColor =
-                  "rgba(212,160,23,0.2)";
+                letterSpacing: "0.08em",
+                background: "linear-gradient(135deg, #22d3b0, #ffffff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
               }}
             >
-              {participant}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Industry Partnership Flow ──────────────────────── */}
-      <section className="max-w-4xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ INDUSTRY PARTNERSHIP MODEL
+              Why HUMANON
+            </h2>
           </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            From Problem to Career
-          </h2>
-        </div>
 
-        <div className="flex flex-col gap-0 reveal">
-          {FLOW_STEPS.map((step, i) => (
-            <div key={step} className="flex flex-col items-center">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+            {VALUE_PROPS.map((vp, i) => (
               <div
-                data-ocid={`humanon.card.${i + 1}`}
-                className="w-full max-w-sm mx-auto p-5 rounded-sm transition-all duration-300"
+                key={vp.label}
+                data-ocid={`humanon.value.card.${i + 1}`}
+                className="glass-strong p-6 rounded-sm group transition-all duration-300 humanon-reveal reveal"
                 style={{
-                  background: "rgba(74,126,247,0.05)",
-                  border: "1px solid rgba(74,126,247,0.14)",
-                  backdropFilter: "blur(16px)",
-                  animation: "fade-in-up 0.6s ease forwards",
-                  animationDelay: `${i * 0.12}s`,
-                  opacity: 0,
+                  borderTop: "2px solid rgba(34,211,176,0.3)",
+                  transitionDelay: `${i * 0.08}s`,
+                  cursor: "default",
                 }}
                 onMouseEnter={(e) => {
                   const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "rgba(74,126,247,0.12)";
-                  el.style.borderColor = "rgba(74,126,247,0.3)";
-                  el.style.boxShadow = "0 0 20px rgba(74,126,247,0.15)";
+                  el.style.borderTopColor = "rgba(34,211,176,0.7)";
+                  el.style.boxShadow =
+                    "0 0 20px rgba(34,211,176,0.08), 0 8px 32px rgba(0,0,0,0.4)";
+                  el.style.transform = "translateY(-4px)";
                 }}
                 onMouseLeave={(e) => {
                   const el = e.currentTarget as HTMLDivElement;
-                  el.style.background = "rgba(74,126,247,0.05)";
-                  el.style.borderColor = "rgba(74,126,247,0.14)";
+                  el.style.borderTopColor = "rgba(34,211,176,0.3)";
+                  el.style.boxShadow = "none";
+                  el.style.transform = "none";
+                }}
+              >
+                <div
+                  className="text-2xl mb-4"
+                  style={{ color: "rgba(34,211,176,0.5)" }}
+                  aria-hidden="true"
+                >
+                  {vp.glyph}
+                </div>
+                <div
+                  className="font-mono-geist text-[10px] tracking-[0.2em] uppercase mb-3"
+                  style={{ color: "rgba(34,211,176,0.8)" }}
+                >
+                  {vp.label}
+                </div>
+                <p
+                  className="text-xs leading-relaxed"
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    fontFamily: "Sora, sans-serif",
+                  }}
+                >
+                  {vp.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Program Structure */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12 humanon-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ PROGRAM STRUCTURE
+            </div>
+            <h2
+              className="font-display text-4xl font-light"
+              style={{
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              WHO WE SERVE
+            </h2>
+          </div>
+
+          <div className="space-y-3">
+            {PARTICIPANTS.map((p, i) => (
+              <div
+                key={p}
+                data-ocid={`humanon.participant.item.${i + 1}`}
+                className="humanon-reveal reveal flex items-center gap-5 px-6 py-4 rounded-sm group transition-all duration-300"
+                style={{
+                  background: "rgba(255,255,255,0.03)",
+                  border: "1px solid rgba(255,255,255,0.06)",
+                  transitionDelay: `${i * 0.08}s`,
+                  cursor: "default",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "rgba(34,211,176,0.06)";
+                  el.style.borderColor = "rgba(34,211,176,0.25)";
+                  el.style.boxShadow = "0 0 15px rgba(34,211,176,0.06)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.background = "rgba(255,255,255,0.03)";
+                  el.style.borderColor = "rgba(255,255,255,0.06)";
                   el.style.boxShadow = "none";
                 }}
               >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 font-mono-geist text-[9px]"
-                    style={{
-                      background: "rgba(74,126,247,0.15)",
-                      border: "1px solid rgba(74,126,247,0.4)",
-                      color: "#4a7ef7",
-                    }}
-                  >
-                    {String(i + 1).padStart(2, "0")}
-                  </div>
-                  <span
-                    className="font-mono-geist text-xs tracking-wider"
-                    style={{ color: "rgba(255,255,255,0.7)" }}
-                  >
-                    {step}
-                  </span>
+                <div
+                  className="font-mono-geist text-xs"
+                  style={{
+                    color: "rgba(34,211,176,0.6)",
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  {String(i + 1).padStart(2, "0")}
+                </div>
+                <div
+                  className="h-px flex-1"
+                  style={{ background: "rgba(34,211,176,0.1)" }}
+                />
+                <div
+                  className="font-display text-lg font-light tracking-widest uppercase"
+                  style={{
+                    color: "rgba(255,255,255,0.8)",
+                    letterSpacing: "0.15em",
+                  }}
+                >
+                  {p}
                 </div>
               </div>
-              {i < FLOW_STEPS.length - 1 && (
-                <div className="flex flex-col items-center py-1">
-                  <div
-                    className="w-px h-6"
-                    style={{ background: "rgba(74,126,247,0.3)" }}
-                  />
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{
-                      background: "#4a7ef7",
-                      boxShadow: "0 0 8px rgba(74,126,247,0.6)",
-                      animation: "node-pulse 2s ease-in-out infinite",
-                      animationDelay: `${i * 0.4}s`,
-                    }}
-                  />
-                  <div
-                    className="w-px h-4"
-                    style={{ background: "rgba(74,126,247,0.2)" }}
-                  />
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Success Metrics ────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(212,160,23,0.7)" }}
-          >
-            ◈ SUCCESS METRICS
+            ))}
           </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Impact Dashboard
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          {METRICS.map((metric, i) => {
-            const circumference = 2 * Math.PI * 28;
-            const dashOffset = circumference * (1 - metric.ring / 100);
-            return (
-              <div
-                key={metric.label}
-                data-ocid={`humanon.card.${i + 1}`}
-                className="reveal p-5 rounded-sm flex flex-col items-center text-center transition-all duration-300"
-                style={{
-                  background: "rgba(4,5,14,0.6)",
-                  border: "1px solid rgba(255,255,255,0.07)",
-                  backdropFilter: "blur(16px)",
-                  transitionDelay: `${i * 0.08}s`,
-                }}
-                onMouseEnter={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor =
-                    "rgba(74,126,247,0.3)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow =
-                    "0 8px 24px rgba(0,0,0,0.3)";
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor =
-                    "rgba(255,255,255,0.07)";
-                  (e.currentTarget as HTMLDivElement).style.boxShadow = "none";
-                }}
-              >
-                {/* Circular ring */}
-                <svg
-                  role="img"
-                  aria-label={`${metric.label} progress indicator`}
-                  width="72"
-                  height="72"
-                  viewBox="0 0 72 72"
-                  className="mb-3"
-                >
-                  <circle
-                    cx="36"
-                    cy="36"
-                    r="28"
-                    fill="none"
-                    stroke="rgba(74,126,247,0.1)"
-                    strokeWidth="3"
-                  />
-                  <circle
-                    cx="36"
-                    cy="36"
-                    r="28"
-                    fill="none"
-                    stroke="#4a7ef7"
-                    strokeWidth="3"
-                    strokeDasharray={circumference}
-                    strokeDashoffset={dashOffset}
-                    strokeLinecap="round"
-                    transform="rotate(-90 36 36)"
-                    style={{ transition: "stroke-dashoffset 1s ease" }}
-                  />
-                  <text
-                    x="36"
-                    y="40"
-                    textAnchor="middle"
-                    fill="#d4a017"
-                    fontSize="11"
-                    fontFamily="Geist Mono, monospace"
-                    fontWeight="600"
-                  >
-                    {metric.value}
-                  </text>
-                </svg>
-                <span
-                  className="font-mono-geist text-[9px] tracking-wider"
-                  style={{ color: "rgba(255,255,255,0.45)", lineHeight: 1.4 }}
-                >
-                  {metric.label}
-                </span>
-              </div>
-            );
-          })}
         </div>
       </section>
 
-      {/* ─── Legal Footer ──────────────────────────────────── */}
-      <footer
-        className="px-6 py-12 text-center"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      {/* Industry Partnership Model */}
+      <section className="py-20 px-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="mb-12 humanon-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ INDUSTRY PARTNERSHIP MODEL
+            </div>
+            <h2
+              className="font-display text-4xl font-light"
+              style={{
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              The Pipeline
+            </h2>
+          </div>
+
+          <div
+            className="flex flex-col items-center gap-0 humanon-reveal reveal"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            {FLOW_STEPS.map((step, i) => (
+              <div
+                key={step.label}
+                className="flex flex-col items-center w-full max-w-sm"
+              >
+                <div
+                  className="w-full px-8 py-5 rounded-sm text-center transition-all duration-500"
+                  style={{
+                    background:
+                      activeStep === i
+                        ? `rgba(${step.color === "#d4a017" ? "212,160,23" : step.color === "#4a7ef7" ? "74,126,247" : step.color === "#22d3b0" ? "34,211,176" : step.color === "#a78bfa" ? "167,139,250" : "52,211,153"},0.12)`
+                        : "rgba(255,255,255,0.03)",
+                    border:
+                      activeStep === i
+                        ? `1px solid ${step.color}55`
+                        : "1px solid rgba(255,255,255,0.06)",
+                    boxShadow:
+                      activeStep === i ? `0 0 20px ${step.color}22` : "none",
+                    transform: activeStep === i ? "scale(1.02)" : "scale(1)",
+                  }}
+                >
+                  <div
+                    className="font-mono-geist text-[9px] tracking-[0.2em] uppercase mb-1"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    STEP {String(i + 1).padStart(2, "0")}
+                  </div>
+                  <div
+                    className="font-display text-lg font-light tracking-widest uppercase"
+                    style={{
+                      color:
+                        activeStep === i
+                          ? step.color
+                          : "rgba(255,255,255,0.55)",
+                      letterSpacing: "0.12em",
+                      transition: "color 0.5s ease",
+                    }}
+                  >
+                    {step.label}
+                  </div>
+                </div>
+                {i < FLOW_STEPS.length - 1 && (
+                  <div className="flex flex-col items-center py-2">
+                    <div
+                      className="w-px h-6 transition-all duration-300"
+                      style={{
+                        background:
+                          activeStep === i
+                            ? `linear-gradient(to bottom, ${step.color}, ${FLOW_STEPS[i + 1].color})`
+                            : "rgba(255,255,255,0.1)",
+                      }}
+                    />
+                    <div
+                      className="font-mono-geist text-xs"
+                      style={{ color: "rgba(255,255,255,0.2)" }}
+                    >
+                      ↓
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Success Metrics */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-12 humanon-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ SUCCESS METRICS
+            </div>
+            <h2
+              className="font-display text-4xl font-light"
+              style={{
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              Impact Dashboard
+            </h2>
+          </div>
+
+          <div
+            className="glass-strong p-10 rounded-sm humanon-reveal reveal space-y-8"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            {METRICS.map((m, i) => (
+              <MetricBar
+                key={m.label}
+                label={m.label}
+                value={m.value}
+                color={m.color}
+                index={i}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Legal Footer Note */}
+      <div
+        className="py-8 px-6"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
       >
-        <p
-          className="font-mono-geist text-[10px] tracking-wider"
-          style={{
-            color: "rgba(255,255,255,0.25)",
-            maxWidth: "600px",
-            margin: "0 auto",
-            lineHeight: 1.8,
-          }}
-        >
-          {LEGAL_NOTE}
-        </p>
-      </footer>
+        <div className="max-w-5xl mx-auto">
+          <p
+            className="font-mono-geist text-[10px] text-center leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}
+          >
+            {LEGAL_NOTE}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

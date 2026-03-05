@@ -8,237 +8,7 @@ import { useState } from "react";
 import type { Pillar } from "../backend.d";
 import { useGetAllPillars } from "../hooks/useQueries";
 
-// ─── Featured Pillar Cards Data ───────────────────────────────────────────
-interface FeaturedPillarData {
-  label: string;
-  title: string;
-  subtitle: string;
-  description: string;
-  focusAreas: string[];
-  buttonText: string;
-  viewKey: string;
-  glyph: string;
-  index: string;
-}
-
-const FEATURED_PILLARS: FeaturedPillarData[] = [
-  {
-    label: "◈ PILLAR 01 / 03",
-    title: "EPOCHS",
-    subtitle: "Research & Innovation Organization",
-    description:
-      "Emergent Projects ON Climate, Human & Systems Research. The primary research and development arm of STEMONEF Enterprises focused on climate systems, deep technology, and ethical innovation.",
-    focusAreas: [
-      "Climate Systems Research",
-      "Deep Technology Development",
-      "Ethical AI Research",
-    ],
-    buttonText: "Explore EPOCHS",
-    viewKey: "epochs",
-    glyph: "◈",
-    index: "01",
-  },
-  {
-    label: "◇ PILLAR 02 / 03",
-    title: "HUMANON™",
-    subtitle: "Talent & Field Incubation Initiative",
-    description:
-      "Connecting Potential to Purpose. A large-scale global talent incubation ecosystem connecting learners and early-career researchers with real-world research opportunities and industry mentorship.",
-    focusAreas: [
-      "Applied Research Participation",
-      "Industry Mentorship",
-      "Career Path Development",
-    ],
-    buttonText: "Explore HUMANON",
-    viewKey: "humanon",
-    glyph: "◇",
-    index: "02",
-  },
-  {
-    label: "◆ PILLAR 03 / 03",
-    title: "STEAMI™",
-    subtitle: "Intelligence & Knowledge Platform",
-    description:
-      "Intelligence Finds Its Voice. A decision-grade intelligence organization responsible for research synthesis, strategic foresight, and knowledge validation across the STEMONEF ecosystem.",
-    focusAreas: [
-      "Intelligence Synthesis",
-      "Strategic Foresight",
-      "Ethical Knowledge Governance",
-    ],
-    buttonText: "Explore STEAMI",
-    viewKey: "steami",
-    glyph: "◆",
-    index: "03",
-  },
-];
-
-function FeaturedPillarCard({
-  pillar,
-  cardIndex,
-  onNavigate,
-}: {
-  pillar: FeaturedPillarData;
-  cardIndex: number;
-  onNavigate: (view: string) => void;
-}) {
-  const [hovered, setHovered] = useState(false);
-
-  return (
-    <div
-      data-ocid={`pillars.card.${cardIndex + 1}`}
-      className="reveal flex flex-col"
-      style={
-        {
-          transitionDelay: `${cardIndex * 0.1}s`,
-          animation: `float-up ${7 + cardIndex * 0.8}s ease-in-out infinite`,
-          animationDelay: `${cardIndex * 0.9}s`,
-        } as React.CSSProperties
-      }
-    >
-      <div
-        className="flex flex-col h-full p-8 rounded-sm transition-all duration-400 relative overflow-hidden"
-        style={{
-          minHeight: "320px",
-          background: hovered
-            ? "radial-gradient(ellipse at top left, rgba(74,126,247,0.14), rgba(4,5,14,0.9))"
-            : "radial-gradient(ellipse at top left, rgba(74,126,247,0.08), rgba(4,5,14,0.85))",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          border: hovered
-            ? "1px solid rgba(74,126,247,0.25)"
-            : "1px solid rgba(255,255,255,0.08)",
-          borderTop: hovered ? "2px solid #d4a017" : "2px solid transparent",
-          transform: hovered ? "translateY(-6px)" : "translateY(0)",
-          boxShadow: hovered
-            ? "0 20px 60px rgba(0,0,0,0.6), 0 0 30px rgba(74,126,247,0.12)"
-            : "0 4px 24px rgba(0,0,0,0.3)",
-          cursor: "default",
-          transition: "all 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
-        }}
-        onMouseEnter={() => setHovered(true)}
-        onMouseLeave={() => setHovered(false)}
-      >
-        {/* Watermark glyph */}
-        <div
-          className="absolute font-display font-light select-none pointer-events-none"
-          aria-hidden="true"
-          style={{
-            fontSize: "10rem",
-            lineHeight: 1,
-            color: "rgba(212,160,23,0.04)",
-            right: "-10px",
-            bottom: "-20px",
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {pillar.glyph}
-        </div>
-
-        {/* Yellow hover accent line at top is via borderTop above */}
-
-        {/* Label */}
-        <div
-          className="font-mono-geist text-[9px] tracking-[0.4em] uppercase mb-5"
-          style={{
-            color: hovered ? "rgba(212,160,23,0.85)" : "rgba(212,160,23,0.55)",
-          }}
-        >
-          {pillar.label}
-        </div>
-
-        {/* Title */}
-        <h3
-          className="font-display font-light mb-2 text-gradient-hero"
-          style={{
-            fontSize: "clamp(2rem, 5vw, 2.8rem)",
-            letterSpacing: "0.15em",
-            lineHeight: 1,
-          }}
-        >
-          {pillar.title}
-        </h3>
-
-        {/* Subtitle */}
-        <p
-          className="font-mono-geist text-xs mb-4"
-          style={{
-            color: "#d4a017",
-            letterSpacing: "0.08em",
-            opacity: hovered ? 0.9 : 0.7,
-          }}
-        >
-          {pillar.subtitle}
-        </p>
-
-        {/* Description */}
-        <p
-          className="text-xs leading-relaxed mb-5 flex-1"
-          style={{
-            color: "rgba(255,255,255,0.5)",
-            fontFamily: "Sora, sans-serif",
-            opacity: hovered ? 0.7 : 0.5,
-          }}
-        >
-          {pillar.description}
-        </p>
-
-        {/* Focus area pills */}
-        <div className="flex flex-wrap gap-2 mb-7">
-          {pillar.focusAreas.map((area) => (
-            <span
-              key={area}
-              className="px-3 py-1 text-[9px] tracking-wider font-mono-geist rounded-sm"
-              style={{
-                background: hovered
-                  ? "rgba(74,126,247,0.12)"
-                  : "rgba(255,255,255,0.04)",
-                border: `1px solid ${hovered ? "rgba(74,126,247,0.35)" : "rgba(74,126,247,0.2)"}`,
-                color: "rgba(74,126,247,0.85)",
-                transition: "all 0.3s ease",
-              }}
-            >
-              {area}
-            </span>
-          ))}
-        </div>
-
-        {/* Explore button */}
-        <button
-          type="button"
-          data-ocid={`pillars.${pillar.viewKey}.button`}
-          onClick={() => onNavigate(pillar.viewKey)}
-          className="w-full py-3 text-xs tracking-[0.2em] uppercase font-mono-geist transition-all duration-300"
-          style={{
-            background: hovered
-              ? "rgba(212,160,23,0.12)"
-              : "rgba(255,255,255,0.03)",
-            border: hovered
-              ? "1px solid rgba(212,160,23,0.5)"
-              : "1px solid rgba(255,255,255,0.1)",
-            color: hovered ? "#d4a017" : "rgba(255,255,255,0.5)",
-            cursor: "pointer",
-            letterSpacing: "0.2em",
-            borderRadius: "2px",
-          }}
-          onMouseEnter={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background =
-              "rgba(212,160,23,0.18)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow =
-              "0 0 15px rgba(212,160,23,0.2)";
-          }}
-          onMouseLeave={(e) => {
-            (e.currentTarget as HTMLButtonElement).style.background = hovered
-              ? "rgba(212,160,23,0.12)"
-              : "rgba(255,255,255,0.03)";
-            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-          }}
-        >
-          {pillar.buttonText} →
-        </button>
-      </div>
-    </div>
-  );
-}
+type PillarPage = "epochs" | "humanon" | "steami";
 
 const FALLBACK_PILLARS: Pillar[] = [
   {
@@ -355,6 +125,213 @@ const FALLBACK_PILLARS: Pillar[] = [
   },
 ];
 
+// Featured pillar card data for the three core pillars
+const FEATURED_PILLARS = [
+  {
+    key: "epochs" as PillarPage,
+    glyph: "◈",
+    index: "01",
+    title: "EPOCHS",
+    subtitle: "Research & Innovation Organization",
+    description:
+      "Emergent Projects ON Climate, Human & Systems Research. The primary research and development arm of STEMONEF Enterprises focused on climate systems, deep technology, and ethical innovation.",
+    focus: [
+      "Climate Systems Research",
+      "Deep Technology Development",
+      "Ethical AI Research",
+    ],
+    buttonLabel: "Explore EPOCHS",
+    accentColor: "#4a7ef7",
+    accentGlow: "rgba(74,126,247,0.3)",
+    delay: "0s",
+  },
+  {
+    key: "humanon" as PillarPage,
+    glyph: "◇",
+    index: "02",
+    title: "HUMANON™",
+    subtitle: "Talent & Field Incubation Initiative",
+    description:
+      "Connecting Potential to Purpose. A large-scale global talent incubation ecosystem connecting learners and early-career researchers with real-world research opportunities and industry mentorship.",
+    focus: [
+      "Applied Research Participation",
+      "Industry Mentorship",
+      "Career Path Development",
+    ],
+    buttonLabel: "Explore HUMANON",
+    accentColor: "#22d3b0",
+    accentGlow: "rgba(34,211,176,0.3)",
+    delay: "0.3s",
+  },
+  {
+    key: "steami" as PillarPage,
+    glyph: "◆",
+    index: "03",
+    title: "STEAMI™",
+    subtitle: "Intelligence & Knowledge Platform",
+    description:
+      "Intelligence Finds Its Voice. A decision-grade intelligence organization responsible for research synthesis, strategic foresight, and knowledge validation across the STEMONEF ecosystem.",
+    focus: [
+      "Intelligence Synthesis",
+      "Strategic Foresight",
+      "Ethical Knowledge Governance",
+    ],
+    buttonLabel: "Explore STEAMI",
+    accentColor: "#d4a017",
+    accentGlow: "rgba(212,160,23,0.3)",
+    delay: "0.6s",
+  },
+] as const;
+
+function FeaturedPillarCard({
+  pillar,
+  scanDelay,
+  onNavigate,
+}: {
+  pillar: (typeof FEATURED_PILLARS)[number];
+  scanDelay: string;
+  onNavigate?: (page: PillarPage) => void;
+}) {
+  const [hovered, setHovered] = useState(false);
+
+  return (
+    <div
+      className="relative flex flex-col h-full reveal animate-float-up"
+      style={{ animationDelay: pillar.delay, transitionDelay: pillar.delay }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      {/* Yellow highlight bar at top edge — appears on hover */}
+      <div
+        className="absolute top-0 left-0 right-0 h-0.5 transition-all duration-300 rounded-t-sm z-10"
+        style={{
+          background: `linear-gradient(90deg, transparent, ${pillar.accentColor}, transparent)`,
+          opacity: hovered ? 1 : 0,
+        }}
+        aria-hidden="true"
+      />
+
+      <div
+        className={`glass-strong flex flex-col h-full p-8 rounded-sm transition-all duration-400 overflow-hidden relative${hovered ? " animate-featured-glow" : ""}`}
+        style={{
+          background: hovered
+            ? `radial-gradient(ellipse 100% 80% at 50% 0%, ${pillar.accentGlow.replace("0.3", "0.1")} 0%, rgba(4,5,14,0.85) 60%)`
+            : `radial-gradient(ellipse 80% 60% at 50% 0%, ${pillar.accentGlow.replace("0.3", "0.05")} 0%, rgba(4,5,14,0.7) 55%)`,
+          borderColor: hovered
+            ? `${pillar.accentColor}44`
+            : "rgba(255,255,255,0.08)",
+          transform: hovered ? "translateY(-4px)" : "translateY(0)",
+          /* CSS variable for the pulsing glow keyframe */
+          ["--card-glow-color" as string]: pillar.accentGlow,
+        }}
+      >
+        {/* Floating scan line */}
+        <div
+          className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
+          style={{
+            height: "1px",
+            background: `linear-gradient(90deg, transparent, ${pillar.accentColor}, transparent)`,
+            ["--scan-delay" as string]: scanDelay,
+          }}
+          aria-hidden="true"
+        />
+
+        {/* Top row: glyph + index */}
+        <div className="flex items-center justify-between mb-6">
+          {/* Animated glyph */}
+          <div
+            className="text-2xl animate-glyph-pulse"
+            style={{ color: `${pillar.accentColor}77` }}
+            aria-hidden="true"
+          >
+            {pillar.glyph}
+          </div>
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.25em]"
+            style={{ color: `${pillar.accentColor}88` }}
+          >
+            {pillar.index}
+          </div>
+        </div>
+
+        {/* Title */}
+        <h3
+          className="font-display text-3xl md:text-4xl font-light text-gradient-hero mb-2"
+          style={{ letterSpacing: "0.12em", lineHeight: 1 }}
+        >
+          {pillar.title}
+        </h3>
+
+        {/* Subtitle */}
+        <div
+          className="font-mono-geist text-[10px] tracking-[0.25em] uppercase mb-5"
+          style={{ color: pillar.accentColor, opacity: 0.75 }}
+        >
+          {pillar.subtitle}
+        </div>
+
+        {/* Description */}
+        <p
+          className="text-sm leading-relaxed mb-6 flex-1"
+          style={{
+            color: "rgba(255,255,255,0.45)",
+            fontFamily: "Sora, sans-serif",
+          }}
+        >
+          {pillar.description}
+        </p>
+
+        {/* Focus area pills — staggered entrance */}
+        <div className="flex flex-wrap gap-2 mb-8">
+          {pillar.focus.map((area, idx) => (
+            <span
+              key={area}
+              className="px-3 py-1 text-[10px] tracking-[0.1em] uppercase rounded-sm"
+              style={{
+                background: `${pillar.accentColor}10`,
+                border: `1px solid ${pillar.accentColor}30`,
+                color: `${pillar.accentColor}cc`,
+                fontFamily: "Geist Mono, monospace",
+                /* staggered entrance */
+                animation: "fade-in-up 0.4s ease forwards",
+                animationDelay: `${idx * 0.08}s`,
+                opacity: 0,
+              }}
+            >
+              {area}
+            </span>
+          ))}
+        </div>
+
+        {/* Explore button */}
+        {onNavigate && (
+          <button
+            type="button"
+            data-ocid={`pillars.featured.${pillar.key}.button`}
+            onClick={() => onNavigate(pillar.key)}
+            className="w-full py-3.5 text-xs tracking-widest uppercase transition-all duration-300 rounded-sm"
+            style={{
+              background: hovered
+                ? `${pillar.accentColor}18`
+                : "rgba(255,255,255,0.04)",
+              border: `1px solid ${hovered ? `${pillar.accentColor}66` : `${pillar.accentColor}33`}`,
+              color: hovered ? pillar.accentColor : `${pillar.accentColor}bb`,
+              fontFamily: "Geist Mono, monospace",
+              letterSpacing: "0.2em",
+              cursor: "pointer",
+              boxShadow: hovered
+                ? `0 0 12px ${pillar.accentGlow.replace("0.3", "0.15")}`
+                : "none",
+            }}
+          >
+            {pillar.buttonLabel} →
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 const PILLAR_COLORS = [
   {
     line: "#4a7ef7",
@@ -403,6 +380,9 @@ function PillarCard({
   onClick: () => void;
 }) {
   const color = PILLAR_COLORS[index % PILLAR_COLORS.length];
+  const [hovered, setHovered] = useState(false);
+  const scanDelay = `${index * 1.8}s`;
+  const GLYPHS = ["◈", "◇", "◆", "▷", "⬡", "◎", "◉"] as const;
 
   return (
     <button
@@ -419,27 +399,36 @@ function PillarCard({
       }}
     >
       <div
-        className="h-full p-6 rounded-sm transition-all duration-300 relative overflow-hidden"
+        className={`h-full p-6 rounded-sm transition-all duration-300 relative overflow-hidden${hovered ? " animate-featured-glow" : ""}`}
         style={{
-          background: `radial-gradient(ellipse 80% 80% at 110% 110%, ${color.glow.replace("0.3", "0.08")} 0%, rgba(4,5,14,0.6) 60%)`,
+          background: hovered
+            ? `radial-gradient(ellipse 100% 100% at 110% 110%, ${color.glow.replace("0.3", "0.18")} 0%, rgba(4,5,14,0.75) 65%)`
+            : `radial-gradient(ellipse 80% 80% at 110% 110%, ${color.glow.replace("0.3", "0.08")} 0%, rgba(4,5,14,0.6) 60%)`,
           backdropFilter: "blur(16px)",
           WebkitBackdropFilter: "blur(16px)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          border: `1px solid ${hovered ? `${color.line}55` : "rgba(255,255,255,0.07)"}`,
           borderLeft: `2px solid ${color.line}`,
+          boxShadow: hovered
+            ? `0 0 25px ${color.glow.replace("0.3", "0.2")}, 0 8px 32px rgba(0,0,0,0.5)`
+            : "none",
+          transform: hovered ? "translateY(-3px)" : "translateY(0)",
+          /* CSS variable for the pulsing glow keyframe */
+          ["--card-glow-color" as string]: color.glow,
         }}
-        onMouseEnter={(e) => {
-          const el = e.currentTarget as HTMLDivElement;
-          el.style.background = `radial-gradient(ellipse 100% 100% at 110% 110%, ${color.glow.replace("0.3", "0.18")} 0%, rgba(4,5,14,0.75) 65%)`;
-          el.style.boxShadow = `0 0 25px ${color.glow.replace("0.3", "0.2")}, 0 8px 32px rgba(0,0,0,0.5)`;
-          el.style.borderColor = `${color.line}55`;
-        }}
-        onMouseLeave={(e) => {
-          const el = e.currentTarget as HTMLDivElement;
-          el.style.background = `radial-gradient(ellipse 80% 80% at 110% 110%, ${color.glow.replace("0.3", "0.08")} 0%, rgba(4,5,14,0.6) 60%)`;
-          el.style.boxShadow = "none";
-          el.style.borderColor = "rgba(255,255,255,0.07)";
-        }}
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
       >
+        {/* Floating scan line */}
+        <div
+          className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
+          style={{
+            height: "1px",
+            background: `linear-gradient(90deg, transparent, ${color.line}, transparent)`,
+            ["--scan-delay" as string]: scanDelay,
+          }}
+          aria-hidden="true"
+        />
+
         {/* Watermark number — oversized, behind content */}
         <div
           className="absolute font-display font-light select-none pointer-events-none"
@@ -457,13 +446,13 @@ function PillarCard({
           {String(index + 1).padStart(2, "0")}
         </div>
 
-        {/* Pillar glyph top-right corner */}
+        {/* Pillar glyph top-right corner — animated */}
         <div
-          className="absolute top-4 right-5 font-mono-geist text-[10px] font-bold select-none pointer-events-none"
-          style={{ color: color.line, opacity: 0.25, letterSpacing: "0.05em" }}
+          className="absolute top-4 right-5 font-mono-geist text-[10px] font-bold select-none pointer-events-none animate-glyph-pulse"
+          style={{ color: color.line, letterSpacing: "0.05em" }}
           aria-hidden="true"
         >
-          {["◈", "◇", "◆", "▷", "⬡", "◎", "◉"][index % 7]}
+          {GLYPHS[index % 7]}
         </div>
 
         {/* Index */}
@@ -497,12 +486,40 @@ function PillarCard({
           {pillar.mandate}
         </p>
 
+        {/* Focus pills — staggered entrance */}
+        <div className="mt-4 flex flex-wrap gap-1.5 mb-3">
+          {pillar.mandate
+            .split(/[,.]/)
+            .slice(0, 2)
+            .map((tag, tagIdx) => {
+              const trimmed = tag.trim();
+              if (!trimmed) return null;
+              return (
+                <span
+                  key={trimmed}
+                  className="px-2 py-0.5 text-[9px] tracking-[0.08em] uppercase rounded-sm"
+                  style={{
+                    background: `${color.line}10`,
+                    border: `1px solid ${color.line}28`,
+                    color: `${color.line}bb`,
+                    fontFamily: "Geist Mono, monospace",
+                    animation: "fade-in-up 0.4s ease forwards",
+                    animationDelay: `${tagIdx * 0.08}s`,
+                    opacity: 0,
+                  }}
+                >
+                  {trimmed.slice(0, 28)}
+                </span>
+              );
+            })}
+        </div>
+
         {/* Expand hint */}
         <div
-          className="mt-5 flex items-center gap-2 text-[10px] tracking-widest uppercase transition-all duration-200"
+          className="mt-3 flex items-center gap-2 text-[10px] tracking-widest uppercase transition-all duration-200"
           style={{
             color: color.line,
-            opacity: 0.55,
+            opacity: hovered ? 0.85 : 0.55,
             fontFamily: "Geist Mono, monospace",
           }}
         >
@@ -515,7 +532,7 @@ function PillarCard({
 }
 
 interface PillarsSectionProps {
-  onNavigate?: (view: string) => void;
+  onNavigate?: (page: PillarPage) => void;
 }
 
 export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
@@ -524,20 +541,65 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
     pillars && pillars.length > 0 ? pillars : FALLBACK_PILLARS;
   const [selectedPillar, setSelectedPillar] = useState<Pillar | null>(null);
 
-  const handleNavigate = (view: string) => {
-    if (onNavigate) {
-      onNavigate(view);
-    }
-  };
-
   return (
     <section
       data-ocid="pillars.section"
       id="pillars"
       className="relative py-28 px-6"
     >
+      {/* ── FEATURED PILLARS BLOCK ────────────────────────────────────────── */}
+      <div className="max-w-7xl mx-auto mb-28">
+        {/* Featured heading */}
+        <div className="mb-12 reveal">
+          <div
+            className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-4"
+            style={{ color: "rgba(212,160,23,0.7)" }}
+          >
+            ◆ CORE PILLARS
+          </div>
+          <h2
+            className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
+            style={{ letterSpacing: "0.08em" }}
+          >
+            The Foundation
+          </h2>
+          <p
+            className="mt-3 max-w-lg text-sm leading-relaxed"
+            style={{
+              color: "rgba(255,255,255,0.38)",
+              fontFamily: "Sora, sans-serif",
+            }}
+          >
+            Three primary verticals drive STEMONEF's core mission — explore each
+            to understand the full depth of their mandate.
+          </p>
+        </div>
+
+        {/* Three large feature cards */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {FEATURED_PILLARS.map((fp, cardIdx) => (
+            <FeaturedPillarCard
+              key={fp.key}
+              pillar={fp}
+              scanDelay={`${cardIdx * 1.5}s`}
+              onNavigate={onNavigate}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div
+        className="max-w-7xl mx-auto mb-16 h-px"
+        style={{
+          background:
+            "linear-gradient(90deg, transparent, rgba(255,255,255,0.06), transparent)",
+        }}
+        aria-hidden="true"
+      />
+
       {/* Section header */}
-      <div className="max-w-7xl mx-auto mb-10">
+      <div className="max-w-7xl mx-auto mb-16">
         <div
           className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-4"
           style={{ color: "rgba(212,160,23,0.7)" }}
@@ -561,46 +623,6 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
           each carrying a distinct mandate while contributing to a unified
           institutional mission.
         </p>
-      </div>
-
-      {/* ─── Featured Core Pillars ─────────────────────────── */}
-      <div className="max-w-7xl mx-auto mb-20">
-        <div
-          className="font-mono-geist text-[10px] tracking-[0.5em] uppercase mb-8"
-          style={{ color: "rgba(212,160,23,0.65)" }}
-        >
-          ◆ CORE PILLARS
-        </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {FEATURED_PILLARS.map((pillar, i) => (
-            <FeaturedPillarCard
-              key={pillar.viewKey}
-              pillar={pillar}
-              cardIndex={i}
-              onNavigate={handleNavigate}
-            />
-          ))}
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div className="max-w-7xl mx-auto mb-12">
-        <div className="flex items-center gap-4">
-          <div
-            className="flex-1 h-px"
-            style={{ background: "rgba(255,255,255,0.06)" }}
-          />
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase"
-            style={{ color: "rgba(255,255,255,0.18)" }}
-          >
-            FULL STRUCTURAL ARCHITECTURE
-          </div>
-          <div
-            className="flex-1 h-px"
-            style={{ background: "rgba(255,255,255,0.06)" }}
-          />
-        </div>
       </div>
 
       {/* Pillar grid */}

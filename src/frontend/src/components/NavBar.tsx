@@ -2,28 +2,35 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
+type NavigablePillar = "epochs" | "humanon" | "steami" | "elpis";
+
 interface NavBarProps {
   onCompanionToggle: () => void;
   companionOpen: boolean;
   onScrollTo: (id: string) => void;
   onDashboard?: () => void;
+  onNavigatePillar?: (page: NavigablePillar) => void;
 }
 
-const PILLARS = [
-  "EPOCHS",
-  "HUMANON",
-  "STEAMI",
-  "NOVA",
-  "TERRA",
-  "EQUIS",
-  "ETHOS",
-];
+// Pillars that navigate to dedicated pages vs those that scroll to section
+const PILLAR_NAV: Array<{ label: string; navigateTo: NavigablePillar | null }> =
+  [
+    { label: "EPOCHS", navigateTo: "epochs" },
+    { label: "HUMANON", navigateTo: "humanon" },
+    { label: "STEAMI", navigateTo: "steami" },
+    { label: "NOVA", navigateTo: null },
+    { label: "TERRA", navigateTo: null },
+    { label: "EQUIS", navigateTo: null },
+    { label: "ETHOS", navigateTo: null },
+    { label: "E.L.P.I.S", navigateTo: "elpis" },
+  ];
 
 export default function NavBar({
   onCompanionToggle,
   companionOpen,
   onScrollTo,
   onDashboard,
+  onNavigatePillar,
 }: NavBarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -90,17 +97,25 @@ export default function NavBar({
 
         {/* Desktop Pillar Links */}
         <nav className="hidden lg:flex items-center gap-1">
-          {PILLARS.map((pillar) => (
+          {PILLAR_NAV.map((item) => (
             <button
               type="button"
-              key={pillar}
+              key={item.label}
               data-ocid="nav.link"
-              onClick={() => onScrollTo("pillars")}
+              onClick={() => {
+                if (item.navigateTo && onNavigatePillar) {
+                  onNavigatePillar(item.navigateTo);
+                } else {
+                  onScrollTo("pillars");
+                }
+              }}
               className="px-3 py-1.5 text-xs tracking-widest uppercase transition-all duration-200 rounded"
               style={{
-                color: "rgba(255,255,255,0.45)",
+                color: item.navigateTo
+                  ? "rgba(255,255,255,0.6)"
+                  : "rgba(255,255,255,0.45)",
                 fontFamily: "Geist Mono, monospace",
-                letterSpacing: "0.15em",
+                letterSpacing: "0.12em",
                 background: "none",
                 border: "none",
                 cursor: "pointer",
@@ -113,12 +128,14 @@ export default function NavBar({
               }}
               onMouseLeave={(e) => {
                 (e.currentTarget as HTMLButtonElement).style.color =
-                  "rgba(255,255,255,0.45)";
+                  item.navigateTo
+                    ? "rgba(255,255,255,0.6)"
+                    : "rgba(255,255,255,0.45)";
                 (e.currentTarget as HTMLButtonElement).style.background =
                   "none";
               }}
             >
-              {pillar}
+              {item.label}
             </button>
           ))}
         </nav>
@@ -277,26 +294,32 @@ export default function NavBar({
           }}
         >
           <div className="px-6 py-4 flex flex-col gap-3">
-            {PILLARS.map((pillar) => (
+            {PILLAR_NAV.map((item) => (
               <button
                 type="button"
-                key={pillar}
+                key={item.label}
                 data-ocid="nav.link"
                 onClick={() => {
-                  onScrollTo("pillars");
+                  if (item.navigateTo && onNavigatePillar) {
+                    onNavigatePillar(item.navigateTo);
+                  } else {
+                    onScrollTo("pillars");
+                  }
                   setMobileOpen(false);
                 }}
                 className="text-left text-xs tracking-widest uppercase py-2"
                 style={{
-                  color: "rgba(255,255,255,0.5)",
+                  color: item.navigateTo
+                    ? "rgba(255,255,255,0.65)"
+                    : "rgba(255,255,255,0.5)",
                   fontFamily: "Geist Mono, monospace",
-                  letterSpacing: "0.15em",
+                  letterSpacing: "0.12em",
                   background: "none",
                   border: "none",
                   cursor: "pointer",
                 }}
               >
-                {pillar}
+                {item.label}
               </button>
             ))}
             <button

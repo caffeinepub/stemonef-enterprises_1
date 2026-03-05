@@ -1,713 +1,725 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 interface EpochsPageProps {
   onBack: () => void;
 }
 
-function useRevealObserver(containerRef: React.RefObject<HTMLElement | null>) {
-  useEffect(() => {
-    const container = containerRef.current;
-    if (!container) return;
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("visible");
-          }
-        }
-      },
-      { threshold: 0.1, rootMargin: "0px 0px -40px 0px" },
-    );
-    const els = container.querySelectorAll(".reveal");
-    for (const el of els) observer.observe(el);
-    return () => observer.disconnect();
-  }, [containerRef]);
-}
-
 const LEGAL_NOTE =
   "EPOCHS™, HUMANON™, STEAMI™ and all associated initiatives operate under the parent institution THE STEMONEF™ ENTERPRISES.";
 
-export default function EpochsPage({ onBack }: EpochsPageProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  useRevealObserver(containerRef);
+function AnimatedBackground() {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Scroll to top on mount
   useEffect(() => {
-    window.scrollTo(0, 0);
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    let animId: number;
+    const nodes: { x: number; y: number; vx: number; vy: number; r: number }[] =
+      [];
+
+    const resize = () => {
+      canvas.width = canvas.offsetWidth;
+      canvas.height = canvas.offsetHeight;
+    };
+    resize();
+    window.addEventListener("resize", resize);
+
+    for (let i = 0; i < 28; i++) {
+      nodes.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        vx: (Math.random() - 0.5) * 0.4,
+        vy: (Math.random() - 0.5) * 0.4,
+        r: Math.random() * 2.5 + 1,
+      });
+    }
+
+    function draw() {
+      if (!canvas || !ctx) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      for (const n of nodes) {
+        n.x += n.vx;
+        n.y += n.vy;
+        if (n.x < 0 || n.x > canvas.width) n.vx *= -1;
+        if (n.y < 0 || n.y > canvas.height) n.vy *= -1;
+
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, n.r, 0, Math.PI * 2);
+        ctx.fillStyle = "rgba(74,126,247,0.5)";
+        ctx.fill();
+      }
+
+      for (let i = 0; i < nodes.length; i++) {
+        for (let j = i + 1; j < nodes.length; j++) {
+          const dx = nodes[i].x - nodes[j].x;
+          const dy = nodes[i].y - nodes[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 160) {
+            ctx.beginPath();
+            ctx.moveTo(nodes[i].x, nodes[i].y);
+            ctx.lineTo(nodes[j].x, nodes[j].y);
+            ctx.strokeStyle = `rgba(74,126,247,${0.12 * (1 - dist / 160)})`;
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+          }
+        }
+      }
+
+      animId = requestAnimationFrame(draw);
+    }
+
+    draw();
+    return () => {
+      cancelAnimationFrame(animId);
+      window.removeEventListener("resize", resize);
+    };
   }, []);
 
   return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 w-full h-full"
+      style={{ opacity: 0.35 }}
+      tabIndex={-1}
+    />
+  );
+}
+
+function PipelineNode({
+  label,
+  index,
+  total,
+}: { label: string; index: number; total: number }) {
+  const isLast = index === total - 1;
+  return (
+    <div className="flex items-center">
+      <div
+        className="flex flex-col items-center gap-1"
+        style={{ animationDelay: `${index * 0.15}s` }}
+      >
+        <div
+          className="px-4 py-3 rounded-sm text-center animate-fade-in-up"
+          style={{
+            background: "rgba(74,126,247,0.08)",
+            border: "1px solid rgba(74,126,247,0.25)",
+            backdropFilter: "blur(12px)",
+            minWidth: "140px",
+            animationDelay: `${index * 0.18}s`,
+          }}
+        >
+          <div
+            className="font-mono-geist text-[9px] tracking-[0.2em] uppercase mb-1"
+            style={{ color: "rgba(212,160,23,0.7)" }}
+          >
+            {String(index + 1).padStart(2, "0")}
+          </div>
+          <div
+            className="font-mono-geist text-xs"
+            style={{ color: "rgba(255,255,255,0.8)", letterSpacing: "0.05em" }}
+          >
+            {label}
+          </div>
+        </div>
+      </div>
+      {!isLast && (
+        <div className="flex items-center mx-2">
+          <div
+            className="progress-flow-line"
+            style={{ width: "40px", height: "1px" }}
+          />
+          <span
+            className="font-mono-geist text-xs ml-1"
+            style={{ color: "rgba(212,160,23,0.6)" }}
+          >
+            →
+          </span>
+        </div>
+      )}
+    </div>
+  );
+}
+
+export default function EpochsPage({ onBack }: EpochsPageProps) {
+  const [hoveredGaia, setHoveredGaia] = useState<number | null>(null);
+  const revealRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) entry.target.classList.add("visible");
+        }
+      },
+      { threshold: 0.1, rootMargin: "0px 0px -50px 0px" },
+    );
+    const revealEls = document.querySelectorAll(".epochs-reveal");
+    for (const el of revealEls) observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const gaiaFocusAreas = [
+    "Climate modeling and prediction",
+    "Sustainable healthcare",
+    "Environmental impact assessment",
+    "Carbon capture systems",
+    "Renewable energy integration",
+  ];
+
+  const pipelineSteps = [
+    "Intelligence Platforms",
+    "Operating Systems",
+    "IoT Networks",
+    "Analytics Infrastructure",
+    "Sustainability Enterprise Systems",
+  ];
+
+  return (
     <div
-      ref={containerRef}
-      style={{
-        background: "var(--neural-bg)",
-        minHeight: "100vh",
-        overflowX: "hidden",
-      }}
+      ref={revealRef}
+      style={{ background: "var(--neural-bg)", minHeight: "100vh" }}
     >
-      {/* ─── Top Navigation Bar ─────────────────────────────── */}
-      <nav
-        className="sticky top-0 z-50 flex items-center justify-between px-6 py-4"
+      {/* Section Nav */}
+      <div
+        className="sticky top-[65px] z-40 px-6 py-3 flex items-center justify-between"
         style={{
-          background: "rgba(4,5,14,0.92)",
-          backdropFilter: "blur(20px)",
-          WebkitBackdropFilter: "blur(20px)",
-          borderBottom: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(4,5,14,0.9)",
+          backdropFilter: "blur(16px)",
+          borderBottom: "1px solid rgba(255,255,255,0.06)",
         }}
       >
         <button
           type="button"
-          data-ocid="epochs.button"
+          data-ocid="epochs.back.button"
           onClick={onBack}
-          className="flex items-center gap-3 group transition-all duration-200"
-          style={{ background: "none", border: "none", cursor: "pointer" }}
+          className="flex items-center gap-2 font-mono-geist text-xs tracking-widest uppercase transition-all duration-200"
+          style={{
+            color: "rgba(255,255,255,0.45)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            letterSpacing: "0.15em",
+          }}
+          onMouseEnter={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(212,160,23,0.9)";
+          }}
+          onMouseLeave={(e) => {
+            (e.currentTarget as HTMLButtonElement).style.color =
+              "rgba(255,255,255,0.45)";
+          }}
         >
-          <span
-            className="font-mono-geist text-xs tracking-widest"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ←
-          </span>
-          <span
-            className="font-mono-geist text-xs tracking-[0.25em] uppercase transition-colors duration-200"
-            style={{ color: "rgba(255,255,255,0.5)" }}
-            onMouseEnter={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(212,160,23,0.8)";
-            }}
-            onMouseLeave={(e) => {
-              (e.currentTarget as HTMLSpanElement).style.color =
-                "rgba(255,255,255,0.5)";
-            }}
-          >
-            STEMONEF
-          </span>
+          ← STEMONEF
         </button>
         <div
-          className="font-mono-geist text-[10px] tracking-[0.4em] uppercase"
-          style={{ color: "rgba(212,160,23,0.55)" }}
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
+          style={{ color: "rgba(74,126,247,0.7)" }}
         >
-          ◈ EPOCHS — R&D PILLAR
+          EPOCHS
         </div>
-      </nav>
+      </div>
 
-      {/* ─── Hero Section ───────────────────────────────────── */}
+      {/* Hero */}
       <section
-        data-ocid="epochs.section"
-        className="relative flex flex-col items-center justify-center text-center px-6"
-        style={{ minHeight: "82vh", paddingTop: "6rem", paddingBottom: "6rem" }}
+        className="relative min-h-[90vh] flex items-center px-6 overflow-hidden"
+        style={{
+          background:
+            "linear-gradient(160deg, rgba(10,18,50,0.9) 0%, rgba(4,5,14,1) 60%)",
+        }}
       >
-        {/* Animated background: climate network SVG */}
+        <AnimatedBackground />
         <div
-          className="absolute inset-0 pointer-events-none overflow-hidden"
+          className="neural-grid-bg absolute inset-0 opacity-30"
           aria-hidden="true"
-        >
-          <svg
-            role="img"
-            aria-label="Decorative climate network background"
-            className="absolute inset-0 w-full h-full"
-            xmlns="http://www.w3.org/2000/svg"
-            style={{ opacity: 0.18 }}
-          >
-            <defs>
-              <radialGradient id="epochsHeroGrad" cx="50%" cy="50%" r="60%">
-                <stop offset="0%" stopColor="#4a7ef7" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#04050e" stopOpacity="0" />
-              </radialGradient>
-            </defs>
-            <rect width="100%" height="100%" fill="url(#epochsHeroGrad)" />
-            {/* Network nodes */}
-            {[
-              [15, 20],
-              [30, 70],
-              [50, 35],
-              [70, 80],
-              [85, 25],
-              [20, 55],
-              [65, 15],
-              [40, 90],
-              [80, 60],
-            ].map(([cx, cy]) => (
-              <g key={`node-${cx}-${cy}`}>
-                <circle
-                  cx={`${cx}%`}
-                  cy={`${cy}%`}
-                  r="3"
-                  fill="#4a7ef7"
-                  opacity="0.6"
-                  className="animate-node-pulse"
-                />
-              </g>
-            ))}
-            {/* Connection lines */}
-            <line
-              x1="15%"
-              y1="20%"
-              x2="50%"
-              y2="35%"
-              stroke="#4a7ef7"
-              strokeWidth="0.5"
-              strokeDasharray="4 6"
-              opacity="0.4"
-              className="animate-breathing"
-            />
-            <line
-              x1="50%"
-              y1="35%"
-              x2="85%"
-              y2="25%"
-              stroke="#4a7ef7"
-              strokeWidth="0.5"
-              strokeDasharray="4 6"
-              opacity="0.4"
-              className="animate-breathing"
-            />
-            <line
-              x1="50%"
-              y1="35%"
-              x2="70%"
-              y2="80%"
-              stroke="#22d3b0"
-              strokeWidth="0.5"
-              strokeDasharray="4 6"
-              opacity="0.3"
-              className="animate-breathing"
-            />
-            <line
-              x1="30%"
-              y1="70%"
-              x2="50%"
-              y2="35%"
-              stroke="#4a7ef7"
-              strokeWidth="0.5"
-              strokeDasharray="4 6"
-              opacity="0.3"
-              className="animate-breathing"
-            />
-            <line
-              x1="20%"
-              y1="55%"
-              x2="30%"
-              y2="70%"
-              stroke="#22d3b0"
-              strokeWidth="0.5"
-              strokeDasharray="4 6"
-              opacity="0.3"
-              className="animate-breathing"
-            />
-          </svg>
-          {/* Gradient mesh overlay */}
-          <div
-            className="absolute inset-0"
-            style={{
-              background:
-                "radial-gradient(ellipse 70% 60% at 50% 40%, rgba(74,126,247,0.07) 0%, transparent 70%)",
-            }}
-          />
-        </div>
+        />
 
-        <div className="relative z-10 max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-7xl mx-auto w-full pt-16 pb-20">
           <div
-            className="font-mono-geist text-xs tracking-[0.45em] uppercase mb-6 reveal"
+            className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-6 animate-fade-in-up"
             style={{ color: "rgba(212,160,23,0.7)" }}
           >
-            ◆ RESEARCH & INNOVATION ORGANIZATION
+            ◈ RESEARCH & INNOVATION ORGANIZATION
           </div>
+
           <h1
-            className="font-display font-light mb-5 reveal reveal-delay-1 text-gradient-hero"
+            className="font-display font-light text-gradient-hero mb-6 animate-fade-in-up"
             style={{
-              fontSize: "clamp(3.5rem, 10vw, 7rem)",
-              letterSpacing: "0.18em",
-              lineHeight: 1,
+              fontSize: "clamp(4rem, 12vw, 9rem)",
+              letterSpacing: "0.1em",
+              lineHeight: 0.9,
+              animationDelay: "0.1s",
             }}
           >
             EPOCHS
           </h1>
+
           <p
-            className="font-display font-light mb-4 reveal reveal-delay-2"
+            className="font-display text-2xl md:text-3xl font-light mb-6 animate-fade-in-up"
             style={{
-              fontSize: "clamp(1rem, 2.5vw, 1.4rem)",
-              color: "rgba(255,255,255,0.55)",
-              letterSpacing: "0.08em",
+              color: "rgba(255,255,255,0.65)",
+              letterSpacing: "0.06em",
+              maxWidth: "700px",
+              animationDelay: "0.2s",
             }}
           >
-            Emergent Projects ON Climate, Human & Systems Research
+            Emergent Projects ON Climate, Human &amp; Systems Research
           </p>
-          <p
-            className="text-sm reveal reveal-delay-3"
+
+          <div
+            className="animate-fade-in-up"
             style={{
-              color: "rgba(255,255,255,0.35)",
-              fontFamily: "Sora, sans-serif",
-              maxWidth: "480px",
-              margin: "0 auto",
-              lineHeight: 1.7,
+              display: "inline-block",
+              padding: "10px 20px",
+              background: "rgba(74,126,247,0.08)",
+              border: "1px solid rgba(74,126,247,0.2)",
+              borderRadius: "2px",
+              animationDelay: "0.3s",
             }}
           >
-            Primary Research & Innovation Organization of STEMONEF Enterprises.
-          </p>
-        </div>
-
-        {/* Scroll indicator */}
-        <div
-          className="absolute bottom-8 left-1/2 -translate-x-1/2 animate-chevron-bounce"
-          aria-hidden="true"
-        >
-          <div
-            className="w-px h-10 mx-auto"
-            style={{
-              background:
-                "linear-gradient(to bottom, rgba(74,126,247,0.5), transparent)",
-            }}
-          />
-        </div>
-      </section>
-
-      {/* ─── Mission Section ───────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-20">
-        <div
-          className="reveal"
-          style={{
-            borderLeft: "3px solid #d4a017",
-            paddingLeft: "2rem",
-            paddingTop: "1.5rem",
-            paddingBottom: "1.5rem",
-            background: "rgba(212,160,23,0.03)",
-            borderRadius: "0 4px 4px 0",
-          }}
-        >
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-4"
-            style={{ color: "rgba(212,160,23,0.65)" }}
-          >
-            ◆ MISSION STATEMENT
-          </div>
-          <p
-            className="text-base leading-relaxed"
-            style={{
-              color: "rgba(255,255,255,0.7)",
-              fontFamily: "Sora, sans-serif",
-              maxWidth: "680px",
-            }}
-          >
-            Conduct research across climate, technology, and medical domains
-            while maintaining the highest ethical standards and translating
-            discoveries into practical societal solutions.
-          </p>
-        </div>
-      </section>
-
-      {/* ─── Project GAIA ──────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ PROJECT GAIA — Climate & Sustainability Research
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Climate & Planetary Systems
-          </h2>
-        </div>
-
-        {/* Animated lab nodes diagram */}
-        <div className="mb-10 reveal">
-          <svg
-            role="img"
-            aria-label="GAIA project node network"
-            width="100%"
-            height="80"
-            viewBox="0 0 800 80"
-            preserveAspectRatio="xMidYMid meet"
-            style={{ overflow: "visible" }}
-          >
-            {[0, 1, 2, 3, 4].map((i) => {
-              const x = 80 + i * 160;
-              return (
-                <g key={`gaia-node-${i}`}>
-                  <line
-                    x1={x}
-                    y1="40"
-                    x2={x + 130}
-                    y2="40"
-                    stroke="rgba(34,211,176,0.25)"
-                    strokeWidth="1"
-                    strokeDasharray="6 4"
-                  />
-                  <circle
-                    cx={x}
-                    cy="40"
-                    r="10"
-                    fill="rgba(34,211,176,0.1)"
-                    stroke="#22d3b0"
-                    strokeWidth="1.5"
-                  />
-                  <circle
-                    cx={x}
-                    cy="40"
-                    r="4"
-                    fill="#22d3b0"
-                    style={{
-                      animation: `node-pulse ${2.2 + i * 0.2}s ease-in-out infinite`,
-                      animationDelay: `${i * 0.3}s`,
-                    }}
-                  />
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
-          {[
-            "Climate modeling and prediction",
-            "Sustainable healthcare",
-            "Environmental impact assessment",
-            "Carbon capture systems",
-            "Renewable energy integration",
-          ].map((area, i) => (
-            <div
-              key={area}
-              data-ocid={`epochs.card.${i + 1}`}
-              className="p-5 rounded-sm reveal group transition-all duration-300"
-              style={
-                {
-                  animationDelay: `${i * 0.08}s`,
-                  background:
-                    "radial-gradient(ellipse at top, rgba(34,211,176,0.06), rgba(4,5,14,0.8))",
-                  border: "1px solid rgba(34,211,176,0.12)",
-                  backdropFilter: "blur(16px)",
-                  cursor: "default",
-                  "--delay": `${i * 0.08}s`,
-                } as React.CSSProperties
-              }
-              onMouseEnter={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top, rgba(34,211,176,0.14), rgba(4,5,14,0.85))";
-                el.style.borderColor = "rgba(34,211,176,0.3)";
-                el.style.transform = "translateY(-4px)";
-              }}
-              onMouseLeave={(e) => {
-                const el = e.currentTarget as HTMLDivElement;
-                el.style.background =
-                  "radial-gradient(ellipse at top, rgba(34,211,176,0.06), rgba(4,5,14,0.8))";
-                el.style.borderColor = "rgba(34,211,176,0.12)";
-                el.style.transform = "translateY(0)";
-              }}
-            >
-              <div
-                className="w-2 h-2 rounded-full mb-3"
-                style={{
-                  background: "#22d3b0",
-                  boxShadow: "0 0 8px rgba(34,211,176,0.5)",
-                  animation: "node-pulse 2s ease-in-out infinite",
-                  animationDelay: `${i * 0.3}s`,
-                }}
-              />
-              <p
-                className="text-xs leading-relaxed"
-                style={{
-                  color: "rgba(255,255,255,0.6)",
-                  fontFamily: "Sora, sans-serif",
-                }}
-              >
-                {area}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* ─── Labs Section ──────────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ RESEARCH LABORATORIES
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Lab Infrastructure
-          </h2>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {/* LAB INVOS */}
-          <div
-            data-ocid="epochs.lab.panel"
-            className="p-8 rounded-sm reveal transition-all duration-300"
-            style={{
-              background: "rgba(74,126,247,0.04)",
-              border: "1px solid rgba(74,126,247,0.15)",
-              borderLeft: "3px solid #4a7ef7",
-              backdropFilter: "blur(16px)",
-            }}
-          >
-            <div
-              className="font-mono-geist text-[9px] tracking-[0.45em] uppercase mb-2"
-              style={{ color: "rgba(74,126,247,0.6)" }}
-            >
-              RESEARCH LABORATORY
-            </div>
-            <h3
-              className="font-display text-2xl font-light mb-4"
-              style={{ color: "rgba(255,255,255,0.9)", letterSpacing: "0.2em" }}
-            >
-              LAB INVOS
-            </h3>
-            <ul className="space-y-2">
-              {[
-                "Fundamental climate science",
-                "Environmental monitoring systems",
-                "Sustainability theory",
-                "Data analysis methodologies",
-                "Interdisciplinary climate research",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-xs"
-                  style={{
-                    color: "rgba(255,255,255,0.5)",
-                    fontFamily: "Sora, sans-serif",
-                  }}
-                >
-                  <span style={{ color: "#4a7ef7", flexShrink: 0 }}>›</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* LAB NEIA */}
-          <div
-            data-ocid="epochs.lab.panel"
-            className="p-8 rounded-sm reveal reveal-delay-1 transition-all duration-300"
-            style={{
-              background: "rgba(74,126,247,0.04)",
-              border: "1px solid rgba(74,126,247,0.15)",
-              borderLeft: "3px solid #22d3b0",
-              backdropFilter: "blur(16px)",
-            }}
-          >
-            <div
-              className="font-mono-geist text-[9px] tracking-[0.45em] uppercase mb-2"
-              style={{ color: "rgba(34,211,176,0.6)" }}
-            >
-              DEVELOPMENT LABORATORY
-            </div>
-            <h3
-              className="font-display text-2xl font-light mb-4"
-              style={{ color: "rgba(255,255,255,0.9)", letterSpacing: "0.2em" }}
-            >
-              LAB NEIA
-            </h3>
-            <ul className="space-y-2">
-              {[
-                "Sustainable technology prototyping",
-                "Climate solution testing",
-                "Environmental intervention scaling",
-                "Implementation partnerships",
-              ].map((item) => (
-                <li
-                  key={item}
-                  className="flex items-start gap-2 text-xs"
-                  style={{
-                    color: "rgba(255,255,255,0.5)",
-                    fontFamily: "Sora, sans-serif",
-                  }}
-                >
-                  <span style={{ color: "#22d3b0", flexShrink: 0 }}>›</span>
-                  {item}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Project EIOS ──────────────────────────────────── */}
-      <section className="max-w-6xl mx-auto px-6 py-16">
-        <div className="mb-10 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(74,126,247,0.7)" }}
-          >
-            ◈ PROJECT EIOS — Deep Technology & Intelligence Systems
-          </div>
-          <h2
-            className="font-display text-3xl font-light text-gradient-hero"
-            style={{ letterSpacing: "0.12em" }}
-          >
-            Technology Pipeline
-          </h2>
-        </div>
-
-        {/* Horizontal pipeline diagram */}
-        <div className="relative reveal mb-8" style={{ overflowX: "auto" }}>
-          <div
-            className="flex items-center gap-0 min-w-max mx-auto"
-            style={{ padding: "2rem 0" }}
-          >
-            {[
-              "Intelligence Platforms",
-              "Operating Systems",
-              "IoT Networks",
-              "Analytics Infrastructure",
-              "Sustainability Enterprise Systems",
-            ].map((node, i) => (
-              <div key={node} className="flex items-center">
-                <div
-                  data-ocid={`epochs.card.${i + 1}`}
-                  className="flex flex-col items-center p-5 rounded-sm transition-all duration-300 group"
-                  style={{
-                    background: "rgba(74,126,247,0.06)",
-                    border: "1px solid rgba(74,126,247,0.18)",
-                    backdropFilter: "blur(16px)",
-                    minWidth: "140px",
-                    textAlign: "center",
-                  }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "rgba(74,126,247,0.14)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      "rgba(74,126,247,0.35)";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLDivElement).style.background =
-                      "rgba(74,126,247,0.06)";
-                    (e.currentTarget as HTMLDivElement).style.borderColor =
-                      "rgba(74,126,247,0.18)";
-                  }}
-                >
-                  <div
-                    className="w-3 h-3 rounded-full mb-3"
-                    style={{
-                      background: "#4a7ef7",
-                      boxShadow: "0 0 10px rgba(74,126,247,0.6)",
-                      animation: "node-pulse 2s ease-in-out infinite",
-                      animationDelay: `${i * 0.25}s`,
-                    }}
-                  />
-                  <span
-                    className="font-mono-geist text-[9px] tracking-wider"
-                    style={{ color: "rgba(255,255,255,0.55)" }}
-                  >
-                    {node}
-                  </span>
-                </div>
-                {i < 4 && (
-                  <div className="flex-shrink-0 w-8 flex items-center justify-center">
-                    <div
-                      className="w-full h-px"
-                      style={{
-                        background: "rgba(74,126,247,0.3)",
-                        backgroundImage:
-                          "repeating-linear-gradient(90deg, #4a7ef7 0, #4a7ef7 4px, transparent 4px, transparent 8px)",
-                      }}
-                    />
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ─── Project STEMESA ───────────────────────────────── */}
-      <section className="max-w-5xl mx-auto px-6 py-16">
-        <div className="mb-8 reveal">
-          <div
-            className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
-            style={{ color: "rgba(167,139,250,0.7)" }}
-          >
-            ◈ PROJECT STEMESA — Ethical AI Development
-          </div>
-          <div className="flex flex-wrap items-center gap-4 mb-4">
-            <h2
-              className="font-display text-3xl font-light text-gradient-hero"
-              style={{ letterSpacing: "0.12em" }}
-            >
-              Ethical AI Framework
-            </h2>
             <span
-              className="font-mono-geist text-[9px] tracking-[0.3em] uppercase px-3 py-1 rounded-sm"
-              style={{
-                color: "#d4a017",
-                background: "rgba(212,160,23,0.1)",
-                border: "1px solid rgba(212,160,23,0.3)",
-              }}
+              className="font-mono-geist text-xs tracking-[0.25em] uppercase"
+              style={{ color: "rgba(138,180,255,0.8)" }}
             >
-              CONCEPTUAL DEVELOPMENT STAGE
+              Primary Research &amp; Innovation Organization of STEMONEF
+              Enterprises
             </span>
           </div>
         </div>
 
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 reveal">
-          {[
-            "Brain Research",
-            "Cognitive Modeling",
-            "Human-AI Interaction",
-            "Healthcare AI",
-            "Bias Mitigation",
-            "Explainable AI Frameworks",
-          ].map((topic, i) => (
+        {/* Bottom gradient fade */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-32 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(to bottom, transparent, var(--neural-bg))",
+          }}
+        />
+      </section>
+
+      {/* Mission */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div
+            className="epochs-reveal reveal"
+            style={{ transitionDelay: "0s" }}
+          >
             <div
-              key={topic}
-              className="px-4 py-3 rounded-sm text-center transition-all duration-200"
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-4"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ MISSION
+            </div>
+          </div>
+          <div
+            className="glass-strong p-10 rounded-sm epochs-reveal reveal"
+            style={{
+              borderLeft: "3px solid rgba(74,126,247,0.5)",
+              transitionDelay: "0.1s",
+            }}
+          >
+            <p
+              className="font-display text-xl md:text-2xl font-light leading-relaxed"
               style={{
-                background: "rgba(167,139,250,0.05)",
-                border: "1px solid rgba(167,139,250,0.15)",
-                animationDelay: `${i * 0.06}s`,
-              }}
-              onMouseEnter={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "rgba(167,139,250,0.12)";
-                (e.currentTarget as HTMLDivElement).style.borderColor =
-                  "rgba(167,139,250,0.35)";
-              }}
-              onMouseLeave={(e) => {
-                (e.currentTarget as HTMLDivElement).style.background =
-                  "rgba(167,139,250,0.05)";
-                (e.currentTarget as HTMLDivElement).style.borderColor =
-                  "rgba(167,139,250,0.15)";
+                color: "rgba(255,255,255,0.8)",
+                letterSpacing: "0.03em",
               }}
             >
-              <span
-                className="font-mono-geist text-[10px] tracking-wider"
-                style={{ color: "rgba(167,139,250,0.8)" }}
-              >
-                {topic}
-              </span>
-            </div>
-          ))}
+              Conduct research across climate, technology, and medical domains
+              while maintaining the highest ethical standards and translating
+              discoveries into practical societal solutions.
+            </p>
+          </div>
         </div>
       </section>
 
-      {/* ─── Legal Footer ──────────────────────────────────── */}
-      <footer
-        className="px-6 py-12 text-center"
-        style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+      {/* Project GAIA */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 epochs-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ ACTIVE RESEARCH INITIATIVE
+            </div>
+            <h2
+              className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              PROJECT GAIA
+            </h2>
+            <p
+              className="mt-3 text-sm"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              Climate &amp; Sustainability Research
+            </p>
+          </div>
+
+          {/* GAIA node cluster */}
+          <div className="relative">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+              {gaiaFocusAreas.map((area, i) => (
+                <div
+                  key={area}
+                  data-ocid={`epochs.gaia.card.${i + 1}`}
+                  className="epochs-reveal reveal relative"
+                  style={{ transitionDelay: `${i * 0.08}s` }}
+                  onMouseEnter={() => setHoveredGaia(i)}
+                  onMouseLeave={() => setHoveredGaia(null)}
+                >
+                  <div
+                    className="p-6 rounded-sm h-full transition-all duration-300"
+                    style={{
+                      background:
+                        hoveredGaia === i
+                          ? "rgba(52,211,153,0.1)"
+                          : "rgba(52,211,153,0.04)",
+                      border:
+                        hoveredGaia === i
+                          ? "1px solid rgba(52,211,153,0.4)"
+                          : "1px solid rgba(52,211,153,0.12)",
+                      backdropFilter: "blur(12px)",
+                      boxShadow:
+                        hoveredGaia === i
+                          ? "0 0 20px rgba(52,211,153,0.1), 0 8px 32px rgba(0,0,0,0.4)"
+                          : "none",
+                      transform:
+                        hoveredGaia === i ? "translateY(-4px)" : "none",
+                    }}
+                  >
+                    {/* Animated lab node */}
+                    <div className="flex items-center gap-2 mb-4">
+                      <div
+                        className="w-2 h-2 rounded-full animate-node-pulse"
+                        style={{
+                          background: "rgba(52,211,153,0.8)",
+                          animationDelay: `${i * 0.3}s`,
+                        }}
+                      />
+                      <div
+                        className="font-mono-geist text-[9px] tracking-[0.2em] uppercase"
+                        style={{ color: "rgba(52,211,153,0.7)" }}
+                      >
+                        NODE {String(i + 1).padStart(2, "0")}
+                      </div>
+                    </div>
+                    <p
+                      className="text-sm leading-relaxed"
+                      style={{
+                        color: "rgba(255,255,255,0.7)",
+                        fontFamily: "Sora, sans-serif",
+                      }}
+                    >
+                      {area}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Labs */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 epochs-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ RESEARCH LABORATORIES
+            </div>
+            <h2
+              className="font-display text-4xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              Active Labs
+            </h2>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* LAB INVOS */}
+            <div
+              className="glass-strong p-8 rounded-sm epochs-reveal reveal"
+              style={{
+                borderTop: "2px solid rgba(74,126,247,0.5)",
+                transitionDelay: "0.1s",
+              }}
+            >
+              <div
+                className="font-mono-geist text-[10px] tracking-[0.35em] uppercase mb-2"
+                style={{ color: "rgba(74,126,247,0.7)" }}
+              >
+                LABORATORY I
+              </div>
+              <h3
+                className="font-display text-2xl font-light mb-2"
+                style={{
+                  letterSpacing: "0.15em",
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                LAB INVOS
+              </h3>
+              <p
+                className="text-xs mb-6"
+                style={{
+                  color: "rgba(212,160,23,0.7)",
+                  fontFamily: "Geist Mono, monospace",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                Research-Focused Laboratory
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Fundamental climate science",
+                  "Environmental monitoring systems",
+                  "Sustainability theory",
+                  "Data analysis methodologies",
+                  "Interdisciplinary climate research",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <div
+                      className="w-1 h-1 rounded-full mt-2 flex-shrink-0"
+                      style={{ background: "rgba(74,126,247,0.7)" }}
+                    />
+                    <span
+                      className="text-sm"
+                      style={{
+                        color: "rgba(255,255,255,0.6)",
+                        fontFamily: "Sora, sans-serif",
+                      }}
+                    >
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* LAB NEIA */}
+            <div
+              className="glass-strong p-8 rounded-sm epochs-reveal reveal"
+              style={{
+                borderTop: "2px solid rgba(167,139,250,0.5)",
+                transitionDelay: "0.2s",
+              }}
+            >
+              <div
+                className="font-mono-geist text-[10px] tracking-[0.35em] uppercase mb-2"
+                style={{ color: "rgba(167,139,250,0.7)" }}
+              >
+                LABORATORY II
+              </div>
+              <h3
+                className="font-display text-2xl font-light mb-2"
+                style={{
+                  letterSpacing: "0.15em",
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                LAB NEIA
+              </h3>
+              <p
+                className="text-xs mb-6"
+                style={{
+                  color: "rgba(212,160,23,0.7)",
+                  fontFamily: "Geist Mono, monospace",
+                  letterSpacing: "0.1em",
+                }}
+              >
+                Development-Focused Laboratory
+              </p>
+              <ul className="space-y-3">
+                {[
+                  "Sustainable technology prototyping",
+                  "Climate solution testing",
+                  "Environmental intervention scaling",
+                  "Implementation partnerships",
+                ].map((item) => (
+                  <li key={item} className="flex items-start gap-3">
+                    <div
+                      className="w-1 h-1 rounded-full mt-2 flex-shrink-0"
+                      style={{ background: "rgba(167,139,250,0.7)" }}
+                    />
+                    <span
+                      className="text-sm"
+                      style={{
+                        color: "rgba(255,255,255,0.6)",
+                        fontFamily: "Sora, sans-serif",
+                      }}
+                    >
+                      {item}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Project EIOS */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 epochs-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◆ DEEP TECHNOLOGY INITIATIVE
+            </div>
+            <h2
+              className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              PROJECT EIOS
+            </h2>
+            <p
+              className="mt-3 text-sm"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              Deep Technology &amp; Intelligence Systems
+            </p>
+          </div>
+
+          <div
+            className="glass p-8 rounded-sm epochs-reveal reveal overflow-x-auto"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            <div className="flex items-center flex-nowrap gap-0 min-w-max mx-auto justify-start lg:justify-center">
+              {pipelineSteps.map((step, i) => (
+                <PipelineNode
+                  key={step}
+                  label={step}
+                  index={i}
+                  total={pipelineSteps.length}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Project STEMESA */}
+      <section className="py-20 px-6">
+        <div className="max-w-5xl mx-auto">
+          <div className="mb-10 epochs-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ ETHICAL AI INITIATIVE
+            </div>
+            <h2
+              className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              PROJECT STEMESA
+            </h2>
+            <p
+              className="mt-3 text-sm"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              Ethical AI Development
+            </p>
+          </div>
+
+          <div
+            className="glass-strong p-8 rounded-sm epochs-reveal reveal relative overflow-hidden"
+            style={{
+              borderLeft: "3px solid rgba(212,160,23,0.4)",
+              transitionDelay: "0.15s",
+            }}
+          >
+            {/* Conceptual badge */}
+            <div
+              className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm mb-6"
+              style={{
+                background: "rgba(212,160,23,0.1)",
+                border: "1px solid rgba(212,160,23,0.3)",
+              }}
+            >
+              <div
+                className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
+                style={{ background: "#d4a017" }}
+              />
+              <span
+                className="font-mono-geist text-[10px] tracking-[0.3em] uppercase text-gradient-gold"
+                style={{ letterSpacing: "0.2em" }}
+              >
+                Conceptual Development Stage
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {[
+                "Brain research",
+                "Cognitive modeling",
+                "Human-AI interaction",
+                "Healthcare AI",
+                "Bias mitigation",
+                "Explainable AI frameworks",
+              ].map((topic) => (
+                <div
+                  key={topic}
+                  className="flex items-center gap-3 py-3 px-4"
+                  style={{
+                    background: "rgba(212,160,23,0.04)",
+                    border: "1px solid rgba(212,160,23,0.1)",
+                    borderRadius: "2px",
+                  }}
+                >
+                  <div
+                    className="w-1 h-1 rounded-full flex-shrink-0"
+                    style={{ background: "rgba(212,160,23,0.6)" }}
+                  />
+                  <span
+                    className="text-sm"
+                    style={{
+                      color: "rgba(255,255,255,0.65)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    {topic}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Legal Footer Note */}
+      <div
+        className="py-8 px-6"
+        style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
       >
-        <p
-          className="font-mono-geist text-[10px] tracking-wider"
-          style={{
-            color: "rgba(255,255,255,0.25)",
-            maxWidth: "600px",
-            margin: "0 auto",
-            lineHeight: 1.8,
-          }}
-        >
-          {LEGAL_NOTE}
-        </p>
-      </footer>
+        <div className="max-w-5xl mx-auto">
+          <p
+            className="font-mono-geist text-[10px] text-center leading-relaxed"
+            style={{ color: "rgba(255,255,255,0.2)", letterSpacing: "0.08em" }}
+          >
+            {LEGAL_NOTE}
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

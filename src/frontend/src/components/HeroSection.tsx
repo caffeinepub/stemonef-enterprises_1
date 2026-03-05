@@ -1,12 +1,128 @@
+import { useEffect, useRef } from "react";
 import NeuralCanvas from "./NeuralCanvas";
 
+// ── Particle Trail ─────────────────────────────────────────────────────────
+interface Particle {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  radius: number;
+  opacity: number;
+  decay: number;
+  isGold: boolean;
+}
+
+function ParticleTrail({
+  containerRef,
+}: { containerRef: React.RefObject<HTMLElement | null> }) {
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const particlesRef = useRef<Particle[]>([]);
+  const rafRef = useRef<number>(0);
+
+  useEffect(() => {
+    // Skip on touch-primary devices
+    if (window.matchMedia("(hover: none)").matches) return;
+
+    const canvas = canvasRef.current;
+    const container = containerRef.current;
+    if (!canvas || !container) return;
+
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    // Resize canvas to match container
+    const resize = () => {
+      const rect = container.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = rect.height;
+    };
+    resize();
+
+    const ro = new ResizeObserver(resize);
+    ro.observe(container);
+
+    // Spawn particles on mouse move
+    const onMouseMove = (e: MouseEvent) => {
+      const rect = container.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      // Spawn 2-3 particles per move event for a denser trail
+      const count = 2 + Math.floor(Math.random() * 2);
+      for (let i = 0; i < count; i++) {
+        particlesRef.current.push({
+          x: x + (Math.random() - 0.5) * 6,
+          y: y + (Math.random() - 0.5) * 6,
+          vx: (Math.random() - 0.5) * 0.4,
+          vy: -(0.4 + Math.random() * 0.4),
+          radius: 1.5 + Math.random() * 2,
+          opacity: 0.7 + Math.random() * 0.3,
+          decay: 0.012 + Math.random() * 0.01,
+          isGold: Math.random() > 0.45,
+        });
+      }
+    };
+
+    container.addEventListener("mousemove", onMouseMove);
+
+    // Animation loop
+    const loop = () => {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const alive: Particle[] = [];
+      for (const p of particlesRef.current) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.opacity -= p.decay;
+
+        if (p.opacity <= 0) continue;
+        alive.push(p);
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+
+        if (p.isGold) {
+          ctx.fillStyle = `rgba(212,160,23,${p.opacity.toFixed(3)})`;
+        } else {
+          ctx.fillStyle = `rgba(74,126,247,${p.opacity.toFixed(3)})`;
+        }
+
+        ctx.fill();
+      }
+      particlesRef.current = alive;
+
+      rafRef.current = requestAnimationFrame(loop);
+    };
+    rafRef.current = requestAnimationFrame(loop);
+
+    return () => {
+      container.removeEventListener("mousemove", onMouseMove);
+      ro.disconnect();
+      cancelAnimationFrame(rafRef.current);
+    };
+  }, [containerRef]);
+
+  return (
+    <canvas
+      ref={canvasRef}
+      className="absolute inset-0 pointer-events-none"
+      style={{ zIndex: 2 }}
+    />
+  );
+}
+
+// ── HeroSection ────────────────────────────────────────────────────────────
 interface HeroSectionProps {
   onScrollTo: (id: string) => void;
 }
 
 export default function HeroSection({ onScrollTo }: HeroSectionProps) {
+  const sectionRef = useRef<HTMLElement>(null);
+
   return (
     <section
+      ref={sectionRef}
       data-ocid="hero.section"
       id="hero"
       className="relative w-full flex items-center justify-center overflow-hidden"
@@ -26,9 +142,12 @@ export default function HeroSection({ onScrollTo }: HeroSectionProps) {
         }}
       />
 
+      {/* Particle trail canvas — above overlay, below content */}
+      <ParticleTrail containerRef={sectionRef} />
+
       {/* Bottom fade */}
       <div
-        className="absolute bottom-0 left-0 right-0 h-32 z-[2]"
+        className="absolute bottom-0 left-0 right-0 h-32 z-[4]"
         style={{
           background: "linear-gradient(to bottom, transparent, rgba(4,5,14,1))",
         }}
