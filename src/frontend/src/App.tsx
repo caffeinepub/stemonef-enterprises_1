@@ -15,9 +15,20 @@ import PillarsSection from "./components/PillarsSection";
 import SuggestionToast from "./components/SuggestionToast";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import AdminDashboard from "./pages/AdminDashboard";
+import ElpisPage from "./pages/ElpisPage";
+import EpochsPage from "./pages/EpochsPage";
+import HumanonPage from "./pages/HumanonPage";
+import SteamiPage from "./pages/SteamiPage";
 import UserDashboard from "./pages/UserDashboard";
 
-type AppView = "home" | "admin" | "dashboard";
+type AppView =
+  | "home"
+  | "admin"
+  | "dashboard"
+  | "epochs"
+  | "humanon"
+  | "steami"
+  | "elpis";
 
 const SECTION_IDS = [
   "hero",
@@ -39,11 +50,23 @@ export default function App() {
   const interactedRef = useRef(false);
   const { isLoginSuccess, identity } = useInternetIdentity();
 
-  // Detect admin route
+  // Detect special routes on initial load
   useEffect(() => {
     const path = window.location.pathname;
     if (path === "/admin") {
       setView("admin");
+      setBootDone(true);
+    } else if (path === "/epochs") {
+      setView("epochs");
+      setBootDone(true);
+    } else if (path === "/humanon") {
+      setView("humanon");
+      setBootDone(true);
+    } else if (path === "/steami") {
+      setView("steami");
+      setBootDone(true);
+    } else if (path === "/elpis") {
+      setView("elpis");
       setBootDone(true);
     }
   }, []);
@@ -173,6 +196,82 @@ export default function App() {
     );
   }
 
+  if (view === "epochs") {
+    return (
+      <>
+        <EpochsPage onBack={() => setView("home")} />
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "rgba(4,6,18,0.97)",
+              border: "1px solid rgba(212,160,23,0.3)",
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "11px",
+            },
+          }}
+        />
+      </>
+    );
+  }
+
+  if (view === "humanon") {
+    return (
+      <>
+        <HumanonPage onBack={() => setView("home")} />
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "rgba(4,6,18,0.97)",
+              border: "1px solid rgba(212,160,23,0.3)",
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "11px",
+            },
+          }}
+        />
+      </>
+    );
+  }
+
+  if (view === "steami") {
+    return (
+      <>
+        <SteamiPage onBack={() => setView("home")} />
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "rgba(4,6,18,0.97)",
+              border: "1px solid rgba(212,160,23,0.3)",
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "11px",
+            },
+          }}
+        />
+      </>
+    );
+  }
+
+  if (view === "elpis") {
+    return (
+      <>
+        <ElpisPage onBack={() => setView("home")} />
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "rgba(4,6,18,0.97)",
+              border: "1px solid rgba(212,160,23,0.3)",
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "11px",
+            },
+          }}
+        />
+      </>
+    );
+  }
+
   return (
     <>
       {/* Boot Screen */}
@@ -196,7 +295,7 @@ export default function App() {
 
         <main>
           <HeroSection onScrollTo={scrollTo} />
-          <PillarsSection />
+          <PillarsSection onNavigate={(path) => setView(path as AppView)} />
           <DualMissionSection />
           <IntelligenceFeed />
           <PathwaySection
