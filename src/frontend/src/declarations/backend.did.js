@@ -13,6 +13,14 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'guest' : IDL.Null,
 });
+export const ElpisAnnouncement = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'publishedAt' : IDL.Int,
+  'summary' : IDL.Text,
+  'category' : IDL.Text,
+  'isPublic' : IDL.Bool,
+});
 export const Pillar = IDL.Record({
   'id' : IDL.Nat,
   'mandate' : IDL.Text,
@@ -31,6 +39,21 @@ export const CollaborationRequest = IDL.Record({
   'email' : IDL.Text,
   'message' : IDL.Text,
   'timestamp' : IDL.Int,
+});
+export const ElpisCouncilMember = IDL.Record({
+  'id' : IDL.Nat,
+  'domain' : IDL.Text,
+  'name' : IDL.Text,
+  'role' : IDL.Text,
+  'biography' : IDL.Text,
+  'expertise' : IDL.Text,
+  'organization' : IDL.Text,
+});
+export const ElpisGuidanceArea = IDL.Record({
+  'id' : IDL.Nat,
+  'domain' : IDL.Text,
+  'description' : IDL.Text,
+  'contribution' : IDL.Text,
 });
 export const FeedEntry = IDL.Record({
   'id' : IDL.Nat,
@@ -76,6 +99,17 @@ export const HumanonStats = IDL.Record({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'createElpisAnnouncement' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
+      [],
+      [],
+    ),
+  'createElpisCouncilMember' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'createElpisGuidanceArea' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'createFeed' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Bool, IDL.Bool],
       [],
@@ -92,16 +126,39 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'deleteElpisAnnouncement' : IDL.Func([IDL.Nat], [], []),
+  'deleteElpisCouncilMember' : IDL.Func([IDL.Nat], [], []),
+  'deleteElpisGuidanceArea' : IDL.Func([IDL.Nat], [], []),
   'deleteFeed' : IDL.Func([IDL.Nat], [], []),
   'deleteHumanonMentor' : IDL.Func([IDL.Nat], [], []),
   'deleteHumanonPartner' : IDL.Func([IDL.Nat], [], []),
   'deleteHumanonProject' : IDL.Func([IDL.Nat], [], []),
+  'getAllElpisAnnouncements' : IDL.Func(
+      [],
+      [IDL.Vec(ElpisAnnouncement)],
+      ['query'],
+    ),
   'getAllPillars' : IDL.Func([], [IDL.Vec(Pillar)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
   'getCollaborationRequests' : IDL.Func(
       [],
       [IDL.Vec(CollaborationRequest)],
+      ['query'],
+    ),
+  'getElpisAnnouncements' : IDL.Func(
+      [],
+      [IDL.Vec(ElpisAnnouncement)],
+      ['query'],
+    ),
+  'getElpisCouncilMembers' : IDL.Func(
+      [],
+      [IDL.Vec(ElpisCouncilMember)],
+      ['query'],
+    ),
+  'getElpisGuidanceAreas' : IDL.Func(
+      [],
+      [IDL.Vec(ElpisGuidanceArea)],
       ['query'],
     ),
   'getFeaturedFeeds' : IDL.Func([], [IDL.Vec(FeedEntry)], ['query']),
@@ -154,6 +211,14 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'guest' : IDL.Null,
   });
+  const ElpisAnnouncement = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'publishedAt' : IDL.Int,
+    'summary' : IDL.Text,
+    'category' : IDL.Text,
+    'isPublic' : IDL.Bool,
+  });
   const Pillar = IDL.Record({
     'id' : IDL.Nat,
     'mandate' : IDL.Text,
@@ -172,6 +237,21 @@ export const idlFactory = ({ IDL }) => {
     'email' : IDL.Text,
     'message' : IDL.Text,
     'timestamp' : IDL.Int,
+  });
+  const ElpisCouncilMember = IDL.Record({
+    'id' : IDL.Nat,
+    'domain' : IDL.Text,
+    'name' : IDL.Text,
+    'role' : IDL.Text,
+    'biography' : IDL.Text,
+    'expertise' : IDL.Text,
+    'organization' : IDL.Text,
+  });
+  const ElpisGuidanceArea = IDL.Record({
+    'id' : IDL.Nat,
+    'domain' : IDL.Text,
+    'description' : IDL.Text,
+    'contribution' : IDL.Text,
   });
   const FeedEntry = IDL.Record({
     'id' : IDL.Nat,
@@ -217,6 +297,21 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'createElpisAnnouncement' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Bool],
+        [],
+        [],
+      ),
+    'createElpisCouncilMember' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'createElpisGuidanceArea' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
     'createFeed' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Bool, IDL.Bool],
         [],
@@ -233,16 +328,39 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'deleteElpisAnnouncement' : IDL.Func([IDL.Nat], [], []),
+    'deleteElpisCouncilMember' : IDL.Func([IDL.Nat], [], []),
+    'deleteElpisGuidanceArea' : IDL.Func([IDL.Nat], [], []),
     'deleteFeed' : IDL.Func([IDL.Nat], [], []),
     'deleteHumanonMentor' : IDL.Func([IDL.Nat], [], []),
     'deleteHumanonPartner' : IDL.Func([IDL.Nat], [], []),
     'deleteHumanonProject' : IDL.Func([IDL.Nat], [], []),
+    'getAllElpisAnnouncements' : IDL.Func(
+        [],
+        [IDL.Vec(ElpisAnnouncement)],
+        ['query'],
+      ),
     'getAllPillars' : IDL.Func([], [IDL.Vec(Pillar)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
     'getCollaborationRequests' : IDL.Func(
         [],
         [IDL.Vec(CollaborationRequest)],
+        ['query'],
+      ),
+    'getElpisAnnouncements' : IDL.Func(
+        [],
+        [IDL.Vec(ElpisAnnouncement)],
+        ['query'],
+      ),
+    'getElpisCouncilMembers' : IDL.Func(
+        [],
+        [IDL.Vec(ElpisCouncilMember)],
+        ['query'],
+      ),
+    'getElpisGuidanceAreas' : IDL.Func(
+        [],
+        [IDL.Vec(ElpisGuidanceArea)],
         ['query'],
       ),
     'getFeaturedFeeds' : IDL.Func([], [IDL.Vec(FeedEntry)], ['query']),

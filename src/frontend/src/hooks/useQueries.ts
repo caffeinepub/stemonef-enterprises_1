@@ -458,3 +458,185 @@ export function useUpdateHumanonStats() {
     },
   });
 }
+
+// ── ELPIS Query Hooks ────────────────────────────────────────────────────────
+
+import type {
+  ElpisAnnouncement,
+  ElpisCouncilMember,
+  ElpisGuidanceArea,
+} from "../backend.d";
+
+export function useGetElpisCouncilMembers() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ElpisCouncilMember[]>({
+    queryKey: ["elpisCouncilMembers"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getElpisCouncilMembers();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useGetElpisGuidanceAreas() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ElpisGuidanceArea[]>({
+    queryKey: ["elpisGuidanceAreas"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getElpisGuidanceAreas();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useGetElpisAnnouncements() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ElpisAnnouncement[]>({
+    queryKey: ["elpisAnnouncements"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getElpisAnnouncements();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 3 * 60 * 1000,
+  });
+}
+
+export function useGetAllElpisAnnouncements() {
+  const { actor, isFetching } = useActor();
+  return useQuery<ElpisAnnouncement[]>({
+    queryKey: ["allElpisAnnouncements"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getAllElpisAnnouncements();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 2 * 60 * 1000,
+  });
+}
+
+export function useCreateElpisCouncilMember() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      domain: string;
+      organization: string;
+      role: string;
+      biography: string;
+      expertise: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createElpisCouncilMember(
+        data.name,
+        data.domain,
+        data.organization,
+        data.role,
+        data.biography,
+        data.expertise,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisCouncilMembers"] });
+    },
+  });
+}
+
+export function useDeleteElpisCouncilMember() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteElpisCouncilMember(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisCouncilMembers"] });
+    },
+  });
+}
+
+export function useCreateElpisGuidanceArea() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      domain: string;
+      description: string;
+      contribution: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createElpisGuidanceArea(
+        data.domain,
+        data.description,
+        data.contribution,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisGuidanceAreas"] });
+    },
+  });
+}
+
+export function useDeleteElpisGuidanceArea() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteElpisGuidanceArea(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisGuidanceAreas"] });
+    },
+  });
+}
+
+export function useCreateElpisAnnouncement() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      title: string;
+      summary: string;
+      category: string;
+      isPublic: boolean;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createElpisAnnouncement(
+        data.title,
+        data.summary,
+        data.category,
+        data.isPublic,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisAnnouncements"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["allElpisAnnouncements"],
+      });
+    },
+  });
+}
+
+export function useDeleteElpisAnnouncement() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteElpisAnnouncement(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["elpisAnnouncements"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["allElpisAnnouncements"],
+      });
+    },
+  });
+}

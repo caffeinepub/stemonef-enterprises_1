@@ -89,11 +89,36 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface ElpisCouncilMember {
+    id: bigint;
+    domain: string;
+    name: string;
+    role: string;
+    biography: string;
+    expertise: string;
+    organization: string;
+}
 export interface HumanonPartner {
     id: bigint;
     name: string;
     description: string;
     sector: string;
+}
+export interface CollaborationRequest {
+    id: bigint;
+    pathway: string;
+    name: string;
+    email: string;
+    message: string;
+    timestamp: bigint;
+}
+export interface ElpisAnnouncement {
+    id: bigint;
+    title: string;
+    publishedAt: bigint;
+    summary: string;
+    category: string;
+    isPublic: boolean;
 }
 export interface Pillar {
     id: bigint;
@@ -132,13 +157,11 @@ export interface FeedEntry {
     timestamp: bigint;
     isPublic: boolean;
 }
-export interface CollaborationRequest {
+export interface ElpisGuidanceArea {
     id: bigint;
-    pathway: string;
-    name: string;
-    email: string;
-    message: string;
-    timestamp: bigint;
+    domain: string;
+    description: string;
+    contribution: string;
 }
 export interface UserProfile {
     name: string;
@@ -158,18 +181,28 @@ export enum UserRole {
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    createElpisAnnouncement(title: string, summary: string, category: string, isPublic: boolean): Promise<void>;
+    createElpisCouncilMember(name: string, domain: string, organization: string, role: string, biography: string, expertise: string): Promise<void>;
+    createElpisGuidanceArea(domain: string, description: string, contribution: string): Promise<void>;
     createFeed(title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
     createHumanonMentor(name: string, domain: string, organization: string, role: string, profileUrl: string): Promise<void>;
     createHumanonPartner(name: string, sector: string, description: string): Promise<void>;
     createHumanonProject(title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
+    deleteElpisAnnouncement(id: bigint): Promise<void>;
+    deleteElpisCouncilMember(id: bigint): Promise<void>;
+    deleteElpisGuidanceArea(id: bigint): Promise<void>;
     deleteFeed(id: bigint): Promise<void>;
     deleteHumanonMentor(id: bigint): Promise<void>;
     deleteHumanonPartner(id: bigint): Promise<void>;
     deleteHumanonProject(id: bigint): Promise<void>;
+    getAllElpisAnnouncements(): Promise<Array<ElpisAnnouncement>>;
     getAllPillars(): Promise<Array<Pillar>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCollaborationRequests(): Promise<Array<CollaborationRequest>>;
+    getElpisAnnouncements(): Promise<Array<ElpisAnnouncement>>;
+    getElpisCouncilMembers(): Promise<Array<ElpisCouncilMember>>;
+    getElpisGuidanceAreas(): Promise<Array<ElpisGuidanceArea>>;
     getFeaturedFeeds(): Promise<Array<FeedEntry>>;
     getHumanonMentors(): Promise<Array<HumanonMentor>>;
     getHumanonPartners(): Promise<Array<HumanonPartner>>;
@@ -215,6 +248,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.assignCallerUserRole(arg0, to_candid_UserRole_n1(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
+    async createElpisAnnouncement(arg0: string, arg1: string, arg2: string, arg3: boolean): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createElpisAnnouncement(arg0, arg1, arg2, arg3);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createElpisAnnouncement(arg0, arg1, arg2, arg3);
+            return result;
+        }
+    }
+    async createElpisCouncilMember(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createElpisCouncilMember(arg0, arg1, arg2, arg3, arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createElpisCouncilMember(arg0, arg1, arg2, arg3, arg4, arg5);
+            return result;
+        }
+    }
+    async createElpisGuidanceArea(arg0: string, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createElpisGuidanceArea(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createElpisGuidanceArea(arg0, arg1, arg2);
             return result;
         }
     }
@@ -274,6 +349,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteElpisAnnouncement(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteElpisAnnouncement(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteElpisAnnouncement(arg0);
+            return result;
+        }
+    }
+    async deleteElpisCouncilMember(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteElpisCouncilMember(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteElpisCouncilMember(arg0);
+            return result;
+        }
+    }
+    async deleteElpisGuidanceArea(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteElpisGuidanceArea(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteElpisGuidanceArea(arg0);
+            return result;
+        }
+    }
     async deleteFeed(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -330,6 +447,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getAllElpisAnnouncements(): Promise<Array<ElpisAnnouncement>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getAllElpisAnnouncements();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getAllElpisAnnouncements();
+            return result;
+        }
+    }
     async getAllPillars(): Promise<Array<Pillar>> {
         if (this.processError) {
             try {
@@ -383,6 +514,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getCollaborationRequests();
+            return result;
+        }
+    }
+    async getElpisAnnouncements(): Promise<Array<ElpisAnnouncement>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getElpisAnnouncements();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getElpisAnnouncements();
+            return result;
+        }
+    }
+    async getElpisCouncilMembers(): Promise<Array<ElpisCouncilMember>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getElpisCouncilMembers();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getElpisCouncilMembers();
+            return result;
+        }
+    }
+    async getElpisGuidanceAreas(): Promise<Array<ElpisGuidanceArea>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getElpisGuidanceAreas();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getElpisGuidanceAreas();
             return result;
         }
     }

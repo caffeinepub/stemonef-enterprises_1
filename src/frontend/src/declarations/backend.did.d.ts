@@ -18,6 +18,29 @@ export interface CollaborationRequest {
   'message' : string,
   'timestamp' : bigint,
 }
+export interface ElpisAnnouncement {
+  'id' : bigint,
+  'title' : string,
+  'publishedAt' : bigint,
+  'summary' : string,
+  'category' : string,
+  'isPublic' : boolean,
+}
+export interface ElpisCouncilMember {
+  'id' : bigint,
+  'domain' : string,
+  'name' : string,
+  'role' : string,
+  'biography' : string,
+  'expertise' : string,
+  'organization' : string,
+}
+export interface ElpisGuidanceArea {
+  'id' : bigint,
+  'domain' : string,
+  'description' : string,
+  'contribution' : string,
+}
 export interface FeedEntry {
   'id' : bigint,
   'title' : string,
@@ -75,6 +98,15 @@ export type UserRole = { 'admin' : null } |
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'createElpisAnnouncement' : ActorMethod<
+    [string, string, string, boolean],
+    undefined
+  >,
+  'createElpisCouncilMember' : ActorMethod<
+    [string, string, string, string, string, string],
+    undefined
+  >,
+  'createElpisGuidanceArea' : ActorMethod<[string, string, string], undefined>,
   'createFeed' : ActorMethod<
     [string, string, string, boolean, boolean],
     undefined
@@ -88,14 +120,21 @@ export interface _SERVICE {
     [string, string, string, string, string, string],
     undefined
   >,
+  'deleteElpisAnnouncement' : ActorMethod<[bigint], undefined>,
+  'deleteElpisCouncilMember' : ActorMethod<[bigint], undefined>,
+  'deleteElpisGuidanceArea' : ActorMethod<[bigint], undefined>,
   'deleteFeed' : ActorMethod<[bigint], undefined>,
   'deleteHumanonMentor' : ActorMethod<[bigint], undefined>,
   'deleteHumanonPartner' : ActorMethod<[bigint], undefined>,
   'deleteHumanonProject' : ActorMethod<[bigint], undefined>,
+  'getAllElpisAnnouncements' : ActorMethod<[], Array<ElpisAnnouncement>>,
   'getAllPillars' : ActorMethod<[], Array<Pillar>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCollaborationRequests' : ActorMethod<[], Array<CollaborationRequest>>,
+  'getElpisAnnouncements' : ActorMethod<[], Array<ElpisAnnouncement>>,
+  'getElpisCouncilMembers' : ActorMethod<[], Array<ElpisCouncilMember>>,
+  'getElpisGuidanceAreas' : ActorMethod<[], Array<ElpisGuidanceArea>>,
   'getFeaturedFeeds' : ActorMethod<[], Array<FeedEntry>>,
   'getHumanonMentors' : ActorMethod<[], Array<HumanonMentor>>,
   'getHumanonPartners' : ActorMethod<[], Array<HumanonPartner>>,

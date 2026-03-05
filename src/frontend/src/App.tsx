@@ -5,7 +5,7 @@ import AICompanion from "./components/AICompanion";
 import AmbientSoundControl from "./components/AmbientSoundControl";
 import BootScreen from "./components/BootScreen";
 import CTASection from "./components/CTASection";
-import DualMissionSection from "./components/DualMissionSection";
+import EnterpriseEngine from "./components/EnterpriseEngine";
 import Footer from "./components/Footer";
 import HeroSection from "./components/HeroSection";
 import HumanonSection from "./components/HumanonSection";
@@ -282,7 +282,7 @@ export default function App() {
         <main>
           <HeroSection onScrollTo={scrollTo} />
           <PillarsSection onNavigate={(page) => setView(page)} />
-          <DualMissionSection />
+          <EnterpriseEngine />
           <IntelligenceFeed />
           <PathwaySection
             onPathwaySelect={() => {

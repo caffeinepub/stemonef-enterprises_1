@@ -7,11 +7,36 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface ElpisCouncilMember {
+    id: bigint;
+    domain: string;
+    name: string;
+    role: string;
+    biography: string;
+    expertise: string;
+    organization: string;
+}
 export interface HumanonPartner {
     id: bigint;
     name: string;
     description: string;
     sector: string;
+}
+export interface CollaborationRequest {
+    id: bigint;
+    pathway: string;
+    name: string;
+    email: string;
+    message: string;
+    timestamp: bigint;
+}
+export interface ElpisAnnouncement {
+    id: bigint;
+    title: string;
+    publishedAt: bigint;
+    summary: string;
+    category: string;
+    isPublic: boolean;
 }
 export interface Pillar {
     id: bigint;
@@ -50,13 +75,11 @@ export interface FeedEntry {
     timestamp: bigint;
     isPublic: boolean;
 }
-export interface CollaborationRequest {
+export interface ElpisGuidanceArea {
     id: bigint;
-    pathway: string;
-    name: string;
-    email: string;
-    message: string;
-    timestamp: bigint;
+    domain: string;
+    description: string;
+    contribution: string;
 }
 export interface UserProfile {
     name: string;
@@ -75,18 +98,28 @@ export enum UserRole {
 }
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    createElpisAnnouncement(title: string, summary: string, category: string, isPublic: boolean): Promise<void>;
+    createElpisCouncilMember(name: string, domain: string, organization: string, role: string, biography: string, expertise: string): Promise<void>;
+    createElpisGuidanceArea(domain: string, description: string, contribution: string): Promise<void>;
     createFeed(title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
     createHumanonMentor(name: string, domain: string, organization: string, role: string, profileUrl: string): Promise<void>;
     createHumanonPartner(name: string, sector: string, description: string): Promise<void>;
     createHumanonProject(title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
+    deleteElpisAnnouncement(id: bigint): Promise<void>;
+    deleteElpisCouncilMember(id: bigint): Promise<void>;
+    deleteElpisGuidanceArea(id: bigint): Promise<void>;
     deleteFeed(id: bigint): Promise<void>;
     deleteHumanonMentor(id: bigint): Promise<void>;
     deleteHumanonPartner(id: bigint): Promise<void>;
     deleteHumanonProject(id: bigint): Promise<void>;
+    getAllElpisAnnouncements(): Promise<Array<ElpisAnnouncement>>;
     getAllPillars(): Promise<Array<Pillar>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCollaborationRequests(): Promise<Array<CollaborationRequest>>;
+    getElpisAnnouncements(): Promise<Array<ElpisAnnouncement>>;
+    getElpisCouncilMembers(): Promise<Array<ElpisCouncilMember>>;
+    getElpisGuidanceAreas(): Promise<Array<ElpisGuidanceArea>>;
     getFeaturedFeeds(): Promise<Array<FeedEntry>>;
     getHumanonMentors(): Promise<Array<HumanonMentor>>;
     getHumanonPartners(): Promise<Array<HumanonPartner>>;

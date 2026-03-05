@@ -23,15 +23,24 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { FeedEntry } from "../backend.d";
 import {
+  useCreateElpisAnnouncement,
+  useCreateElpisCouncilMember,
+  useCreateElpisGuidanceArea,
   useCreateFeed,
   useCreateHumanonMentor,
   useCreateHumanonPartner,
   useCreateHumanonProject,
+  useDeleteElpisAnnouncement,
+  useDeleteElpisCouncilMember,
+  useDeleteElpisGuidanceArea,
   useDeleteFeed,
   useDeleteHumanonMentor,
   useDeleteHumanonPartner,
   useDeleteHumanonProject,
+  useGetAllElpisAnnouncements,
   useGetCollaborationRequests,
+  useGetElpisCouncilMembers,
+  useGetElpisGuidanceAreas,
   useGetHumanonMentors,
   useGetHumanonPartners,
   useGetHumanonProjects,
@@ -2337,6 +2346,986 @@ function EpochsResearchTab() {
   );
 }
 
+// ── STEAMI Intelligence Manager ──────────────────────────────────────────────
+
+function SteamiAdminTab() {
+  return (
+    <div
+      className="p-1 rounded-sm"
+      style={{ background: "rgba(255,255,255,0.01)" }}
+    >
+      <div className="mb-6">
+        <div
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-1"
+          style={{ color: "rgba(212,160,23,0.7)" }}
+        >
+          STEAMI INTELLIGENCE MANAGER
+        </div>
+        <p
+          className="font-mono-geist text-[10px]"
+          style={{ color: "rgba(255,255,255,0.3)", letterSpacing: "0.05em" }}
+        >
+          Publish and manage intelligence briefs distributed through the STEAMI
+          platform.
+        </p>
+      </div>
+
+      <Tabs defaultValue="briefs">
+        <TabsList
+          className="mb-8 flex-wrap h-auto gap-1"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            borderRadius: "2px",
+          }}
+        >
+          <TabsTrigger
+            value="briefs"
+            data-ocid="admin.steami.tab"
+            className="text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              letterSpacing: "0.12em",
+            }}
+          >
+            Intelligence Briefs
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="briefs">
+          <FeedTab />
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+}
+
+// ─── ELPIS Admin Tab ──────────────────────────────────────────────────────────
+function ElpisAdminTab() {
+  const { data: members, isLoading: membersLoading } =
+    useGetElpisCouncilMembers();
+  const { data: guidanceAreas, isLoading: guidanceLoading } =
+    useGetElpisGuidanceAreas();
+  const { data: announcements, isLoading: announcementsLoading } =
+    useGetAllElpisAnnouncements();
+
+  const createMember = useCreateElpisCouncilMember();
+  const deleteMember = useDeleteElpisCouncilMember();
+  const createGuidance = useCreateElpisGuidanceArea();
+  const deleteGuidance = useDeleteElpisGuidanceArea();
+  const createAnnouncement = useCreateElpisAnnouncement();
+  const deleteAnnouncement = useDeleteElpisAnnouncement();
+
+  const GOLD = "#d4a017";
+
+  // ── Member form state
+  const [memberForm, setMemberForm] = useState({
+    name: "",
+    domain: "",
+    organization: "",
+    role: "",
+    biography: "",
+    expertise: "",
+  });
+
+  const handleCreateMember = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !memberForm.name ||
+      !memberForm.domain ||
+      !memberForm.organization ||
+      !memberForm.role
+    ) {
+      toast.error("Name, domain, organization, and role are required");
+      return;
+    }
+    try {
+      await createMember.mutateAsync(memberForm);
+      setMemberForm({
+        name: "",
+        domain: "",
+        organization: "",
+        role: "",
+        biography: "",
+        expertise: "",
+      });
+      toast.success("Council member added");
+    } catch {
+      toast.error("Failed to add member");
+    }
+  };
+
+  // ── Guidance area form state
+  const [guidanceForm, setGuidanceForm] = useState({
+    domain: "",
+    description: "",
+    contribution: "",
+  });
+
+  const handleCreateGuidance = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (
+      !guidanceForm.domain ||
+      !guidanceForm.description ||
+      !guidanceForm.contribution
+    ) {
+      toast.error("All fields required");
+      return;
+    }
+    try {
+      await createGuidance.mutateAsync(guidanceForm);
+      setGuidanceForm({ domain: "", description: "", contribution: "" });
+      toast.success("Guidance area added");
+    } catch {
+      toast.error("Failed to add guidance area");
+    }
+  };
+
+  // ── Announcement form state
+  const [annForm, setAnnForm] = useState({
+    title: "",
+    summary: "",
+    category: "",
+    isPublic: true,
+  });
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!annForm.title || !annForm.summary || !annForm.category) {
+      toast.error("Title, summary, and category required");
+      return;
+    }
+    try {
+      await createAnnouncement.mutateAsync(annForm);
+      setAnnForm({ title: "", summary: "", category: "", isPublic: true });
+      toast.success("Announcement published");
+    } catch {
+      toast.error("Failed to publish announcement");
+    }
+  };
+
+  const formatDate = (ts: bigint) => {
+    const ms = Number(ts);
+    if (ms > 1e12)
+      return new Date(ms).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+      });
+    return "—";
+  };
+
+  const adminRowStyle = {
+    borderBottom: "1px solid rgba(255,255,255,0.05)",
+  };
+
+  const adminFormStyle = {
+    background: "rgba(255,255,255,0.02)",
+    border: "1px solid rgba(255,255,255,0.07)",
+    borderRadius: "2px",
+    padding: "20px",
+    marginBottom: "24px",
+  };
+
+  const adminInputStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "rgba(255,255,255,0.7)",
+    fontFamily: "Geist Mono, monospace",
+    fontSize: "11px",
+  };
+
+  return (
+    <Tabs defaultValue="members">
+      <TabsList
+        className="mb-6 flex-wrap h-auto gap-1"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "2px",
+        }}
+      >
+        {[
+          { value: "members", label: "Council Members" },
+          { value: "guidance", label: "Guidance Areas" },
+          { value: "announcements", label: "Announcements" },
+        ].map(({ value, label }) => (
+          <TabsTrigger
+            key={value}
+            value={value}
+            data-ocid={`admin.elpis.${value}.tab`}
+            className="text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              letterSpacing: "0.12em",
+            }}
+          >
+            {label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      {/* Members sub-tab */}
+      <TabsContent value="members">
+        <form
+          onSubmit={handleCreateMember}
+          style={adminFormStyle}
+          data-ocid="admin.elpis.member.dialog"
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.3em] uppercase mb-4"
+            style={{ color: `${GOLD}88` }}
+          >
+            Add Council Member
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Name *
+              </Label>
+              <Input
+                data-ocid="admin.elpis.member.input"
+                value={memberForm.name}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder="Full name"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Domain *
+              </Label>
+              <Input
+                value={memberForm.domain}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, domain: e.target.value }))
+                }
+                placeholder="e.g. AI Ethics, Climate Science"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Organization *
+              </Label>
+              <Input
+                value={memberForm.organization}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, organization: e.target.value }))
+                }
+                placeholder="Institution or organization"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Role *
+              </Label>
+              <Input
+                value={memberForm.role}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, role: e.target.value }))
+                }
+                placeholder="Role within council"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Biography
+              </Label>
+              <Textarea
+                data-ocid="admin.elpis.member.textarea"
+                value={memberForm.biography}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, biography: e.target.value }))
+                }
+                placeholder="Short biography..."
+                rows={3}
+                style={{ ...adminInputStyle, resize: "none" }}
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Expertise (comma-separated)
+              </Label>
+              <Textarea
+                value={memberForm.expertise}
+                onChange={(e) =>
+                  setMemberForm((f) => ({ ...f, expertise: e.target.value }))
+                }
+                placeholder="e.g. Machine Learning, Policy Design, Climate Modeling"
+                rows={3}
+                style={{ ...adminInputStyle, resize: "none" }}
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            data-ocid="admin.elpis.member.submit_button"
+            disabled={createMember.isPending}
+            size="sm"
+            style={{
+              background: `${GOLD}20`,
+              border: `1px solid ${GOLD}44`,
+              color: GOLD,
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "10px",
+              letterSpacing: "0.15em",
+              cursor: "pointer",
+            }}
+          >
+            {createMember.isPending ? "Adding…" : "Add Member"}
+          </Button>
+        </form>
+
+        {/* Members table */}
+        {membersLoading ? (
+          <div
+            data-ocid="admin.elpis.members.loading_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            Loading members…
+          </div>
+        ) : !members || members.length === 0 ? (
+          <div
+            data-ocid="admin.elpis.members.empty_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            No council members yet.
+          </div>
+        ) : (
+          <Table data-ocid="admin.elpis.members.table">
+            <TableHeader>
+              <TableRow style={adminRowStyle}>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Name
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Domain
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Organization
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Role
+                </TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {members.map((m, i) => (
+                <TableRow
+                  key={String(m.id)}
+                  data-ocid={`admin.elpis.member.row.${i + 1}`}
+                  style={adminRowStyle}
+                >
+                  <TableCell
+                    className="text-xs"
+                    style={{
+                      color: "rgba(255,255,255,0.7)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    {m.name}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: GOLD, fontFamily: "Geist Mono, monospace" }}
+                  >
+                    {m.domain}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    {m.organization}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    {m.role}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      type="button"
+                      data-ocid={`admin.elpis.member.delete_button.${i + 1}`}
+                      variant="ghost"
+                      size="sm"
+                      disabled={deleteMember.isPending}
+                      onClick={async () => {
+                        try {
+                          await deleteMember.mutateAsync(m.id);
+                          toast.success("Member removed");
+                        } catch {
+                          toast.error("Failed to remove member");
+                        }
+                      }}
+                      style={{
+                        color: "rgba(255,80,80,0.6)",
+                        fontSize: "10px",
+                        fontFamily: "Geist Mono, monospace",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TabsContent>
+
+      {/* Guidance Areas sub-tab */}
+      <TabsContent value="guidance">
+        <form
+          onSubmit={handleCreateGuidance}
+          style={adminFormStyle}
+          data-ocid="admin.elpis.guidance.dialog"
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.3em] uppercase mb-4"
+            style={{ color: `${GOLD}88` }}
+          >
+            Add Policy Guidance Area
+          </div>
+          <div className="mb-3">
+            <Label
+              className="text-xs mb-1 block"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              Domain *
+            </Label>
+            <Input
+              data-ocid="admin.elpis.guidance.input"
+              value={guidanceForm.domain}
+              onChange={(e) =>
+                setGuidanceForm((f) => ({ ...f, domain: e.target.value }))
+              }
+              placeholder="e.g. AI Ethics, Climate Policy"
+              style={adminInputStyle}
+              required
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-4">
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Description *
+              </Label>
+              <Textarea
+                data-ocid="admin.elpis.guidance.textarea"
+                value={guidanceForm.description}
+                onChange={(e) =>
+                  setGuidanceForm((f) => ({
+                    ...f,
+                    description: e.target.value,
+                  }))
+                }
+                placeholder="Describe the guidance area..."
+                rows={4}
+                style={{ ...adminInputStyle, resize: "none" }}
+                required
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                How the Council Contributes *
+              </Label>
+              <Textarea
+                value={guidanceForm.contribution}
+                onChange={(e) =>
+                  setGuidanceForm((f) => ({
+                    ...f,
+                    contribution: e.target.value,
+                  }))
+                }
+                placeholder="Describe council contributions..."
+                rows={4}
+                style={{ ...adminInputStyle, resize: "none" }}
+                required
+              />
+            </div>
+          </div>
+          <Button
+            type="submit"
+            data-ocid="admin.elpis.guidance.submit_button"
+            disabled={createGuidance.isPending}
+            size="sm"
+            style={{
+              background: `${GOLD}20`,
+              border: `1px solid ${GOLD}44`,
+              color: GOLD,
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "10px",
+              letterSpacing: "0.15em",
+              cursor: "pointer",
+            }}
+          >
+            {createGuidance.isPending ? "Adding…" : "Add Guidance Area"}
+          </Button>
+        </form>
+
+        {guidanceLoading ? (
+          <div
+            data-ocid="admin.elpis.guidance.loading_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            Loading…
+          </div>
+        ) : !guidanceAreas || guidanceAreas.length === 0 ? (
+          <div
+            data-ocid="admin.elpis.guidance.empty_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            No guidance areas yet.
+          </div>
+        ) : (
+          <Table data-ocid="admin.elpis.guidance.table">
+            <TableHeader>
+              <TableRow style={adminRowStyle}>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Domain
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Description
+                </TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {guidanceAreas.map((g, i) => (
+                <TableRow
+                  key={String(g.id)}
+                  data-ocid={`admin.elpis.guidance.row.${i + 1}`}
+                  style={adminRowStyle}
+                >
+                  <TableCell
+                    className="text-xs font-semibold"
+                    style={{ color: GOLD, fontFamily: "Geist Mono, monospace" }}
+                  >
+                    {g.domain}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs max-w-xs truncate"
+                    style={{
+                      color: "rgba(255,255,255,0.5)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    {g.description}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      type="button"
+                      data-ocid={`admin.elpis.guidance.delete_button.${i + 1}`}
+                      variant="ghost"
+                      size="sm"
+                      disabled={deleteGuidance.isPending}
+                      onClick={async () => {
+                        try {
+                          await deleteGuidance.mutateAsync(g.id);
+                          toast.success("Guidance area removed");
+                        } catch {
+                          toast.error("Failed to remove guidance area");
+                        }
+                      }}
+                      style={{
+                        color: "rgba(255,80,80,0.6)",
+                        fontSize: "10px",
+                        fontFamily: "Geist Mono, monospace",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TabsContent>
+
+      {/* Announcements sub-tab */}
+      <TabsContent value="announcements">
+        <form
+          onSubmit={handleCreateAnnouncement}
+          style={adminFormStyle}
+          data-ocid="admin.elpis.announcement.dialog"
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.3em] uppercase mb-4"
+            style={{ color: `${GOLD}88` }}
+          >
+            Publish Announcement
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Title *
+              </Label>
+              <Input
+                data-ocid="admin.elpis.announcement.input"
+                value={annForm.title}
+                onChange={(e) =>
+                  setAnnForm((f) => ({ ...f, title: e.target.value }))
+                }
+                placeholder="Announcement title"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+            <div>
+              <Label
+                className="text-xs mb-1 block"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                Category *
+              </Label>
+              <Input
+                value={annForm.category}
+                onChange={(e) =>
+                  setAnnForm((f) => ({ ...f, category: e.target.value }))
+                }
+                placeholder="e.g. Advisory Opinion, Policy Guidance"
+                style={adminInputStyle}
+                required
+              />
+            </div>
+          </div>
+          <div className="mb-3">
+            <Label
+              className="text-xs mb-1 block"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              Summary *
+            </Label>
+            <Textarea
+              data-ocid="admin.elpis.announcement.textarea"
+              value={annForm.summary}
+              onChange={(e) =>
+                setAnnForm((f) => ({ ...f, summary: e.target.value }))
+              }
+              placeholder="Brief summary of the announcement..."
+              rows={3}
+              style={{ ...adminInputStyle, resize: "none" }}
+              required
+            />
+          </div>
+          <div className="flex items-center gap-3 mb-4">
+            <Switch
+              data-ocid="admin.elpis.announcement.switch"
+              checked={annForm.isPublic}
+              onCheckedChange={(v) =>
+                setAnnForm((f) => ({ ...f, isPublic: v }))
+              }
+            />
+            <Label
+              className="text-xs"
+              style={{
+                color: "rgba(255,255,255,0.5)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              {annForm.isPublic
+                ? "Public (visible on ELPIS page)"
+                : "Internal only"}
+            </Label>
+          </div>
+          <Button
+            type="submit"
+            data-ocid="admin.elpis.announcement.submit_button"
+            disabled={createAnnouncement.isPending}
+            size="sm"
+            style={{
+              background: `${GOLD}20`,
+              border: `1px solid ${GOLD}44`,
+              color: GOLD,
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "10px",
+              letterSpacing: "0.15em",
+              cursor: "pointer",
+            }}
+          >
+            {createAnnouncement.isPending
+              ? "Publishing…"
+              : "Publish Announcement"}
+          </Button>
+        </form>
+
+        {announcementsLoading ? (
+          <div
+            data-ocid="admin.elpis.announcements.loading_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            Loading…
+          </div>
+        ) : !announcements || announcements.length === 0 ? (
+          <div
+            data-ocid="admin.elpis.announcements.empty_state"
+            className="text-xs"
+            style={{
+              color: "rgba(255,255,255,0.25)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            No announcements yet.
+          </div>
+        ) : (
+          <Table data-ocid="admin.elpis.announcements.table">
+            <TableHeader>
+              <TableRow style={adminRowStyle}>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Title
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Category
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Status
+                </TableHead>
+                <TableHead
+                  className="text-xs"
+                  style={{
+                    color: `${GOLD}88`,
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  Published
+                </TableHead>
+                <TableHead />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {announcements.map((ann, i) => (
+                <TableRow
+                  key={String(ann.id)}
+                  data-ocid={`admin.elpis.announcement.row.${i + 1}`}
+                  style={adminRowStyle}
+                >
+                  <TableCell
+                    className="text-xs max-w-xs truncate"
+                    style={{
+                      color: "rgba(255,255,255,0.7)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    {ann.title}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: GOLD, fontFamily: "Geist Mono, monospace" }}
+                  >
+                    {ann.category}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className="text-[9px] font-mono-geist tracking-widest uppercase px-1.5 py-0.5 rounded-sm"
+                      style={{
+                        background: ann.isPublic
+                          ? "rgba(34,211,176,0.1)"
+                          : "rgba(255,255,255,0.04)",
+                        border: `1px solid ${ann.isPublic ? "rgba(34,211,176,0.3)" : "rgba(255,255,255,0.1)"}`,
+                        color: ann.isPublic
+                          ? "#22d3b0"
+                          : "rgba(255,255,255,0.35)",
+                      }}
+                    >
+                      {ann.isPublic ? "Public" : "Internal"}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{
+                      color: "rgba(255,255,255,0.3)",
+                      fontFamily: "Geist Mono, monospace",
+                    }}
+                  >
+                    {formatDate(ann.publishedAt)}
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      type="button"
+                      data-ocid={`admin.elpis.announcement.delete_button.${i + 1}`}
+                      variant="ghost"
+                      size="sm"
+                      disabled={deleteAnnouncement.isPending}
+                      onClick={async () => {
+                        try {
+                          await deleteAnnouncement.mutateAsync(ann.id);
+                          toast.success("Announcement removed");
+                        } catch {
+                          toast.error("Failed to remove announcement");
+                        }
+                      }}
+                      style={{
+                        color: "rgba(255,80,80,0.6)",
+                        fontSize: "10px",
+                        fontFamily: "Geist Mono, monospace",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </TabsContent>
+    </Tabs>
+  );
+}
+
 export default function AdminDashboard({
   onGoHome,
 }: {
@@ -2432,6 +3421,8 @@ export default function AdminDashboard({
               { value: "stats", label: "Pathway Statistics" },
               { value: "research", label: "EPOCHS Research" },
               { value: "humanon", label: "HUMANON" },
+              { value: "steami", label: "STEAMI" },
+              { value: "elpis", label: "ELPIS Council" },
             ].map(({ value, label }) => (
               <TabsTrigger
                 key={value}
@@ -2503,6 +3494,25 @@ export default function AdminDashboard({
                 HUMANON ECOSYSTEM MANAGER
               </div>
               <HumanonManagerTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="steami">
+            <SteamiAdminTab />
+          </TabsContent>
+
+          <TabsContent value="elpis">
+            <div
+              className="p-1 rounded-sm"
+              style={{ background: "rgba(255,255,255,0.01)" }}
+            >
+              <div
+                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
+                style={{ color: "rgba(212,160,23,0.7)" }}
+              >
+                E.L.P.I.S COUNCIL MANAGER
+              </div>
+              <ElpisAdminTab />
             </div>
           </TabsContent>
         </Tabs>

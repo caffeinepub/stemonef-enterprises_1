@@ -11,9 +11,7 @@ import Principal "mo:core/Principal";
 import Nat64 "mo:core/Nat64";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -413,7 +411,6 @@ actor {
     countriesRepresented : Nat;
   };
 
-  // Auto-increment project and partner IDs
   var nextProjectId = 5;
   var nextPartnerId = 5;
 
@@ -551,6 +548,152 @@ actor {
     careerPlacements = 24;
     countriesRepresented = 6;
   };
+
+  // ELPIS functionality
+  public type ElpisCouncilMember = {
+    id : Nat;
+    name : Text;
+    domain : Text;
+    organization : Text;
+    role : Text;
+    biography : Text;
+    expertise : Text;
+  };
+
+  public type ElpisGuidanceArea = {
+    id : Nat;
+    domain : Text;
+    description : Text;
+    contribution : Text;
+  };
+
+  public type ElpisAnnouncement = {
+    id : Nat;
+    title : Text;
+    summary : Text;
+    category : Text;
+    isPublic : Bool;
+    publishedAt : Int;
+  };
+
+  var nextCouncilMemberId = 7;
+  var nextGuidanceAreaId = 6;
+  var nextAnnouncementId = 3;
+
+  let councilMembers = List.fromArray<ElpisCouncilMember>(
+    [
+      {
+        id = 1;
+        name = "Dr. Sofia Alvarez";
+        domain = "Ethics";
+        organization = "Center for Global Ethics";
+        role = "Council Chair";
+        biography = "Leading expert in ethical frameworks for emerging technologies";
+        expertise = "AI ethics, bioethics";
+      },
+      {
+        id = 2;
+        name = "Prof. Lars Petersen";
+        domain = "Policy";
+        organization = "Institute for Policy Innovation";
+        role = "Policy Advisor";
+        biography = "International policy strategist focused on digital economies";
+        expertise = "Public policy, economic development";
+      },
+      {
+        id = 3;
+        name = "Dr. Leila Mansour";
+        domain = "Climate";
+        organization = "Gaia Research Lab";
+        role = "Climate Science Lead";
+        biography = "Renowned climate scientist with global impact";
+        expertise = "Climate modeling, sustainability";
+      },
+      {
+        id = 4;
+        name = "Prof. Kenji Nakamura";
+        domain = "AI";
+        organization = "InnovateAI Institute";
+        role = "AI Technology Advisor";
+        biography = "Pioneer in AI development and machine learning";
+        expertise = "AI research, machine learning";
+      },
+      {
+        id = 5;
+        name = "Dr. Maria Silva";
+        domain = "Education";
+        organization = "EdTech Global";
+        role = "Education Expert";
+        biography = "Champion for accessible education worldwide";
+        expertise = "Digital learning, education reform";
+      },
+      {
+        id = 6;
+        name = "Dr. Michael Brandt";
+        domain = "Strategic Foresight";
+        organization = "Futures Institute";
+        role = "Strategic Foresight Lead";
+        biography = "Expert in strategic foresight and future planning";
+        expertise = "Scenario planning, innovation strategy";
+      },
+    ]
+  );
+
+  let guidanceAreas = List.fromArray<ElpisGuidanceArea>(
+    [
+      {
+        id = 1;
+        domain = "AI Ethics";
+        description = "Focuses on developing ethical AI frameworks";
+        contribution = "Created global AI ethics standards";
+      },
+      {
+        id = 2;
+        domain = "Climate Policy";
+        description = "Guides policy development for climate action";
+        contribution = "Published influential climate policy papers";
+      },
+      {
+        id = 3;
+        domain = "Science Education";
+        description = "Supports advancements in science education";
+        contribution = "Innovative STEM curriculum resources";
+      },
+      {
+        id = 4;
+        domain = "Technology Governance";
+        description = "Promotes responsible tech governance practices";
+        contribution = "Developed blockchain governance frameworks";
+      },
+      {
+        id = 5;
+        domain = "Global Research Collaboration";
+        description = "Facilitates international research partnerships";
+        contribution = "Establishing global collaborative research efforts";
+      },
+    ]
+  );
+
+  let announcements = List.fromArray<ElpisAnnouncement>(
+    [
+      {
+        id = 1;
+        title = "Ethics Charter Published";
+        summary = "Council releases comprehensive global ethics framework";
+        category = "Ethics";
+        isPublic = true;
+        publishedAt = Time.now();
+      },
+      {
+        id = 2;
+        title = "AI Governance Framework Approved";
+        summary = "New standards for AI governance adopted by council";
+        category = "AI";
+        isPublic = true;
+        publishedAt = Time.now();
+      },
+    ]
+  );
 
   // Query APIs
   public query ({ caller }) func getHumanonMentors() : async [HumanonMentor] {
@@ -731,5 +874,136 @@ actor {
       careerPlacements;
       countriesRepresented;
     };
+  };
+
+  // ELPIS Query and Admin functions
+
+  public query ({ caller }) func getElpisCouncilMembers() : async [ElpisCouncilMember] {
+    councilMembers.toArray();
+  };
+
+  public query ({ caller }) func getElpisGuidanceAreas() : async [ElpisGuidanceArea] {
+    guidanceAreas.toArray();
+  };
+
+  public query ({ caller }) func getElpisAnnouncements() : async [ElpisAnnouncement] {
+    announcements.values().toArray().filter(
+      func(announcement) { announcement.isPublic }
+    );
+  };
+
+  public query ({ caller }) func getAllElpisAnnouncements() : async [ElpisAnnouncement] {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can view all announcements");
+    };
+    announcements.toArray();
+  };
+
+  public shared ({ caller }) func createElpisCouncilMember(
+    name : Text,
+    domain : Text,
+    organization : Text,
+    role : Text,
+    biography : Text,
+    expertise : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create council members");
+    };
+
+    let newMember = {
+      id = nextCouncilMemberId;
+      name;
+      domain;
+      organization;
+      role;
+      biography;
+      expertise;
+    };
+
+    councilMembers.add(newMember);
+    nextCouncilMemberId += 1;
+  };
+
+  public shared ({ caller }) func deleteElpisCouncilMember(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete council members");
+    };
+
+    let filteredMembers = councilMembers.filter(
+      func(member) { member.id != id }
+    );
+
+    councilMembers.clear();
+    councilMembers.addAll(filteredMembers.values());
+  };
+
+  public shared ({ caller }) func createElpisGuidanceArea(
+    domain : Text,
+    description : Text,
+    contribution : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create guidance areas");
+    };
+
+    let newArea = {
+      id = nextGuidanceAreaId;
+      domain;
+      description;
+      contribution;
+    };
+
+    guidanceAreas.add(newArea);
+    nextGuidanceAreaId += 1;
+  };
+
+  public shared ({ caller }) func deleteElpisGuidanceArea(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete guidance areas");
+    };
+
+    let filteredAreas = guidanceAreas.filter(
+      func(area) { area.id != id }
+    );
+
+    guidanceAreas.clear();
+    guidanceAreas.addAll(filteredAreas.values());
+  };
+
+  public shared ({ caller }) func createElpisAnnouncement(
+    title : Text,
+    summary : Text,
+    category : Text,
+    isPublic : Bool,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create announcements");
+    };
+
+    let newAnnouncement = {
+      id = nextAnnouncementId;
+      title;
+      summary;
+      category;
+      isPublic;
+      publishedAt = Time.now();
+    };
+
+    announcements.add(newAnnouncement);
+    nextAnnouncementId += 1;
+  };
+
+  public shared ({ caller }) func deleteElpisAnnouncement(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete announcements");
+    };
+
+    let filteredAnnouncements = announcements.filter(
+      func(announcement) { announcement.id != id }
+    );
+
+    announcements.clear();
+    announcements.addAll(filteredAnnouncements.values());
   };
 };
