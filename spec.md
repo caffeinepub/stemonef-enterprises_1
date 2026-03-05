@@ -1,47 +1,43 @@
 # STEMONEF Enterprises
 
 ## Current State
-The `DualMissionSection` component renders a static three-column layout:
-- Left: Impact Architecture card with 5 impact domain items (Climate Systems, Global Health, Poverty Reduction, Education Access, Ethical AI)
-- Center: A small SVG flow arrow with dashed lines and a gold node
-- Right: Revenue & Sustainability Engine card with 4 revenue items
-- Footer caption about profit reinvestment
 
-All items are static — no interactivity, no animation beyond basic CSS, no hover effects that connect the two sides.
+`PathwaySection.tsx` renders a static 3-column card grid. Six pathway cards (Research & Innovation, Talent & Field Growth, Intelligence & Policy, Climate & Sustainability, Media & Storytelling, Equity & Support) display with a click-to-select state. No orbital engine, no scroll activation, no pathway detail panels, no flow diagrams, no animated center engine. The section header has a small eyebrow label, title, and single-line description.
 
 ## Requested Changes (Diff)
 
 ### Add
-- `EnterpriseEngine.tsx` — a fully new component replacing `DualMissionSection`
-- Canvas-based particle flow system animating signals from Revenue → Engine → Impact
-- Central animated SVG orbital ring with 7 pillar nodes (EPOCHS, HUMANON, STEAMI, NOVA, TERRA, EQUIS, ETHOS) that slowly rotate
-- Each node has a glowing pulse animation and inter-node connection lines
-- Hover on impact items highlights specific related pillar nodes in the engine
-- Hover on revenue items highlights related pillar nodes
-- Hover on pillar nodes shows tooltip (name, description, active systems)
-- Scroll-triggered entrance sequence: Impact fades in → Revenue fades in → Engine activates → Data flow begins (1.5–2s total)
-- Section tagline block below the engine
-- Mobile vertical layout: Impact → Engine → Revenue stacked with simplified interactions
-- Section header renamed to "STEMONEF Enterprise Engine"
+- Central circular alignment engine: an SVG/Canvas-based orbital visualization with "YOU" in the center and 6 pathway nodes slowly orbiting around it, each glowing with its domain color
+- Scroll-activated entrance sequence: title fades in (0s), central engine appears (0.3s), nodes orbit into position (0.6s), interaction activates (1.0s) — total ~1.5s
+- Hover interaction on each node: a connection line appears from center to node, a tooltip shows pathway name + description
+- Click/select interaction: node highlights, pathway details panel expands below the engine
+- Pathway detail panel (per selected node): title, description paragraphs, bullet list of sub-pathways, two CTA buttons (e.g. "Explore EPOCHS" and "View Research Projects" for Research node), plus a small flow diagram (Interest → Program → Project → Impact Contribution)
+- Reinforced section introduction text: multi-sentence context paragraph explaining STEMONEF as an interconnected system
+- Final tagline caption below the engine: "Every pathway contributes to the STEMONEF mission — advancing science, technology, and human progress."
+- Mobile fallback: vertical step-selector layout, nodes become interactive cards with the same domain color identity
+- Signal pulse animations on nodes (subtle glow throbs)
+- Particle/line signals flowing from center outward
 
 ### Modify
-- `App.tsx`: Replace `<DualMissionSection />` import and usage with `<EnterpriseEngine />`
+- `PathwaySection.tsx`: full component rewrite to implement all of the above; keep the same `data-ocid="pathway.section"` root marker and `id="pathway"` anchor; retain `useLogPathwayInterest` backend call on node select; keep existing PATHWAYS color tokens exactly
+- Section introduction text strengthened from single sentence to two-paragraph context block
 
 ### Remove
-- `DualMissionSection.tsx` usage on the homepage (file kept for safety, just unmounted)
+- Static 3-column card grid (replaced by orbital engine + expandable detail panel)
+- Single-line description under the title (replaced by fuller context paragraph)
 
 ## Implementation Plan
-1. Create `src/frontend/src/components/EnterpriseEngine.tsx` with:
-   - `useRef` for canvas, SVG, section container
-   - `IntersectionObserver` for scroll activation (4-step sequence)
-   - 7 pillar node definitions with positions on a circular ring, tooltip content, and pillar→impact/revenue mappings
-   - Impact domain list with `hoveredImpact` state; hover triggers `highlightedNodes` state
-   - Revenue stream list with `hoveredRevenue` state; hover triggers `highlightedNodes` state
-   - Central SVG with rotating ring (CSS `transform: rotate` via `requestAnimationFrame` or CSS animation), node circles with glow filters, inter-node lines, and node labels
-   - Canvas overlay for particle flow (requestAnimationFrame, 30 FPS cap, tab-pause)
-   - Tooltip component that follows hovered pillar node
-   - Scroll-in CSS classes with staggered opacity/transform transitions
-   - Mobile: `flex-col` layout with `lg:flex-row` (responsive grid)
-   - Tagline block at bottom
-2. Update `App.tsx` to import and use `EnterpriseEngine` instead of `DualMissionSection`
-3. Validate (typecheck + lint + build)
+
+1. Rewrite `PathwaySection.tsx` completely.
+2. Add `useIntersectionObserver` (inline ref-based) to trigger scroll-activation state.
+3. Render central engine as an SVG element sized ~480×480px on desktop, with:
+   - Outer dashed orbit ring (animated slow rotation)
+   - Inner pulsing ring around "YOU" center text
+   - 6 node circles positioned on the orbit ring, each with domain color glow
+   - Radial connection line from center to hovered node
+4. Add per-pathway DETAILS data object with: full description, sub-pathway bullets, CTA button labels + routes, flow steps (4-step string array), and program name.
+5. Expanded detail panel rendered below the SVG engine; uses glass panel styling, animates in with fade+translateY; contains flow diagram as a small vertical step list with arrows.
+6. Tooltip rendered as an absolutely-positioned glass card near the hovered node (clamped to viewport).
+7. Mobile breakpoint (< 768px): replace SVG engine with a vertical accordion-style card list; preserve color identity and detail panel expansion.
+8. Keep all existing design tokens (`#04050e`, `#4a7ef7`, `#d4a017`), fonts (Fraunces display, Sora body, Geist Mono mono), and glass/glow utility classes.
+9. Apply deterministic `data-ocid` markers to all interactive nodes, detail panel buttons, and tab-like node selectors.
