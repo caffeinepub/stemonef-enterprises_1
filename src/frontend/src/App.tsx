@@ -288,6 +288,7 @@ export default function App() {
             onPathwaySelect={() => {
               /* adaptive highlighting */
             }}
+            onNavigate={(page) => setView(page as AppView)}
           />
           <HumanonSection />
           <CTASection />

@@ -12,6 +12,8 @@ const PATHWAYS = [
     glow: "rgba(74,126,247,0.3)",
     hexColor: "#4a7ef7",
     program: "EPOCHS",
+    view: "epochs",
+    status: "Launch Phase",
     description:
       "Contribute to EPOCHS-led research and systemic inquiry across climate systems, ethical AI, and health intelligence.",
     subPathways: [
@@ -21,8 +23,8 @@ const PATHWAYS = [
       "Sustainability technologies",
     ],
     ctaButtons: [
-      { label: "Explore EPOCHS", route: "/epochs" },
-      { label: "View Research Projects", route: "/epochs#projects" },
+      { label: "Explore EPOCHS", view: "epochs" },
+      { label: "View Research Projects", view: "epochs" },
     ],
     flowSteps: [
       "Express Interest",
@@ -32,11 +34,7 @@ const PATHWAYS = [
     ],
     tooltip:
       "Contribute to EPOCHS-led research and systemic inquiry. Join cutting-edge projects across climate, AI, and global health.",
-    stats: [
-      "42 active projects",
-      "6 research domains",
-      "18 partner institutions",
-    ],
+    statusNote: "Program metrics will be published as initiatives launch.",
   },
   {
     id: "talent",
@@ -46,6 +44,8 @@ const PATHWAYS = [
     glow: "rgba(34,197,94,0.3)",
     hexColor: "#22c55e",
     program: "HUMANON",
+    view: "humanon",
+    status: "Program Development",
     description:
       "Join the HUMANON incubation pipeline — from learner to field-deployed change agent in real-world impact programs.",
     subPathways: [
@@ -55,8 +55,8 @@ const PATHWAYS = [
       "Community leadership roles",
     ],
     ctaButtons: [
-      { label: "Join HUMANON", route: "/humanon" },
-      { label: "View Open Programs", route: "/humanon#programs" },
+      { label: "Join HUMANON", view: "humanon" },
+      { label: "View Open Programs", view: "humanon" },
     ],
     flowSteps: [
       "Express Interest",
@@ -66,7 +66,8 @@ const PATHWAYS = [
     ],
     tooltip:
       "Join HUMANON's research incubation pipeline and contribute to real-world projects across global communities.",
-    stats: ["380 participants", "24 field deployments", "12 active cohorts"],
+    statusNote:
+      "Participant cohorts launching soon. Global participation programs in preparation.",
   },
   {
     id: "intelligence",
@@ -76,6 +77,8 @@ const PATHWAYS = [
     glow: "rgba(167,139,250,0.3)",
     hexColor: "#a78bfa",
     program: "STEAMI",
+    view: "steami",
+    status: "Intelligence Active",
     description:
       "Access STEAMI intelligence briefings and contribute to policy translation, synthesis, and strategic advisory work.",
     subPathways: [
@@ -85,8 +88,8 @@ const PATHWAYS = [
       "Governance advisory",
     ],
     ctaButtons: [
-      { label: "Access STEAMI", route: "/steami" },
-      { label: "View Intelligence Briefs", route: "/steami#briefs" },
+      { label: "Access STEAMI", view: "steami" },
+      { label: "View Intelligence Briefs", view: "steami" },
     ],
     flowSteps: [
       "Express Interest",
@@ -96,7 +99,8 @@ const PATHWAYS = [
     ],
     tooltip:
       "Access STEAMI's intelligence synthesis network and contribute to policy translation for global decision-makers.",
-    stats: ["96 active briefs", "31 policy domains", "9 advisory networks"],
+    statusNote:
+      "Intelligence systems operational. Program briefs in active development.",
   },
   {
     id: "climate",
@@ -106,17 +110,19 @@ const PATHWAYS = [
     glow: "rgba(20,184,166,0.3)",
     hexColor: "#14b8a6",
     program: "TERRA",
+    view: "terra",
+    status: "Program Development",
     description:
-      "Engage with TERRA's ecological research programs and contribute to planetary health monitoring and sustainability initiatives.",
+      "Engage with STEMONEF's climate research and planetary health initiatives. Research programs include ecological monitoring, climate systems analysis, renewable transition research, and biodiversity protection.",
     subPathways: [
       "Ecological monitoring",
-      "Planetary health research",
-      "Renewable energy transition",
-      "Biodiversity programs",
+      "Climate systems analysis",
+      "Renewable transition research",
+      "Biodiversity protection",
     ],
     ctaButtons: [
-      { label: "Explore TERRA", route: "/terra" },
-      { label: "View Climate Programs", route: "/terra#programs" },
+      { label: "Explore TERRA", view: "terra" },
+      { label: "Climate Programs", view: "terra" },
     ],
     flowSteps: [
       "Express Interest",
@@ -125,12 +131,9 @@ const PATHWAYS = [
       "Planetary Impact",
     ],
     tooltip:
-      "Engage with TERRA's ecological research and planetary health monitoring across global climate systems.",
-    stats: [
-      "17 climate zones monitored",
-      "5 biodiversity programs",
-      "3 planetary datasets",
-    ],
+      "Engage with TERRA's climate research and planetary health initiatives across ecological systems.",
+    statusNote:
+      "Detailed program metrics will be published as initiatives launch.",
   },
   {
     id: "media",
@@ -140,6 +143,8 @@ const PATHWAYS = [
     glow: "rgba(212,160,23,0.3)",
     hexColor: "#d4a017",
     program: "NOVA",
+    view: "nova",
+    status: "Launch Phase",
     description:
       "Partner with NOVA to translate mission complexity into cultural narrative, documentary, and multimedia storytelling.",
     subPathways: [
@@ -149,8 +154,8 @@ const PATHWAYS = [
       "Cultural translation",
     ],
     ctaButtons: [
-      { label: "Join NOVA", route: "/nova" },
-      { label: "View Media Programs", route: "/nova#programs" },
+      { label: "Join NOVA", view: "nova" },
+      { label: "View Media Programs", view: "nova" },
     ],
     flowSteps: [
       "Express Interest",
@@ -160,11 +165,7 @@ const PATHWAYS = [
     ],
     tooltip:
       "Partner with NOVA to translate complex mission work into powerful cultural narratives and multimedia stories.",
-    stats: [
-      "28 productions in progress",
-      "14 languages supported",
-      "6 media partnerships",
-    ],
+    statusNote: "Production programs and media partnerships in preparation.",
   },
   {
     id: "equity",
@@ -174,17 +175,19 @@ const PATHWAYS = [
     glow: "rgba(248,113,113,0.3)",
     hexColor: "#f87171",
     program: "EQUIS",
+    view: "equis",
+    status: "Cohorts Announcing Soon",
     description:
-      "Explore EQUIS ethical investment, equity funding, and support pathways for underrepresented communities and initiatives.",
+      "EQUIS is the ethical capital and funding alignment pillar of STEMONEF. Structured funding pathways, investment programs, and financial participation models are currently under development. Program frameworks and investment cohorts will be announced soon.",
     subPathways: [
-      "Ethical investment",
+      "Ethical investment frameworks",
       "Equity funding alignment",
-      "Community support grants",
+      "Financial participation models",
       "Humanitarian partnerships",
     ],
     ctaButtons: [
-      { label: "Explore EQUIS", route: "/equis" },
-      { label: "View Funding Pathways", route: "/equis#funding" },
+      { label: "Explore EQUIS", view: "equis" },
+      { label: "Register Interest", view: "equis" },
     ],
     flowSteps: [
       "Express Interest",
@@ -193,8 +196,8 @@ const PATHWAYS = [
       "Equity Impact",
     ],
     tooltip:
-      "Explore EQUIS ethical investment pathways and equity funding for underrepresented communities and global initiatives.",
-    stats: ["$4.2M distributed", "63 community grantees", "11 equity programs"],
+      "EQUIS is the ethical capital and funding alignment pillar of STEMONEF. Investment cohorts will be announced soon.",
+    statusNote: "Cohort programs — details will be revealed soon.",
   },
 ];
 
@@ -293,12 +296,14 @@ const RADIAL_LINES = Array.from({ length: 8 }, (_, i) => {
 
 interface PathwaySectionProps {
   onPathwaySelect?: (pathway: string) => void;
+  onNavigate?: (view: string) => void;
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function PathwaySection({
   onPathwaySelect,
+  onNavigate,
 }: PathwaySectionProps) {
   const [selected, setSelected] = useState<string | null>(null);
   const [hovered, setHovered] = useState<string | null>(null);
@@ -416,13 +421,15 @@ export default function PathwaySection({
                   animation: "pe-blink 1.2s step-end infinite",
                 }}
               />
-              SYSTEM STATUS: ACTIVE
+              SYSTEM STATUS: OPERATIONAL
             </span>
             <span style={{ color: "rgba(212,160,23,0.25)" }}>|</span>
             <span>6 PATHWAYS AVAILABLE</span>
             <span style={{ color: "rgba(212,160,23,0.25)" }}>|</span>
+            <span>ALIGNMENT ENGINE: ONLINE</span>
+            <span style={{ color: "rgba(212,160,23,0.25)" }}>|</span>
             <span>
-              ALIGNMENT ENGINE: ONLINE
+              PROGRAM LAUNCHES ROLLING OUT
               <span style={{ animation: "pe-blink 1s step-end infinite" }}>
                 _
               </span>
@@ -1007,6 +1014,7 @@ export default function PathwaySection({
                   <MobileDetailContent
                     pathway={pathway}
                     flowStepsVisible={isActive && flowStepsVisible}
+                    onNavigate={onNavigate}
                   />
                 </div>
               </div>
@@ -1029,6 +1037,7 @@ export default function PathwaySection({
               pathway={selectedPathway}
               flowStepsVisible={flowStepsVisible}
               onClose={handleClose}
+              onNavigate={onNavigate}
             />
           )}
         </div>
@@ -1064,9 +1073,15 @@ interface DetailPanelProps {
   pathway: (typeof PATHWAYS)[0];
   flowStepsVisible: boolean;
   onClose: () => void;
+  onNavigate?: (view: string) => void;
 }
 
-function DetailPanel({ pathway, flowStepsVisible, onClose }: DetailPanelProps) {
+function DetailPanel({
+  pathway,
+  flowStepsVisible,
+  onClose,
+  onNavigate,
+}: DetailPanelProps) {
   return (
     <div
       className="mt-8 mx-auto rounded-sm relative"
@@ -1095,7 +1110,7 @@ function DetailPanel({ pathway, flowStepsVisible, onClose }: DetailPanelProps) {
       </button>
 
       {/* Top row */}
-      <div className="flex items-start gap-4 mb-6">
+      <div className="flex items-start gap-4 mb-4">
         <span
           className="text-3xl flex-shrink-0"
           style={{ color: pathway.hexColor }}
@@ -1109,36 +1124,43 @@ function DetailPanel({ pathway, flowStepsVisible, onClose }: DetailPanelProps) {
           >
             {pathway.label}
           </h3>
-          <span
-            className="font-mono-geist text-[10px] tracking-[0.35em] uppercase px-2 py-0.5 rounded-sm"
-            style={{
-              color: "rgba(212,160,23,0.85)",
-              background: "rgba(212,160,23,0.08)",
-              border: "1px solid rgba(212,160,23,0.2)",
-            }}
-          >
-            {pathway.program}
-          </span>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span
+              className="font-mono-geist text-[10px] tracking-[0.35em] uppercase px-2 py-0.5 rounded-sm"
+              style={{
+                color: "rgba(212,160,23,0.85)",
+                background: "rgba(212,160,23,0.08)",
+                border: "1px solid rgba(212,160,23,0.2)",
+              }}
+            >
+              {pathway.program}
+            </span>
+            <span
+              className="font-mono-geist text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 rounded-sm"
+              style={{
+                color: pathway.hexColor,
+                background: `${pathway.hexColor}12`,
+                border: `1px solid ${pathway.hexColor}35`,
+              }}
+            >
+              STATUS: {pathway.status}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Stats row */}
-      <div className="flex flex-wrap gap-4 mb-5">
-        {pathway.stats.map((stat) => (
-          <div
-            key={stat}
-            className="font-mono-geist text-[10px] tracking-[0.2em] uppercase"
-            style={{
-              color: "rgba(212,160,23,0.7)",
-              background: "rgba(212,160,23,0.06)",
-              border: "1px solid rgba(212,160,23,0.15)",
-              padding: "4px 10px",
-              borderRadius: "2px",
-            }}
-          >
-            {stat}
-          </div>
-        ))}
+      {/* Program status note */}
+      <div
+        className="mb-5 font-mono-geist text-[9px] tracking-[0.2em] uppercase"
+        style={{
+          color: "rgba(255,255,255,0.3)",
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          padding: "8px 12px",
+          borderRadius: "2px",
+        }}
+      >
+        PROGRAM STATUS — {pathway.statusNote}
       </div>
 
       {/* Description */}
@@ -1239,54 +1261,58 @@ function DetailPanel({ pathway, flowStepsVisible, onClose }: DetailPanelProps) {
 
       {/* CTA buttons */}
       <div className="flex flex-wrap gap-3 mt-8">
-        <a
-          href={pathway.ctaButtons[0].route}
+        <button
+          type="button"
           data-ocid="pathway.detail.primary_button"
+          onClick={() => onNavigate?.(pathway.ctaButtons[0].view)}
           className="font-mono-geist text-xs tracking-[0.2em] uppercase px-5 py-2.5 rounded-sm transition-all duration-200 hover:opacity-90"
           style={{
             background: `${pathway.hexColor}22`,
             border: `1px solid ${pathway.hexColor}55`,
             color: pathway.hexColor,
             backdropFilter: "blur(8px)",
+            cursor: "pointer",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.background =
+            (e.currentTarget as HTMLButtonElement).style.background =
               `${pathway.hexColor}35`;
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow =
+            (e.currentTarget as HTMLButtonElement).style.boxShadow =
               `0 0 16px ${pathway.glow}`;
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.background =
+            (e.currentTarget as HTMLButtonElement).style.background =
               `${pathway.hexColor}22`;
-            (e.currentTarget as HTMLAnchorElement).style.boxShadow = "none";
+            (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
           }}
         >
           {pathway.ctaButtons[0].label}
-        </a>
-        <a
-          href={pathway.ctaButtons[1].route}
+        </button>
+        <button
+          type="button"
           data-ocid="pathway.detail.secondary_button"
+          onClick={() => onNavigate?.(pathway.ctaButtons[1].view)}
           className="font-mono-geist text-xs tracking-[0.2em] uppercase px-5 py-2.5 rounded-sm transition-all duration-200"
           style={{
             background: "transparent",
             border: "1px solid rgba(255,255,255,0.12)",
             color: "rgba(255,255,255,0.5)",
+            cursor: "pointer",
           }}
           onMouseEnter={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.borderColor =
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
               "rgba(255,255,255,0.3)";
-            (e.currentTarget as HTMLAnchorElement).style.color =
+            (e.currentTarget as HTMLButtonElement).style.color =
               "rgba(255,255,255,0.8)";
           }}
           onMouseLeave={(e) => {
-            (e.currentTarget as HTMLAnchorElement).style.borderColor =
+            (e.currentTarget as HTMLButtonElement).style.borderColor =
               "rgba(255,255,255,0.12)";
-            (e.currentTarget as HTMLAnchorElement).style.color =
+            (e.currentTarget as HTMLButtonElement).style.color =
               "rgba(255,255,255,0.5)";
           }}
         >
           {pathway.ctaButtons[1].label}
-        </a>
+        </button>
       </div>
     </div>
   );
@@ -1297,11 +1323,13 @@ function DetailPanel({ pathway, flowStepsVisible, onClose }: DetailPanelProps) {
 interface MobileDetailContentProps {
   pathway: (typeof PATHWAYS)[0];
   flowStepsVisible: boolean;
+  onNavigate?: (view: string) => void;
 }
 
 function MobileDetailContent({
   pathway,
   flowStepsVisible,
+  onNavigate,
 }: MobileDetailContentProps) {
   return (
     <div
@@ -1314,23 +1342,32 @@ function MobileDetailContent({
         padding: "20px",
       }}
     >
-      {/* Stats */}
+      {/* Status tag */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {pathway.stats.map((stat) => (
-          <div
-            key={stat}
-            className="font-mono-geist text-[9px] tracking-wider uppercase"
-            style={{
-              color: "rgba(212,160,23,0.7)",
-              background: "rgba(212,160,23,0.07)",
-              border: "1px solid rgba(212,160,23,0.15)",
-              padding: "3px 8px",
-              borderRadius: "2px",
-            }}
-          >
-            {stat}
-          </div>
-        ))}
+        <span
+          className="font-mono-geist text-[9px] tracking-[0.2em] uppercase px-2 py-1 rounded-sm"
+          style={{
+            color: pathway.hexColor,
+            background: `${pathway.hexColor}12`,
+            border: `1px solid ${pathway.hexColor}35`,
+          }}
+        >
+          STATUS: {pathway.status}
+        </span>
+      </div>
+
+      {/* Program status note */}
+      <div
+        className="mb-4 font-mono-geist text-[9px] tracking-wider uppercase"
+        style={{
+          color: "rgba(255,255,255,0.25)",
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(255,255,255,0.05)",
+          padding: "6px 10px",
+          borderRadius: "2px",
+        }}
+      >
+        {pathway.statusNote}
       </div>
 
       <p
@@ -1394,28 +1431,32 @@ function MobileDetailContent({
 
       {/* CTAs */}
       <div className="flex gap-2 flex-wrap">
-        <a
-          href={pathway.ctaButtons[0].route}
+        <button
+          type="button"
+          onClick={() => onNavigate?.(pathway.ctaButtons[0].view)}
           className="font-mono-geist text-[10px] tracking-wider uppercase px-4 py-2 rounded-sm"
           style={{
             background: `${pathway.hexColor}22`,
             border: `1px solid ${pathway.hexColor}55`,
             color: pathway.hexColor,
+            cursor: "pointer",
           }}
         >
           {pathway.ctaButtons[0].label}
-        </a>
-        <a
-          href={pathway.ctaButtons[1].route}
+        </button>
+        <button
+          type="button"
+          onClick={() => onNavigate?.(pathway.ctaButtons[1].view)}
           className="font-mono-geist text-[10px] tracking-wider uppercase px-4 py-2 rounded-sm"
           style={{
             background: "transparent",
             border: "1px solid rgba(255,255,255,0.12)",
             color: "rgba(255,255,255,0.5)",
+            cursor: "pointer",
           }}
         >
           {pathway.ctaButtons[1].label}
-        </a>
+        </button>
       </div>
     </div>
   );
