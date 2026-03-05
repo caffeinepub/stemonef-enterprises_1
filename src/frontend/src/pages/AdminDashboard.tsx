@@ -1,6 +1,13 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import {
   Table,
@@ -686,6 +693,598 @@ function PathwayStatsTab() {
   );
 }
 
+// ── EPOCHS Research Manager ──────────────────────────────────────────────────
+const RESEARCH_STORAGE_KEY = "stemonef_research_library";
+
+interface ResearchEntry {
+  id: number;
+  title: string;
+  description: string;
+  domain: string;
+  project: string;
+  authors: string;
+  publicationDate: string;
+  tags: string;
+  isPublic: boolean;
+}
+
+const EMPTY_ENTRY: Omit<ResearchEntry, "id"> = {
+  title: "",
+  description: "",
+  domain: "Climate",
+  project: "GAIA",
+  authors: "",
+  publicationDate: "",
+  tags: "",
+  isPublic: true,
+};
+
+function loadResearch(): ResearchEntry[] {
+  try {
+    const raw = localStorage.getItem(RESEARCH_STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as ResearchEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+function saveResearch(entries: ResearchEntry[]) {
+  localStorage.setItem(RESEARCH_STORAGE_KEY, JSON.stringify(entries));
+}
+
+function EpochsResearchTab() {
+  const [entries, setEntries] = useState<ResearchEntry[]>(loadResearch);
+  const [form, setForm] = useState<Omit<ResearchEntry, "id">>(EMPTY_ENTRY);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] =
+    useState<Omit<ResearchEntry, "id">>(EMPTY_ENTRY);
+
+  const handleCreate = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title || !form.description || !form.authors) {
+      toast.error("Title, description, and authors are required");
+      return;
+    }
+    const newEntry: ResearchEntry = { id: Date.now(), ...form };
+    const updated = [newEntry, ...entries];
+    setEntries(updated);
+    saveResearch(updated);
+    setForm(EMPTY_ENTRY);
+    toast.success("Research entry created");
+  };
+
+  const startEdit = (entry: ResearchEntry) => {
+    setEditingId(entry.id);
+    setEditForm({
+      title: entry.title,
+      description: entry.description,
+      domain: entry.domain,
+      project: entry.project,
+      authors: entry.authors,
+      publicationDate: entry.publicationDate,
+      tags: entry.tags,
+      isPublic: entry.isPublic,
+    });
+  };
+
+  const handleUpdate = () => {
+    if (!editingId) return;
+    if (!editForm.title || !editForm.description) {
+      toast.error("Title and description are required");
+      return;
+    }
+    const updated = entries.map((e) =>
+      e.id === editingId ? { ...editForm, id: editingId } : e,
+    );
+    setEntries(updated);
+    saveResearch(updated);
+    setEditingId(null);
+    toast.success("Research entry updated");
+  };
+
+  const handleDelete = (id: number) => {
+    if (!confirm("Delete this research entry?")) return;
+    const updated = entries.filter((e) => e.id !== id);
+    setEntries(updated);
+    saveResearch(updated);
+    toast.success("Entry deleted");
+  };
+
+  const inputStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "rgba(255,255,255,0.8)",
+  };
+
+  const selectTriggerStyle = {
+    background: "rgba(255,255,255,0.04)",
+    border: "1px solid rgba(255,255,255,0.1)",
+    color: "rgba(255,255,255,0.8)",
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Create form */}
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}
+      >
+        <div
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-5"
+          style={{ color: "rgba(212,160,23,0.7)" }}
+        >
+          ADD RESEARCH ENTRY
+        </div>
+        <form
+          onSubmit={handleCreate}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Title
+            </Label>
+            <Input
+              data-ocid="admin.research.input"
+              value={form.title}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, title: e.target.value }))
+              }
+              placeholder="Research publication title"
+              className="mt-1"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Domain
+            </Label>
+            <Select
+              value={form.domain}
+              onValueChange={(v) => setForm((p) => ({ ...p, domain: v }))}
+            >
+              <SelectTrigger
+                data-ocid="admin.research.select"
+                className="mt-1"
+                style={selectTriggerStyle}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  "Climate",
+                  "Deep Technology",
+                  "Ethical AI",
+                  "Environmental Intelligence",
+                  "Medical Systems",
+                ].map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Project
+            </Label>
+            <Select
+              value={form.project}
+              onValueChange={(v) => setForm((p) => ({ ...p, project: v }))}
+            >
+              <SelectTrigger
+                data-ocid="admin.research.select"
+                className="mt-1"
+                style={selectTriggerStyle}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {["GAIA", "EIOS", "STEMESA", "General"].map((pr) => (
+                  <SelectItem key={pr} value={pr}>
+                    {pr}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Authors
+            </Label>
+            <Input
+              data-ocid="admin.research.input"
+              value={form.authors}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, authors: e.target.value }))
+              }
+              placeholder="EPOCHS Research Team"
+              className="mt-1"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Publication Date (YYYY-MM)
+            </Label>
+            <Input
+              data-ocid="admin.research.input"
+              value={form.publicationDate}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, publicationDate: e.target.value }))
+              }
+              placeholder="2025-11"
+              className="mt-1"
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Tags (comma-separated)
+            </Label>
+            <Input
+              data-ocid="admin.research.input"
+              value={form.tags}
+              onChange={(e) => setForm((p) => ({ ...p, tags: e.target.value }))}
+              placeholder="climate, modeling, prediction"
+              className="mt-1"
+              style={inputStyle}
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Description
+            </Label>
+            <Textarea
+              data-ocid="admin.research.textarea"
+              value={form.description}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, description: e.target.value }))
+              }
+              placeholder="Research description and findings..."
+              rows={3}
+              className="mt-1 resize-none"
+              style={inputStyle}
+            />
+          </div>
+
+          <div className="flex items-center gap-4">
+            <Switch
+              data-ocid="admin.research.switch"
+              checked={form.isPublic}
+              onCheckedChange={(v) => setForm((p) => ({ ...p, isPublic: v }))}
+            />
+            <Label
+              className="text-xs"
+              style={{ color: "rgba(255,255,255,0.5)" }}
+            >
+              Public
+            </Label>
+          </div>
+
+          <div className="flex justify-end items-end">
+            <Button
+              type="submit"
+              data-ocid="admin.research.submit_button"
+              style={{
+                background: "rgba(212,160,23,0.12)",
+                border: "1px solid rgba(212,160,23,0.4)",
+                color: "#d4a017",
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                fontSize: "11px",
+              }}
+            >
+              ADD ENTRY
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Research table */}
+      <div
+        className="rounded-sm overflow-hidden"
+        style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        <Table data-ocid="admin.research.table">
+          <TableHeader>
+            <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              {["Title", "Domain", "Project", "Public", "Date", "Actions"].map(
+                (h) => (
+                  <TableHead
+                    key={h}
+                    className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    {h}
+                  </TableHead>
+                ),
+              )}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {entries.map((entry, i) => (
+              <TableRow
+                key={entry.id}
+                data-ocid={`admin.research.row.${i + 1}`}
+                style={{ borderColor: "rgba(255,255,255,0.04)" }}
+              >
+                {editingId === entry.id ? (
+                  <>
+                    <TableCell>
+                      <Input
+                        value={editForm.title}
+                        onChange={(e) =>
+                          setEditForm((p) => ({ ...p, title: e.target.value }))
+                        }
+                        className="h-7 text-xs"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          color: "rgba(255,255,255,0.8)",
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={editForm.domain}
+                        onValueChange={(v) =>
+                          setEditForm((p) => ({ ...p, domain: v }))
+                        }
+                      >
+                        <SelectTrigger
+                          className="h-7 text-xs"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.8)",
+                          }}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {[
+                            "Climate",
+                            "Deep Technology",
+                            "Ethical AI",
+                            "Environmental Intelligence",
+                            "Medical Systems",
+                          ].map((d) => (
+                            <SelectItem key={d} value={d}>
+                              {d}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={editForm.project}
+                        onValueChange={(v) =>
+                          setEditForm((p) => ({ ...p, project: v }))
+                        }
+                      >
+                        <SelectTrigger
+                          className="h-7 text-xs"
+                          style={{
+                            background: "rgba(255,255,255,0.04)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.8)",
+                          }}
+                        >
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {["GAIA", "EIOS", "STEMESA", "General"].map((pr) => (
+                            <SelectItem key={pr} value={pr}>
+                              {pr}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Switch
+                        checked={editForm.isPublic}
+                        onCheckedChange={(v) =>
+                          setEditForm((p) => ({ ...p, isPublic: v }))
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        value={editForm.publicationDate}
+                        onChange={(e) =>
+                          setEditForm((p) => ({
+                            ...p,
+                            publicationDate: e.target.value,
+                          }))
+                        }
+                        className="h-7 text-xs w-24"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          color: "rgba(255,255,255,0.8)",
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          data-ocid="admin.research.save_button"
+                          onClick={handleUpdate}
+                          className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                          style={{
+                            background: "rgba(52,211,153,0.1)",
+                            border: "1px solid rgba(52,211,153,0.3)",
+                            color: "rgba(52,211,153,0.8)",
+                            fontFamily: "Geist Mono, monospace",
+                            cursor: "pointer",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          SAVE
+                        </button>
+                        <button
+                          type="button"
+                          data-ocid="admin.research.cancel_button"
+                          onClick={() => setEditingId(null)}
+                          className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                          style={{
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.1)",
+                            color: "rgba(255,255,255,0.4)",
+                            fontFamily: "Geist Mono, monospace",
+                            cursor: "pointer",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          CANCEL
+                        </button>
+                      </div>
+                    </TableCell>
+                  </>
+                ) : (
+                  <>
+                    <TableCell
+                      className="text-xs max-w-[180px] truncate"
+                      style={{ color: "rgba(255,255,255,0.65)" }}
+                    >
+                      {entry.title}
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
+                        style={{
+                          color: "rgba(74,126,247,0.8)",
+                          background: "rgba(74,126,247,0.08)",
+                          fontFamily: "Geist Mono, monospace",
+                        }}
+                      >
+                        {entry.domain}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
+                        style={{
+                          color: "rgba(212,160,23,0.8)",
+                          background: "rgba(212,160,23,0.08)",
+                          fontFamily: "Geist Mono, monospace",
+                        }}
+                      >
+                        {entry.project}
+                      </span>
+                    </TableCell>
+                    <TableCell
+                      className="text-xs"
+                      style={{
+                        color: entry.isPublic
+                          ? "rgba(52,211,153,0.7)"
+                          : "rgba(255,255,255,0.25)",
+                      }}
+                    >
+                      {entry.isPublic ? "PUBLIC" : "RESTRICTED"}
+                    </TableCell>
+                    <TableCell
+                      className="text-xs"
+                      style={{ color: "rgba(255,255,255,0.3)" }}
+                    >
+                      {entry.publicationDate || "—"}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex gap-2">
+                        <button
+                          type="button"
+                          data-ocid={`admin.research.edit_button.${i + 1}`}
+                          onClick={() => startEdit(entry)}
+                          className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                          style={{
+                            background: "rgba(74,126,247,0.08)",
+                            border: "1px solid rgba(74,126,247,0.2)",
+                            color: "rgba(74,126,247,0.7)",
+                            fontFamily: "Geist Mono, monospace",
+                            cursor: "pointer",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          EDIT
+                        </button>
+                        <button
+                          type="button"
+                          data-ocid={`admin.research.delete_button.${i + 1}`}
+                          onClick={() => handleDelete(entry.id)}
+                          className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                          style={{
+                            background: "rgba(248,113,113,0.08)",
+                            border: "1px solid rgba(248,113,113,0.2)",
+                            color: "rgba(248,113,113,0.7)",
+                            fontFamily: "Geist Mono, monospace",
+                            cursor: "pointer",
+                            borderRadius: "2px",
+                          }}
+                        >
+                          DELETE
+                        </button>
+                      </div>
+                    </TableCell>
+                  </>
+                )}
+              </TableRow>
+            ))}
+            {entries.length === 0 && (
+              <TableRow>
+                <TableCell
+                  data-ocid="admin.research.empty_state"
+                  colSpan={6}
+                  className="text-center py-8 text-xs"
+                  style={{
+                    color: "rgba(255,255,255,0.25)",
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  No research entries yet. Add the first entry above.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
+  );
+}
+
 export default function AdminDashboard({
   onGoHome,
 }: {
@@ -768,7 +1367,7 @@ export default function AdminDashboard({
         {/* Tabs */}
         <Tabs data-ocid="admin.tab" defaultValue="feed">
           <TabsList
-            className="mb-8"
+            className="mb-8 flex-wrap h-auto gap-1"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.06)",
@@ -779,6 +1378,7 @@ export default function AdminDashboard({
               { value: "feed", label: "Intelligence Feed" },
               { value: "requests", label: "Collaboration Requests" },
               { value: "stats", label: "Pathway Statistics" },
+              { value: "research", label: "EPOCHS Research" },
             ].map(({ value, label }) => (
               <TabsTrigger
                 key={value}
@@ -818,6 +1418,23 @@ export default function AdminDashboard({
                 PATHWAY INTEREST DISTRIBUTION
               </div>
               <PathwayStatsTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="research">
+            <div
+              className="p-1 rounded-sm"
+              style={{
+                background: "rgba(255,255,255,0.01)",
+              }}
+            >
+              <div
+                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
+                style={{ color: "rgba(212,160,23,0.7)" }}
+              >
+                EPOCHS RESEARCH LIBRARY MANAGER
+              </div>
+              <EpochsResearchTab />
             </div>
           </TabsContent>
         </Tabs>

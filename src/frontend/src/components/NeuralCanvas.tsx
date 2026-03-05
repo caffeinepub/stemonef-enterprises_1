@@ -62,7 +62,22 @@ export default function NeuralCanvas({
       window.addEventListener("mousemove", handleMouseMove);
     }
 
-    const draw = () => {
+    // Cap to ~30 FPS and pause when tab is hidden
+    let lastFrame = 0;
+    const TARGET_FPS = 30;
+    const FRAME_INTERVAL = 1000 / TARGET_FPS;
+
+    const draw = (timestamp: number) => {
+      if (document.hidden) {
+        animFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      if (timestamp - lastFrame < FRAME_INTERVAL) {
+        animFrameRef.current = requestAnimationFrame(draw);
+        return;
+      }
+      lastFrame = timestamp;
+
       const w = canvas.width;
       const h = canvas.height;
       ctx.clearRect(0, 0, w, h);
@@ -169,7 +184,7 @@ export default function NeuralCanvas({
       animFrameRef.current = requestAnimationFrame(draw);
     };
 
-    draw();
+    animFrameRef.current = requestAnimationFrame(draw);
 
     return () => {
       cancelAnimationFrame(animFrameRef.current);

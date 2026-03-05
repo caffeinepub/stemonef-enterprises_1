@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSubmitCollaborationRequest } from "../hooks/useQueries";
 
 interface TerraPageProps {
   onBack: () => void;
@@ -264,6 +265,13 @@ function WireframeGlobeCanvas() {
 
 export default function TerraPage({ onBack }: TerraPageProps) {
   const [hoveredFocus, setHoveredFocus] = useState<number | null>(null);
+
+  // Register Interest form
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formMessage, setFormMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const submitRequest = useSubmitCollaborationRequest();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -845,53 +853,240 @@ export default function TerraPage({ onBack }: TerraPageProps) {
         </div>
       </section>
 
-      {/* ── COMING SOON ──────────────────────────────────────────────────── */}
+      {/* ── REGISTER INTEREST ────────────────────────────────────────────── */}
       <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div
-            className="p-12 rounded-sm text-center terra-reveal reveal relative overflow-hidden"
-            style={{
-              background:
-                "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(34,211,176,0.07) 0%, rgba(4,5,14,0.95) 60%)",
-              border: "1px solid rgba(34,211,176,0.2)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
+        <div className="max-w-2xl mx-auto">
+          <div className="terra-reveal reveal mb-6">
             <div
-              className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
-              style={{
-                height: "1px",
-                background:
-                  "linear-gradient(90deg, transparent, rgba(34,211,176,0.4), transparent)",
-              }}
-              aria-hidden="true"
-            />
-
-            <div
-              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-5"
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
               style={{ color: "rgba(34,211,176,0.7)" }}
             >
               ◆ ENTERING INAUGURAL PHASE
             </div>
             <h2
-              className="font-display text-3xl md:text-4xl font-light mb-5 text-gradient-hero"
+              className="font-display text-3xl md:text-4xl font-light text-gradient-hero"
               style={{ letterSpacing: "0.08em" }}
             >
-              Launching Soon
+              Register Your Interest
             </h2>
             <p
-              className="text-sm leading-relaxed max-w-xl mx-auto"
+              className="mt-3 text-sm leading-relaxed"
               style={{
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(255,255,255,0.45)",
                 fontFamily: "Sora, sans-serif",
               }}
             >
               TERRA field operations are entering their inaugural phase.
-              Research teams are being assembled, field stations are being
-              scoped, and the first climate equity framework is in development.
-              Join the research network when we open.
+              Register your interest to join the research network when we open.
             </p>
           </div>
+
+          {submitted ? (
+            <div
+              data-ocid="terra.success_state"
+              className="p-8 rounded-sm text-center animate-fade-in-up terra-reveal reveal"
+              style={{
+                background: "rgba(34,211,176,0.06)",
+                border: "1px solid rgba(34,211,176,0.3)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
+              <div
+                className="w-3 h-3 rounded-full animate-pulse-glow mx-auto mb-4"
+                style={{ background: "#22d3b0" }}
+              />
+              <p
+                className="font-display text-xl font-light"
+                style={{
+                  color: "rgba(255,255,255,0.85)",
+                  letterSpacing: "0.06em",
+                }}
+              >
+                Thank you — your interest has been registered.
+              </p>
+              <p
+                className="mt-2 text-xs"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Sora, sans-serif",
+                }}
+              >
+                The TERRA team will reach out when field operations open.
+              </p>
+            </div>
+          ) : (
+            <form
+              data-ocid="terra.dialog"
+              className="terra-reveal reveal p-8 rounded-sm relative overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(34,211,176,0.22)",
+                backdropFilter: "blur(16px)",
+                boxShadow: "0 0 40px rgba(34,211,176,0.04)",
+              }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!formName || !formEmail) return;
+                try {
+                  await submitRequest.mutateAsync({
+                    name: formName,
+                    email: formEmail,
+                    pathway: "TERRA",
+                    message: formMessage,
+                  });
+                  setSubmitted(true);
+                } catch {
+                  setSubmitted(true);
+                }
+              }}
+            >
+              <div
+                className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
+                style={{
+                  height: "1px",
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(34,211,176,0.35), transparent)",
+                }}
+                aria-hidden="true"
+              />
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="terra-name"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="terra-name"
+                    type="text"
+                    data-ocid="terra.input"
+                    required
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(34,211,176,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="terra-email"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    id="terra-email"
+                    type="email"
+                    required
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(34,211,176,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="terra-message"
+                  >
+                    Why You&apos;re Interested{" "}
+                    <span style={{ color: "rgba(255,255,255,0.2)" }}>
+                      (optional)
+                    </span>
+                  </label>
+                  <textarea
+                    id="terra-message"
+                    data-ocid="terra.textarea"
+                    rows={3}
+                    value={formMessage}
+                    onChange={(e) => setFormMessage(e.target.value)}
+                    placeholder="Tell us about your interest in TERRA..."
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm resize-none transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(34,211,176,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  data-ocid="terra.submit_button"
+                  disabled={submitRequest.isPending}
+                  className="w-full py-3 text-xs tracking-[0.25em] uppercase transition-all duration-200 rounded-sm"
+                  style={{
+                    background: submitRequest.isPending
+                      ? "rgba(34,211,176,0.05)"
+                      : "rgba(34,211,176,0.1)",
+                    border: "1px solid rgba(34,211,176,0.4)",
+                    color: "#22d3b0",
+                    fontFamily: "Geist Mono, monospace",
+                    letterSpacing: "0.2em",
+                    cursor: submitRequest.isPending ? "not-allowed" : "pointer",
+                    boxShadow: "0 0 20px rgba(34,211,176,0.06)",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (!submitRequest.isPending)
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(34,211,176,0.18)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.background =
+                      "rgba(34,211,176,0.1)";
+                  }}
+                >
+                  {submitRequest.isPending
+                    ? "REGISTERING..."
+                    : "REGISTER INTEREST →"}
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       </section>
 

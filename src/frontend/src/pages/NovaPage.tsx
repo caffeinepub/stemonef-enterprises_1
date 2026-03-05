@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useSubmitCollaborationRequest } from "../hooks/useQueries";
 
 interface NovaPageProps {
   onBack: () => void;
@@ -244,10 +245,15 @@ function OrbitalSphereCanvas() {
 }
 
 export default function NovaPage({ onBack }: NovaPageProps) {
-  const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
   const [hoveredCard, setHoveredCard] = useState<number | null>(null);
   const [hoveredPrinciple, setHoveredPrinciple] = useState<number | null>(null);
+
+  // Register Interest form
+  const [formName, setFormName] = useState("");
+  const [formEmail, setFormEmail] = useState("");
+  const [formMessage, setFormMessage] = useState("");
+  const [submitted, setSubmitted] = useState(false);
+  const submitRequest = useSubmitCollaborationRequest();
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -698,116 +704,240 @@ export default function NovaPage({ onBack }: NovaPageProps) {
         </div>
       </section>
 
-      {/* ── COMING SOON CTA ──────────────────────────────────────────────── */}
+      {/* ── REGISTER INTEREST ────────────────────────────────────────────── */}
       <section className="py-24 px-6">
-        <div className="max-w-3xl mx-auto">
-          <div
-            className="p-12 rounded-sm text-center nova-reveal reveal relative overflow-hidden"
-            style={{
-              background:
-                "radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,160,23,0.08) 0%, rgba(4,5,14,0.95) 60%)",
-              border: "1px solid rgba(212,160,23,0.2)",
-              backdropFilter: "blur(20px)",
-            }}
-          >
-            {/* Scan line */}
+        <div className="max-w-2xl mx-auto">
+          <div className="nova-reveal reveal mb-6">
             <div
-              className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
-              style={{
-                height: "1px",
-                background:
-                  "linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent)",
-              }}
-              aria-hidden="true"
-            />
-
-            <div
-              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-5"
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
               style={{ color: "rgba(212,160,23,0.7)" }}
             >
               ◆ IN DEVELOPMENT
             </div>
             <h2
-              className="font-display text-3xl md:text-4xl font-light mb-5 text-gradient-hero"
+              className="font-display text-3xl md:text-4xl font-light text-gradient-hero"
               style={{ letterSpacing: "0.08em" }}
             >
-              Coming Soon
+              Register Your Interest
             </h2>
             <p
-              className="text-sm leading-relaxed mb-8 max-w-xl mx-auto"
+              className="mt-3 text-sm leading-relaxed"
               style={{
-                color: "rgba(255,255,255,0.5)",
+                color: "rgba(255,255,255,0.45)",
                 fontFamily: "Sora, sans-serif",
               }}
             >
-              NOVA is currently in development phase. The first publication
-              cycle launches with the enterprise. Register your interest below.
+              NOVA is currently in development phase. Register your interest and
+              be among the first to engage when the enterprise launches.
             </p>
+          </div>
 
-            {submitted ? (
+          {submitted ? (
+            <div
+              data-ocid="nova.success_state"
+              className="p-8 rounded-sm text-center animate-fade-in-up nova-reveal reveal"
+              style={{
+                background: "rgba(212,160,23,0.08)",
+                border: "1px solid rgba(212,160,23,0.35)",
+                backdropFilter: "blur(12px)",
+              }}
+            >
               <div
-                className="inline-flex items-center gap-3 px-6 py-3 rounded-sm"
+                className="w-3 h-3 rounded-full animate-pulse-glow mx-auto mb-4"
+                style={{ background: "#d4a017" }}
+              />
+              <p
+                className="font-display text-xl font-light"
                 style={{
-                  background: "rgba(212,160,23,0.1)",
-                  border: "1px solid rgba(212,160,23,0.4)",
+                  color: "rgba(255,255,255,0.85)",
+                  letterSpacing: "0.06em",
                 }}
               >
-                <div
-                  className="w-2 h-2 rounded-full"
-                  style={{ background: "#d4a017" }}
-                />
-                <span
-                  className="font-mono-geist text-xs tracking-[0.2em] uppercase"
-                  style={{ color: "#d4a017" }}
-                >
-                  Interest Registered
-                </span>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row gap-3 max-w-md mx-auto">
-                <input
-                  type="email"
-                  data-ocid="nova.input"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="flex-1 px-4 py-3 text-sm outline-none rounded-sm"
-                  style={{
-                    background: "rgba(255,255,255,0.04)",
-                    border: "1px solid rgba(255,255,255,0.12)",
-                    color: "rgba(255,255,255,0.8)",
-                    fontFamily: "Sora, sans-serif",
-                  }}
-                />
+                Thank you — your interest has been registered.
+              </p>
+              <p
+                className="mt-2 text-xs"
+                style={{
+                  color: "rgba(255,255,255,0.4)",
+                  fontFamily: "Sora, sans-serif",
+                }}
+              >
+                The NOVA team will reach out when the enterprise launches.
+              </p>
+            </div>
+          ) : (
+            <form
+              data-ocid="nova.dialog"
+              className="nova-reveal reveal p-8 rounded-sm relative overflow-hidden"
+              style={{
+                background: "rgba(255,255,255,0.025)",
+                border: "1px solid rgba(212,160,23,0.25)",
+                backdropFilter: "blur(16px)",
+                boxShadow: "0 0 40px rgba(212,160,23,0.05)",
+              }}
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (!formName || !formEmail) return;
+                try {
+                  await submitRequest.mutateAsync({
+                    name: formName,
+                    email: formEmail,
+                    pathway: "NOVA",
+                    message: formMessage,
+                  });
+                  setSubmitted(true);
+                } catch {
+                  setSubmitted(true);
+                }
+              }}
+            >
+              <div
+                className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
+                style={{
+                  height: "1px",
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(212,160,23,0.4), transparent)",
+                }}
+                aria-hidden="true"
+              />
+
+              <div className="space-y-4">
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="nova-name"
+                  >
+                    Full Name
+                  </label>
+                  <input
+                    id="nova-name"
+                    type="text"
+                    data-ocid="nova.input"
+                    required
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    placeholder="Your full name"
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(212,160,23,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="nova-email"
+                  >
+                    Email Address
+                  </label>
+                  <input
+                    id="nova-email"
+                    type="email"
+                    required
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    placeholder="your@email.com"
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(212,160,23,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
+                <div>
+                  <label
+                    className="font-mono-geist text-[10px] tracking-[0.3em] uppercase block mb-1.5"
+                    style={{ color: "rgba(255,255,255,0.4)" }}
+                    htmlFor="nova-message"
+                  >
+                    Why You&apos;re Interested{" "}
+                    <span style={{ color: "rgba(255,255,255,0.2)" }}>
+                      (optional)
+                    </span>
+                  </label>
+                  <textarea
+                    id="nova-message"
+                    data-ocid="nova.textarea"
+                    rows={3}
+                    value={formMessage}
+                    onChange={(e) => setFormMessage(e.target.value)}
+                    placeholder="Tell us about your interest in NOVA..."
+                    className="w-full px-4 py-3 text-sm outline-none rounded-sm resize-none transition-all duration-200"
+                    style={{
+                      background: "rgba(255,255,255,0.04)",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.85)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(212,160,23,0.5)";
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.borderColor =
+                        "rgba(255,255,255,0.1)";
+                    }}
+                  />
+                </div>
+
                 <button
-                  type="button"
+                  type="submit"
                   data-ocid="nova.submit_button"
-                  onClick={() => {
-                    if (email) setSubmitted(true);
-                  }}
-                  className="px-6 py-3 text-xs tracking-widest uppercase transition-all duration-200 rounded-sm"
+                  disabled={submitRequest.isPending}
+                  className="w-full py-3 text-xs tracking-[0.25em] uppercase transition-all duration-200 rounded-sm"
                   style={{
-                    background: "rgba(212,160,23,0.15)",
-                    border: "1px solid rgba(212,160,23,0.5)",
+                    background: submitRequest.isPending
+                      ? "rgba(212,160,23,0.08)"
+                      : "rgba(212,160,23,0.12)",
+                    border: "1px solid rgba(212,160,23,0.45)",
                     color: "#d4a017",
                     fontFamily: "Geist Mono, monospace",
                     letterSpacing: "0.2em",
-                    cursor: "pointer",
+                    cursor: submitRequest.isPending ? "not-allowed" : "pointer",
+                    boxShadow: "0 0 20px rgba(212,160,23,0.08)",
                   }}
                   onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(212,160,23,0.25)";
+                    if (!submitRequest.isPending)
+                      (e.currentTarget as HTMLButtonElement).style.background =
+                        "rgba(212,160,23,0.22)";
                   }}
                   onMouseLeave={(e) => {
                     (e.currentTarget as HTMLButtonElement).style.background =
-                      "rgba(212,160,23,0.15)";
+                      "rgba(212,160,23,0.12)";
                   }}
                 >
-                  Register
+                  {submitRequest.isPending
+                    ? "REGISTERING..."
+                    : "REGISTER INTEREST →"}
                 </button>
               </div>
-            )}
-          </div>
+            </form>
+          )}
         </div>
       </section>
 

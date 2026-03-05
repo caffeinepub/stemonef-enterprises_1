@@ -187,9 +187,9 @@ export default function HumanonSection() {
           }}
         >
           {[
-            { value: "50+", label: "Active Fellows" },
-            { value: "19", label: "Countries" },
-            { value: "4", label: "Cohorts Deployed" },
+            { value: "30+", label: "Active Fellows" },
+            { value: "6+", label: "Countries" },
+            { value: "2+", label: "Cohorts Deployed" },
             { value: "30", label: "Target Countries 2027" },
           ].map(({ value, label }) => (
             <div key={label} className="text-center">

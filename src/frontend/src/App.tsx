@@ -57,10 +57,11 @@ export default function App() {
   const interactedRef = useRef(false);
   const { isLoginSuccess, identity } = useInternetIdentity();
 
-  // Detect admin route
+  // Detect admin route from URL or hash
   useEffect(() => {
     const path = window.location.pathname;
-    if (path === "/admin") {
+    const hash = window.location.hash;
+    if (path === "/admin" || hash === "#admin") {
       setView("admin");
       setBootDone(true);
     }
@@ -245,50 +246,6 @@ export default function App() {
 
           <Footer />
         </div>
-
-        {/* AI Companion — available on all pillar pages, z-index 9999 ensures
-            it floats above pillar 3D hero canvases */}
-        {!companionOpen && (
-          <button
-            type="button"
-            data-ocid="companion.toggle"
-            onClick={() => setCompanionOpen(true)}
-            className="fixed bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 animate-pulse-glow"
-            style={{
-              background: "rgba(4,5,14,0.95)",
-              border: "1px solid rgba(74,126,247,0.5)",
-              boxShadow: "0 0 20px rgba(74,126,247,0.25)",
-              cursor: "pointer",
-              zIndex: 9999,
-            }}
-            aria-label="Open AI Companion"
-          >
-            <span
-              className="font-mono-geist text-xs font-bold"
-              style={{
-                color: "rgba(74,126,247,0.95)",
-                letterSpacing: "0.05em",
-              }}
-            >
-              AI
-            </span>
-          </button>
-        )}
-
-        <AICompanion
-          isOpen={companionOpen}
-          onClose={() => setCompanionOpen(false)}
-          currentSection="pillars"
-          onScrollTo={(id) => {
-            setView("home");
-            setTimeout(() => {
-              const el = document.getElementById(id);
-              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-            }, 300);
-          }}
-          onNavigatePillar={(page) => setView(page as AppView)}
-        />
-
         {/* Ambient audio — research theme on knowledge pages */}
         <AmbientSoundControl
           pageTheme={
@@ -372,8 +329,6 @@ export default function App() {
               isOpen={companionOpen}
               onClose={() => setCompanionOpen(false)}
               currentSection={currentSection}
-              onScrollTo={scrollTo}
-              onNavigatePillar={(page) => setView(page as AppView)}
             />
           </>
         )}
@@ -388,26 +343,26 @@ export default function App() {
 
         {/* Ambient audio control */}
         {bootDone && <AmbientSoundControl pageTheme="default" />}
+      </div>
 
-        {/* Admin navigation shortcut */}
-        <div className="fixed bottom-8 left-8 z-40">
-          <button
-            type="button"
-            data-ocid="nav.link"
-            onClick={() => setView("admin")}
-            className="px-4 py-2 text-[9px] tracking-[0.3em] uppercase transition-all duration-200 opacity-20 hover:opacity-60"
-            style={{
-              background: "none",
-              border: "1px solid rgba(255,255,255,0.15)",
-              color: "rgba(255,255,255,0.5)",
-              fontFamily: "Geist Mono, monospace",
-              cursor: "pointer",
-              borderRadius: "2px",
-            }}
-          >
-            ADMIN
-          </button>
-        </div>
+      {/* Admin navigation shortcut — always rendered, never inside opacity wrapper */}
+      <div className="fixed bottom-8 left-8 z-50">
+        <button
+          type="button"
+          data-ocid="nav.link"
+          onClick={() => setView("admin")}
+          className="px-4 py-2 text-[9px] tracking-[0.3em] uppercase transition-all duration-200 opacity-20 hover:opacity-70"
+          style={{
+            background: "none",
+            border: "1px solid rgba(255,255,255,0.15)",
+            color: "rgba(255,255,255,0.5)",
+            fontFamily: "Geist Mono, monospace",
+            cursor: "pointer",
+            borderRadius: "2px",
+          }}
+        >
+          ADMIN
+        </button>
       </div>
 
       <Toaster
