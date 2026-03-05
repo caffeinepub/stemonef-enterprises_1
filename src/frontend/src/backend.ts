@@ -89,6 +89,12 @@ export class ExternalBlob {
         return this;
     }
 }
+export interface HumanonPartner {
+    id: bigint;
+    name: string;
+    description: string;
+    sector: string;
+}
 export interface Pillar {
     id: bigint;
     mandate: string;
@@ -98,6 +104,24 @@ export interface Pillar {
     governanceNote: string;
     initiatives: string;
     futureDirection: string;
+}
+export interface HumanonMentor {
+    id: bigint;
+    domain: string;
+    name: string;
+    role: string;
+    organization: string;
+    profileUrl: string;
+}
+export interface HumanonProject {
+    id: bigint;
+    title: string;
+    participantTeam: string;
+    publishedAt: bigint;
+    summary: string;
+    researchDomain: string;
+    mentorsInvolved: string;
+    outcome: string;
 }
 export interface FeedEntry {
     id: bigint;
@@ -119,6 +143,13 @@ export interface CollaborationRequest {
 export interface UserProfile {
     name: string;
 }
+export interface HumanonStats {
+    participantsEnrolled: bigint;
+    industryPartners: bigint;
+    careerPlacements: bigint;
+    countriesRepresented: bigint;
+    projectsCompleted: bigint;
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -128,12 +159,22 @@ export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createFeed(title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
+    createHumanonMentor(name: string, domain: string, organization: string, role: string, profileUrl: string): Promise<void>;
+    createHumanonPartner(name: string, sector: string, description: string): Promise<void>;
+    createHumanonProject(title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
     deleteFeed(id: bigint): Promise<void>;
+    deleteHumanonMentor(id: bigint): Promise<void>;
+    deleteHumanonPartner(id: bigint): Promise<void>;
+    deleteHumanonProject(id: bigint): Promise<void>;
     getAllPillars(): Promise<Array<Pillar>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCollaborationRequests(): Promise<Array<CollaborationRequest>>;
     getFeaturedFeeds(): Promise<Array<FeedEntry>>;
+    getHumanonMentors(): Promise<Array<HumanonMentor>>;
+    getHumanonPartners(): Promise<Array<HumanonPartner>>;
+    getHumanonProjects(): Promise<Array<HumanonProject>>;
+    getHumanonStats(): Promise<HumanonStats>;
     getPathwayStats(): Promise<Array<[string, bigint]>>;
     getPublicFeeds(): Promise<Array<FeedEntry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
@@ -143,6 +184,8 @@ export interface backendInterface {
     submitCollaborationRequest(name: string, email: string, pathway: string, message: string): Promise<void>;
     toggleFeatured(id: bigint): Promise<void>;
     updateFeed(id: bigint, title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
+    updateHumanonProject(id: bigint, title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
+    updateHumanonStats(participantsEnrolled: bigint, projectsCompleted: bigint, industryPartners: bigint, careerPlacements: bigint, countriesRepresented: bigint): Promise<void>;
 }
 import type { UserProfile as _UserProfile, UserRole as _UserRole } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
@@ -189,6 +232,48 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async createHumanonMentor(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createHumanonMentor(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createHumanonMentor(arg0, arg1, arg2, arg3, arg4);
+            return result;
+        }
+    }
+    async createHumanonPartner(arg0: string, arg1: string, arg2: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createHumanonPartner(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createHumanonPartner(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async createHumanonProject(arg0: string, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.createHumanonProject(arg0, arg1, arg2, arg3, arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.createHumanonProject(arg0, arg1, arg2, arg3, arg4, arg5);
+            return result;
+        }
+    }
     async deleteFeed(arg0: bigint): Promise<void> {
         if (this.processError) {
             try {
@@ -200,6 +285,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteFeed(arg0);
+            return result;
+        }
+    }
+    async deleteHumanonMentor(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteHumanonMentor(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteHumanonMentor(arg0);
+            return result;
+        }
+    }
+    async deleteHumanonPartner(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteHumanonPartner(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteHumanonPartner(arg0);
+            return result;
+        }
+    }
+    async deleteHumanonProject(arg0: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteHumanonProject(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteHumanonProject(arg0);
             return result;
         }
     }
@@ -270,6 +397,62 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getFeaturedFeeds();
+            return result;
+        }
+    }
+    async getHumanonMentors(): Promise<Array<HumanonMentor>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHumanonMentors();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHumanonMentors();
+            return result;
+        }
+    }
+    async getHumanonPartners(): Promise<Array<HumanonPartner>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHumanonPartners();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHumanonPartners();
+            return result;
+        }
+    }
+    async getHumanonProjects(): Promise<Array<HumanonProject>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHumanonProjects();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHumanonProjects();
+            return result;
+        }
+    }
+    async getHumanonStats(): Promise<HumanonStats> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getHumanonStats();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getHumanonStats();
             return result;
         }
     }
@@ -396,6 +579,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.updateFeed(arg0, arg1, arg2, arg3, arg4, arg5);
+            return result;
+        }
+    }
+    async updateHumanonProject(arg0: bigint, arg1: string, arg2: string, arg3: string, arg4: string, arg5: string, arg6: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateHumanonProject(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateHumanonProject(arg0, arg1, arg2, arg3, arg4, arg5, arg6);
+            return result;
+        }
+    }
+    async updateHumanonStats(arg0: bigint, arg1: bigint, arg2: bigint, arg3: bigint, arg4: bigint): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateHumanonStats(arg0, arg1, arg2, arg3, arg4);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateHumanonStats(arg0, arg1, arg2, arg3, arg4);
             return result;
         }
     }

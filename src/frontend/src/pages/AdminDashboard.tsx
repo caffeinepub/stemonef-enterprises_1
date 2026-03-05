@@ -24,13 +24,25 @@ import { toast } from "sonner";
 import type { FeedEntry } from "../backend.d";
 import {
   useCreateFeed,
+  useCreateHumanonMentor,
+  useCreateHumanonPartner,
+  useCreateHumanonProject,
   useDeleteFeed,
+  useDeleteHumanonMentor,
+  useDeleteHumanonPartner,
+  useDeleteHumanonProject,
   useGetCollaborationRequests,
+  useGetHumanonMentors,
+  useGetHumanonPartners,
+  useGetHumanonProjects,
+  useGetHumanonStats,
   useGetPathwayStats,
   useGetPublicFeeds,
   useIsAdmin,
   useToggleFeatured,
   useUpdateFeed,
+  useUpdateHumanonProject,
+  useUpdateHumanonStats,
 } from "../hooks/useQueries";
 
 function formatDate(ts: bigint): string {
@@ -690,6 +702,1046 @@ function PathwayStatsTab() {
         </>
       )}
     </div>
+  );
+}
+
+// ── HUMANON Manager ─────────────────────────────────────────────────────────
+
+const TEAL = "#22d3b0";
+const GOLD = "#d4a017";
+const BLUE = "#4a7ef7";
+
+const adminInputStyle = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "rgba(255,255,255,0.8)",
+};
+
+function HumanonMentorsTab() {
+  const { data: mentors, isLoading } = useGetHumanonMentors();
+  const createMentor = useCreateHumanonMentor();
+  const deleteMentor = useDeleteHumanonMentor();
+  const [form, setForm] = useState({
+    name: "",
+    domain: "",
+    organization: "",
+    role: "",
+    profileUrl: "",
+  });
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.domain || !form.organization || !form.role) {
+      toast.error("Name, domain, organization, and role are required");
+      return;
+    }
+    try {
+      await createMentor.mutateAsync(form);
+      setForm({
+        name: "",
+        domain: "",
+        organization: "",
+        role: "",
+        profileUrl: "",
+      });
+      toast.success("Mentor created");
+    } catch {
+      toast.error("Failed to create mentor");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    if (!confirm("Delete this mentor?")) return;
+    try {
+      await deleteMentor.mutateAsync(id);
+      toast.success("Mentor deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}
+      >
+        <div
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-5"
+          style={{ color: `${TEAL}b3` }}
+        >
+          ADD MENTOR
+        </div>
+        <form
+          onSubmit={(e) => void handleCreate(e)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          {[
+            { key: "name", label: "Full Name", placeholder: "Dr. Jane Smith" },
+            {
+              key: "domain",
+              label: "Research Domain",
+              placeholder: "Climate Systems",
+            },
+            {
+              key: "organization",
+              label: "Organization",
+              placeholder: "EPOCHS Research",
+            },
+            { key: "role", label: "Role", placeholder: "Senior Research Lead" },
+          ].map(({ key, label, placeholder }) => (
+            <div key={key}>
+              <Label
+                className="text-[10px] tracking-widest uppercase"
+                style={{ color: "rgba(255,255,255,0.4)" }}
+              >
+                {label}
+              </Label>
+              <Input
+                data-ocid="admin.humanon.mentor.input"
+                value={form[key as keyof typeof form]}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, [key]: e.target.value }))
+                }
+                placeholder={placeholder}
+                className="mt-1"
+                style={adminInputStyle}
+              />
+            </div>
+          ))}
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Profile URL (optional)
+            </Label>
+            <Input
+              data-ocid="admin.humanon.mentor.input"
+              value={form.profileUrl}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, profileUrl: e.target.value }))
+              }
+              placeholder="https://..."
+              className="mt-1"
+              style={adminInputStyle}
+            />
+          </div>
+          <div className="md:col-span-2 flex justify-end">
+            <Button
+              type="submit"
+              data-ocid="admin.humanon.mentor.submit_button"
+              disabled={createMentor.isPending}
+              style={{
+                background: "rgba(34,211,176,0.1)",
+                border: "1px solid rgba(34,211,176,0.4)",
+                color: TEAL,
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                fontSize: "11px",
+              }}
+            >
+              {createMentor.isPending ? "ADDING..." : "ADD MENTOR"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <div
+        className="rounded-sm overflow-hidden"
+        style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {isLoading ? (
+          <div
+            data-ocid="admin.humanon.mentor.loading_state"
+            className="p-8 text-center font-mono-geist text-xs"
+            style={{ color: "rgba(255,255,255,0.3)" }}
+          >
+            Loading mentors...
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                {["Name", "Domain", "Organization", "Role", "Actions"].map(
+                  (h) => (
+                    <TableHead
+                      key={h}
+                      className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                      style={{ color: "rgba(255,255,255,0.3)" }}
+                    >
+                      {h}
+                    </TableHead>
+                  ),
+                )}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(mentors || []).map((m, i) => (
+                <TableRow
+                  key={String(m.id)}
+                  data-ocid={`admin.humanon.mentor.row.${i + 1}`}
+                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
+                >
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    {m.name}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
+                      style={{
+                        color: `${TEAL}cc`,
+                        background: `${TEAL}18`,
+                        fontFamily: "Geist Mono, monospace",
+                      }}
+                    >
+                      {m.domain}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    {m.organization}
+                  </TableCell>
+                  <TableCell
+                    className="text-xs"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    {m.role}
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      type="button"
+                      data-ocid={`admin.humanon.mentor.delete_button.${i + 1}`}
+                      onClick={() => void handleDelete(m.id)}
+                      className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                      style={{
+                        background: "rgba(248,113,113,0.08)",
+                        border: "1px solid rgba(248,113,113,0.2)",
+                        color: "rgba(248,113,113,0.7)",
+                        fontFamily: "Geist Mono, monospace",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      DELETE
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(mentors || []).length === 0 && (
+                <TableRow>
+                  <TableCell
+                    data-ocid="admin.humanon.mentor.empty_state"
+                    colSpan={5}
+                    className="text-center py-8 text-xs"
+                    style={{
+                      color: "rgba(255,255,255,0.25)",
+                      fontFamily: "Geist Mono, monospace",
+                    }}
+                  >
+                    No mentors yet. Add the first mentor above.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HumanonProjectsTab() {
+  const { data: projects, isLoading } = useGetHumanonProjects();
+  const createProject = useCreateHumanonProject();
+  const updateProject = useUpdateHumanonProject();
+  const deleteProject = useDeleteHumanonProject();
+
+  const emptyForm = {
+    title: "",
+    researchDomain: "",
+    participantTeam: "",
+    summary: "",
+    outcome: "",
+    mentorsInvolved: "",
+  };
+  const [form, setForm] = useState(emptyForm);
+  const [editingId, setEditingId] = useState<bigint | null>(null);
+  const [editForm, setEditForm] = useState(emptyForm);
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title || !form.researchDomain || !form.summary) {
+      toast.error("Title, domain, and summary are required");
+      return;
+    }
+    try {
+      await createProject.mutateAsync(form);
+      setForm(emptyForm);
+      toast.success("Project created");
+    } catch {
+      toast.error("Failed to create project");
+    }
+  };
+
+  const handleUpdate = async () => {
+    if (!editingId || !editForm.title || !editForm.summary) return;
+    try {
+      await updateProject.mutateAsync({ id: editingId, ...editForm });
+      setEditingId(null);
+      toast.success("Project updated");
+    } catch {
+      toast.error("Update failed");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    if (!confirm("Delete this project?")) return;
+    try {
+      await deleteProject.mutateAsync(id);
+      toast.success("Project deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  const formFields = [
+    {
+      key: "title",
+      label: "Project Title",
+      placeholder: "Research project title",
+      span: 2,
+    },
+    {
+      key: "researchDomain",
+      label: "Research Domain",
+      placeholder: "Climate, Ethical AI, etc.",
+      span: 1,
+    },
+    {
+      key: "participantTeam",
+      label: "Participant Team",
+      placeholder: "Cohort 1 — 3 researchers",
+      span: 1,
+    },
+    {
+      key: "mentorsInvolved",
+      label: "Mentors Involved",
+      placeholder: "Dr. Smith, Dr. Jones",
+      span: 2,
+    },
+  ];
+
+  return (
+    <div className="space-y-8">
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}
+      >
+        <div
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-5"
+          style={{ color: `${GOLD}b3` }}
+        >
+          ADD PROJECT
+        </div>
+        <form
+          onSubmit={(e) => void handleCreate(e)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          {formFields.map(({ key, label, placeholder, span }) => (
+            <div key={key} className={span === 2 ? "md:col-span-2" : ""}>
+              <Label
+                className="text-[10px] tracking-widest uppercase"
+                style={{ color: "rgba(255,255,255,0.4)" }}
+              >
+                {label}
+              </Label>
+              <Input
+                data-ocid="admin.humanon.project.input"
+                value={form[key as keyof typeof emptyForm]}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, [key]: e.target.value }))
+                }
+                placeholder={placeholder}
+                className="mt-1"
+                style={adminInputStyle}
+              />
+            </div>
+          ))}
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Summary
+            </Label>
+            <Textarea
+              data-ocid="admin.humanon.project.textarea"
+              value={form.summary}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, summary: e.target.value }))
+              }
+              placeholder="Research summary..."
+              rows={3}
+              className="mt-1 resize-none"
+              style={adminInputStyle}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Outcome
+            </Label>
+            <Textarea
+              data-ocid="admin.humanon.project.textarea"
+              value={form.outcome}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, outcome: e.target.value }))
+              }
+              placeholder="Research outcome and impact..."
+              rows={2}
+              className="mt-1 resize-none"
+              style={adminInputStyle}
+            />
+          </div>
+          <div className="md:col-span-2 flex justify-end">
+            <Button
+              type="submit"
+              data-ocid="admin.humanon.project.submit_button"
+              disabled={createProject.isPending}
+              style={{
+                background: "rgba(212,160,23,0.1)",
+                border: "1px solid rgba(212,160,23,0.4)",
+                color: GOLD,
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                fontSize: "11px",
+              }}
+            >
+              {createProject.isPending ? "ADDING..." : "ADD PROJECT"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <div
+        className="rounded-sm overflow-hidden"
+        style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {isLoading ? (
+          <div
+            className="p-8 text-center font-mono-geist text-xs"
+            style={{ color: "rgba(255,255,255,0.3)" }}
+          >
+            Loading projects...
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                {["Title", "Domain", "Team", "Actions"].map((h) => (
+                  <TableHead
+                    key={h}
+                    className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    {h}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(projects || []).map((p, i) => (
+                <TableRow
+                  key={String(p.id)}
+                  data-ocid={`admin.humanon.project.row.${i + 1}`}
+                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
+                >
+                  {editingId === p.id ? (
+                    <>
+                      <TableCell>
+                        <Input
+                          value={editForm.title}
+                          onChange={(e) =>
+                            setEditForm((x) => ({
+                              ...x,
+                              title: e.target.value,
+                            }))
+                          }
+                          className="h-7 text-xs"
+                          style={adminInputStyle}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editForm.researchDomain}
+                          onChange={(e) =>
+                            setEditForm((x) => ({
+                              ...x,
+                              researchDomain: e.target.value,
+                            }))
+                          }
+                          className="h-7 text-xs"
+                          style={adminInputStyle}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Input
+                          value={editForm.participantTeam}
+                          onChange={(e) =>
+                            setEditForm((x) => ({
+                              ...x,
+                              participantTeam: e.target.value,
+                            }))
+                          }
+                          className="h-7 text-xs"
+                          style={adminInputStyle}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            data-ocid="admin.humanon.project.save_button"
+                            onClick={() => void handleUpdate()}
+                            className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                            style={{
+                              background: "rgba(52,211,153,0.1)",
+                              border: "1px solid rgba(52,211,153,0.3)",
+                              color: "rgba(52,211,153,0.8)",
+                              fontFamily: "Geist Mono, monospace",
+                              cursor: "pointer",
+                              borderRadius: "2px",
+                            }}
+                          >
+                            SAVE
+                          </button>
+                          <button
+                            type="button"
+                            data-ocid="admin.humanon.project.cancel_button"
+                            onClick={() => setEditingId(null)}
+                            className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                            style={{
+                              background: "rgba(255,255,255,0.03)",
+                              border: "1px solid rgba(255,255,255,0.1)",
+                              color: "rgba(255,255,255,0.4)",
+                              fontFamily: "Geist Mono, monospace",
+                              cursor: "pointer",
+                              borderRadius: "2px",
+                            }}
+                          >
+                            CANCEL
+                          </button>
+                        </div>
+                      </TableCell>
+                    </>
+                  ) : (
+                    <>
+                      <TableCell
+                        className="text-xs max-w-[180px] truncate"
+                        style={{ color: "rgba(255,255,255,0.7)" }}
+                      >
+                        {p.title}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
+                          style={{
+                            color: `${BLUE}cc`,
+                            background: `${BLUE}18`,
+                            fontFamily: "Geist Mono, monospace",
+                          }}
+                        >
+                          {p.researchDomain}
+                        </span>
+                      </TableCell>
+                      <TableCell
+                        className="text-xs"
+                        style={{ color: "rgba(255,255,255,0.45)" }}
+                      >
+                        {p.participantTeam}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            data-ocid={`admin.humanon.project.edit_button.${i + 1}`}
+                            onClick={() => {
+                              setEditingId(p.id);
+                              setEditForm({
+                                title: p.title,
+                                researchDomain: p.researchDomain,
+                                participantTeam: p.participantTeam,
+                                summary: p.summary,
+                                outcome: p.outcome,
+                                mentorsInvolved: p.mentorsInvolved,
+                              });
+                            }}
+                            className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                            style={{
+                              background: "rgba(74,126,247,0.08)",
+                              border: "1px solid rgba(74,126,247,0.2)",
+                              color: "rgba(74,126,247,0.7)",
+                              fontFamily: "Geist Mono, monospace",
+                              cursor: "pointer",
+                              borderRadius: "2px",
+                            }}
+                          >
+                            EDIT
+                          </button>
+                          <button
+                            type="button"
+                            data-ocid={`admin.humanon.project.delete_button.${i + 1}`}
+                            onClick={() => void handleDelete(p.id)}
+                            className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                            style={{
+                              background: "rgba(248,113,113,0.08)",
+                              border: "1px solid rgba(248,113,113,0.2)",
+                              color: "rgba(248,113,113,0.7)",
+                              fontFamily: "Geist Mono, monospace",
+                              cursor: "pointer",
+                              borderRadius: "2px",
+                            }}
+                          >
+                            DELETE
+                          </button>
+                        </div>
+                      </TableCell>
+                    </>
+                  )}
+                </TableRow>
+              ))}
+              {(projects || []).length === 0 && (
+                <TableRow>
+                  <TableCell
+                    data-ocid="admin.humanon.project.empty_state"
+                    colSpan={4}
+                    className="text-center py-8 text-xs"
+                    style={{
+                      color: "rgba(255,255,255,0.25)",
+                      fontFamily: "Geist Mono, monospace",
+                    }}
+                  >
+                    No projects yet. Add the first project above.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HumanonPartnersTab() {
+  const { data: partners, isLoading } = useGetHumanonPartners();
+  const createPartner = useCreateHumanonPartner();
+  const deletePartner = useDeleteHumanonPartner();
+  const [form, setForm] = useState({ name: "", sector: "", description: "" });
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.name || !form.sector || !form.description) {
+      toast.error("All fields are required");
+      return;
+    }
+    try {
+      await createPartner.mutateAsync(form);
+      setForm({ name: "", sector: "", description: "" });
+      toast.success("Partner created");
+    } catch {
+      toast.error("Failed to create partner");
+    }
+  };
+
+  const handleDelete = async (id: bigint) => {
+    if (!confirm("Delete this partner?")) return;
+    try {
+      await deletePartner.mutateAsync(id);
+      toast.success("Partner deleted");
+    } catch {
+      toast.error("Delete failed");
+    }
+  };
+
+  return (
+    <div className="space-y-8">
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.07)",
+        }}
+      >
+        <div
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-5"
+          style={{ color: `${BLUE}b3` }}
+        >
+          ADD INDUSTRY PARTNER
+        </div>
+        <form
+          onSubmit={(e) => void handleCreate(e)}
+          className="grid grid-cols-1 md:grid-cols-2 gap-4"
+        >
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Organization Name
+            </Label>
+            <Input
+              data-ocid="admin.humanon.partner.input"
+              value={form.name}
+              onChange={(e) => setForm((p) => ({ ...p, name: e.target.value }))}
+              placeholder="Partner organization"
+              className="mt-1"
+              style={adminInputStyle}
+            />
+          </div>
+          <div>
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Industry Sector
+            </Label>
+            <Input
+              data-ocid="admin.humanon.partner.input"
+              value={form.sector}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, sector: e.target.value }))
+              }
+              placeholder="Healthcare, Energy, Technology..."
+              className="mt-1"
+              style={adminInputStyle}
+            />
+          </div>
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Description
+            </Label>
+            <Textarea
+              data-ocid="admin.humanon.partner.textarea"
+              value={form.description}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, description: e.target.value }))
+              }
+              placeholder="Partnership description..."
+              rows={2}
+              className="mt-1 resize-none"
+              style={adminInputStyle}
+            />
+          </div>
+          <div className="md:col-span-2 flex justify-end">
+            <Button
+              type="submit"
+              disabled={createPartner.isPending}
+              style={{
+                background: "rgba(74,126,247,0.1)",
+                border: "1px solid rgba(74,126,247,0.4)",
+                color: BLUE,
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                fontSize: "11px",
+              }}
+            >
+              {createPartner.isPending ? "ADDING..." : "ADD PARTNER"}
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      <div
+        className="rounded-sm overflow-hidden"
+        style={{ border: "1px solid rgba(255,255,255,0.06)" }}
+      >
+        {isLoading ? (
+          <div
+            className="p-8 text-center font-mono-geist text-xs"
+            style={{ color: "rgba(255,255,255,0.3)" }}
+          >
+            Loading partners...
+          </div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+                {["Name", "Sector", "Description", "Actions"].map((h) => (
+                  <TableHead
+                    key={h}
+                    className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    {h}
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {(partners || []).map((p, i) => (
+                <TableRow
+                  key={String(p.id)}
+                  data-ocid={`admin.humanon.partner.row.${i + 1}`}
+                  style={{ borderColor: "rgba(255,255,255,0.04)" }}
+                >
+                  <TableCell
+                    className="text-xs font-medium"
+                    style={{ color: "rgba(255,255,255,0.7)" }}
+                  >
+                    {p.name}
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
+                      style={{
+                        color: `${BLUE}cc`,
+                        background: `${BLUE}18`,
+                        fontFamily: "Geist Mono, monospace",
+                      }}
+                    >
+                      {p.sector}
+                    </span>
+                  </TableCell>
+                  <TableCell
+                    className="text-xs max-w-[200px] truncate"
+                    style={{ color: "rgba(255,255,255,0.45)" }}
+                  >
+                    {p.description}
+                  </TableCell>
+                  <TableCell>
+                    <button
+                      type="button"
+                      data-ocid={`admin.humanon.partner.delete_button.${i + 1}`}
+                      onClick={() => void handleDelete(p.id)}
+                      className="px-3 py-1 text-[10px] tracking-widest uppercase"
+                      style={{
+                        background: "rgba(248,113,113,0.08)",
+                        border: "1px solid rgba(248,113,113,0.2)",
+                        color: "rgba(248,113,113,0.7)",
+                        fontFamily: "Geist Mono, monospace",
+                        cursor: "pointer",
+                        borderRadius: "2px",
+                      }}
+                    >
+                      DELETE
+                    </button>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {(partners || []).length === 0 && (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="text-center py-8 text-xs"
+                    style={{
+                      color: "rgba(255,255,255,0.25)",
+                      fontFamily: "Geist Mono, monospace",
+                    }}
+                  >
+                    No partners yet. Add the first partner above.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function HumanonStatsTab() {
+  const { data: stats, isLoading } = useGetHumanonStats();
+  const updateStats = useUpdateHumanonStats();
+  const [form, setForm] = useState({
+    participantsEnrolled: "30",
+    projectsCompleted: "8",
+    industryPartners: "4",
+    careerPlacements: "22",
+    countriesRepresented: "6",
+  });
+
+  useEffect(() => {
+    if (stats) {
+      setForm({
+        participantsEnrolled: String(Number(stats.participantsEnrolled)),
+        projectsCompleted: String(Number(stats.projectsCompleted)),
+        industryPartners: String(Number(stats.industryPartners)),
+        careerPlacements: String(Number(stats.careerPlacements)),
+        countriesRepresented: String(Number(stats.countriesRepresented)),
+      });
+    }
+  }, [stats]);
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await updateStats.mutateAsync({
+        participantsEnrolled: BigInt(Number(form.participantsEnrolled) || 0),
+        projectsCompleted: BigInt(Number(form.projectsCompleted) || 0),
+        industryPartners: BigInt(Number(form.industryPartners) || 0),
+        careerPlacements: BigInt(Number(form.careerPlacements) || 0),
+        countriesRepresented: BigInt(Number(form.countriesRepresented) || 0),
+      });
+      toast.success("Stats updated");
+    } catch {
+      toast.error("Failed to update stats");
+    }
+  };
+
+  const statFields = [
+    {
+      key: "participantsEnrolled",
+      label: "Participants Enrolled",
+      color: "#22d3b0",
+    },
+    { key: "projectsCompleted", label: "Projects Completed", color: BLUE },
+    { key: "industryPartners", label: "Industry Partners", color: GOLD },
+    { key: "careerPlacements", label: "Career Placements", color: "#a78bfa" },
+    {
+      key: "countriesRepresented",
+      label: "Countries Represented",
+      color: "#34d399",
+    },
+  ] as const;
+
+  if (isLoading) {
+    return (
+      <div
+        className="p-8 text-center font-mono-geist text-xs"
+        style={{ color: "rgba(255,255,255,0.3)" }}
+      >
+        Loading stats...
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className="p-6 rounded-sm max-w-2xl"
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.07)",
+      }}
+    >
+      <div
+        className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
+        style={{ color: `${GOLD}b3` }}
+      >
+        UPDATE HUMANON STATISTICS
+      </div>
+      <form onSubmit={(e) => void handleSave(e)} className="space-y-4">
+        {statFields.map(({ key, label, color }) => (
+          <div key={key} className="flex items-center gap-4">
+            <div
+              className="w-2 h-8 rounded-full shrink-0"
+              style={{ background: color }}
+            />
+            <div className="flex-1">
+              <Label
+                className="text-[10px] tracking-widest uppercase"
+                style={{ color: "rgba(255,255,255,0.4)" }}
+              >
+                {label}
+              </Label>
+              <Input
+                data-ocid="admin.humanon.stats.input"
+                type="number"
+                min="0"
+                value={form[key]}
+                onChange={(e) =>
+                  setForm((p) => ({ ...p, [key]: e.target.value }))
+                }
+                className="mt-1"
+                style={adminInputStyle}
+              />
+            </div>
+          </div>
+        ))}
+        <div className="flex justify-end pt-2">
+          <Button
+            type="submit"
+            data-ocid="admin.humanon.stats.submit_button"
+            disabled={updateStats.isPending}
+            style={{
+              background: "rgba(212,160,23,0.1)",
+              border: "1px solid rgba(212,160,23,0.4)",
+              color: GOLD,
+              fontFamily: "Geist Mono, monospace",
+              letterSpacing: "0.15em",
+              fontSize: "11px",
+            }}
+          >
+            {updateStats.isPending ? "SAVING..." : "SAVE STATS"}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
+}
+
+function HumanonManagerTab() {
+  return (
+    <Tabs defaultValue="mentors">
+      <TabsList
+        className="mb-8 flex-wrap h-auto gap-1"
+        style={{
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: "2px",
+        }}
+      >
+        {[
+          { value: "mentors", label: "Mentors" },
+          { value: "projects", label: "Projects" },
+          { value: "partners", label: "Partners" },
+          { value: "stats", label: "Statistics" },
+        ].map(({ value, label }) => (
+          <TabsTrigger
+            key={value}
+            value={value}
+            className="text-xs tracking-widest uppercase"
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              letterSpacing: "0.12em",
+            }}
+          >
+            {label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+
+      <TabsContent value="mentors">
+        <HumanonMentorsTab />
+      </TabsContent>
+      <TabsContent value="projects">
+        <HumanonProjectsTab />
+      </TabsContent>
+      <TabsContent value="partners">
+        <HumanonPartnersTab />
+      </TabsContent>
+      <TabsContent value="stats">
+        <HumanonStatsTab />
+      </TabsContent>
+    </Tabs>
   );
 }
 
@@ -1379,6 +2431,7 @@ export default function AdminDashboard({
               { value: "requests", label: "Collaboration Requests" },
               { value: "stats", label: "Pathway Statistics" },
               { value: "research", label: "EPOCHS Research" },
+              { value: "humanon", label: "HUMANON" },
             ].map(({ value, label }) => (
               <TabsTrigger
                 key={value}
@@ -1435,6 +2488,21 @@ export default function AdminDashboard({
                 EPOCHS RESEARCH LIBRARY MANAGER
               </div>
               <EpochsResearchTab />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="humanon">
+            <div
+              className="p-1 rounded-sm"
+              style={{ background: "rgba(255,255,255,0.01)" }}
+            >
+              <div
+                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
+                style={{ color: "rgba(34,211,176,0.7)" }}
+              >
+                HUMANON ECOSYSTEM MANAGER
+              </div>
+              <HumanonManagerTab />
             </div>
           </TabsContent>
         </Tabs>

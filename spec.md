@@ -1,48 +1,70 @@
-# STEMONEF Enterprises — V1 Update
+# STEMONEF Enterprises
 
 ## Current State
 
-The app has:
-- Public homepage with: BootScreen, NavBar, HeroSection, PillarsSection, DualMissionSection, IntelligenceFeed, PathwaySection, HumanonSection, CTASection, Footer
-- PillarsSection renders 7 pillar cards (all pillars) from backend or fallback data; clicking a card opens a Dialog modal with mandate details
-- Admin dashboard (AdminDashboard.tsx) with CMS for intelligence feed
-- User dashboard (UserDashboard.tsx) shown after Internet Identity login
-- AI Companion panel, SuggestionToast, NeuralCanvas background
-- View routing is state-based (AppView: "home" | "admin" | "dashboard") in App.tsx
-- Design system: gradient blue/black, glass morphism, yellow (#d4a017) signal accents, Fraunces display font, Geist Mono, Sora body, reveal animations
+The `/humanon` page (`HumanonPage.tsx`) is a basic single-file component with:
+- A simple hero with title and tagline only (no CTA buttons, no animated background)
+- A "Value Proposition" section with 5 static cards
+- A "Program Structure" section listing participant types in a row list
+- An "Industry Partnership Model" section with an auto-cycling 5-step flow diagram
+- A "Success Metrics" section with animated progress bars
+- A legal footer note
+
+The page is missing: Talent Ecosystem Overview cards (expandable), Global Participation Map, Participation Pathways with detailed panels, visual program timeline, Mentor Network section, Participant Projects section, quantitative success counters, and a Join HUMANON CTA.
+
+The backend (`main.mo`) has no types or APIs for mentors, participant projects, or industry partners.
+
+The Admin Dashboard has no HUMANON management tab.
 
 ## Requested Changes (Diff)
 
 ### Add
-- Three new immersive pillar pages: `/epochs`, `/humanon`, `/steami` — each with full structured content, hero, mission, project sections, interactive elements, legal footer note
-- New advisory board page `/elpis` — E.L.P.I.S, circular board layout, placeholder members, governance principles, ethical oversight sections
-- Three focused "hero" pillar cards in the existing PillarsSection for EPOCHS, HUMANON™, STEAMI™ (replacing the current 7-card "mandate" grid with 3 large liquid-glass feature cards as the primary display)
-- Route handling for `/epochs`, `/humanon`, `/steami`, `/elpis` in App.tsx (add new view states or path-based routing)
-- Legal footer note on each pillar page: "EPOCHS™, HUMANON™, STEAMI™ and all associated initiatives operate under the parent institution THE STEMONEF™ ENTERPRISES."
+
+**Backend:**
+- `HumanonMentor` type: id, name, domain, organization, role, profileUrl (opt)
+- `HumanonProject` type: id, title, researchDomain, participantTeam, summary, outcome, mentorsInvolved, publishedAt
+- `HumanonPartner` type: id, name, sector, description
+- `HumanonStats` type: participantsEnrolled, projectsCompleted, industryPartners, careerPlacements, countriesRepresented
+- Backend API: createMentor, getMentors, deleteMentor, createProject, getProjects, updateProject, deleteProject, updateHumanonStats, getHumanonStats, createPartner, getPartners, deletePartner (all admin-gated writes, public reads)
+- New query hooks in `useQueries.ts` for all the above
+
+**Frontend (HumanonPage.tsx) — full rebuild:**
+- **Hero**: animated canvas network particle background (collaboration dots/lines), HUMANON title, "Connecting Potential to Purpose" subtitle, subtext, two CTA buttons: "Explore Pathways" and "Apply to HUMANON"
+- **Talent Ecosystem Overview**: three expandable glass cards — Research Participation, Industry Mentorship, Career Development — each with an expand/collapse description
+- **Global Participation Map**: SVG world map with region dot overlays showing participant counts; hover shows count tooltip; on mobile collapses to regional list (Africa, Asia, Europe, Americas, Oceania) with placeholder counts
+- **Participation Pathways**: five pathway cards (Student Research Track, Early Career Research Track, Industry Collaboration Track, Career Transition Track, International Scholar Track), each expandable to show eligibility, expected contributions, program duration, outcomes — accordion on mobile
+- **Program Structure Timeline**: horizontal (desktop) / vertical (mobile) timeline with 6 steps: Application → Matching → Industry Mentorship → Skill Development → Research Output → Career Placement; hover/tap reveals step details
+- **Industry Collaboration Model**: flow diagram with 5 steps and animated connecting arrows showing Industry Problem → HUMANON Research Team → Mentor Guidance → Prototype or Research Output → Industry Feedback; auto-animate active step
+- **Mentor Network**: grid of mentor cards (from backend or seeded placeholders) showing name, domain, organization, role; cards have hover glow
+- **Participant Projects**: expandable project cards from backend (with seeded placeholders) showing title, domain, team, summary, outcome; click expands to full overlay with research overview, results, mentors involved
+- **Success Metrics**: animated count-up numbers on scroll for 5 stats (from backend or defaults): Participants Enrolled, Research Projects Completed, Industry Partners, Career Placements, Countries Represented
+- **Join HUMANON**: CTA section with three glass buttons: "Apply as Participant", "Become a Mentor", "Partner as Industry" — link to `#join` form or show a simple modal form
+- **Legal footer**: unchanged
+
+**Admin Dashboard — new HUMANON Manager tab:**
+- Sub-tabs: Mentors, Projects, Partners, Stats
+- Mentors: add/delete mentor (name, domain, organization, role, profileUrl)
+- Projects: add/edit/delete project (title, researchDomain, participantTeam, summary, outcome, mentorsInvolved)
+- Partners: add/delete partner (name, sector, description)
+- Stats: form to update the five quantitative stats
 
 ### Modify
-- PillarsSection.tsx: Keep existing section ID, scroll behavior, and entrance animations intact. Replace the inner grid with 3 large liquid-glass feature cards (EPOCHS, HUMANON™, STEAMI™). Each card has: title, subtitle, short description, 3 focus area tags, and "Explore [PILLAR]" button that navigates to the pillar page. Hover: card deepens, yellow highlight line appears, elevation animation. The remaining 4 pillars (NOVA, TERRA, EQUIS, ETHOS) can be shown in a secondary smaller grid below or hidden for now.
-- App.tsx: Add view states "epochs" | "humanon" | "steami" | "elpis" to AppView type. Add path detection for these routes. Render the appropriate page component.
+
+- `HumanonPage.tsx`: full rebuild preserving existing `onBack` prop and section nav bar
+- `AdminDashboard.tsx`: add HUMANON Manager as a new tab inside the existing Tabs component
+- `main.mo`: add new types and API functions
+- `backend.d.ts`: add new type exports and function signatures
+- `useQueries.ts`: add new query/mutation hooks
 
 ### Remove
-- Nothing removed — the existing 7-card mandate modal system can be retained as secondary/legacy; the main visual upgrade is the 3 featured cards
+
+Nothing removed from existing systems.
 
 ## Implementation Plan
 
-1. **Update App.tsx routing**: Add "epochs" | "humanon" | "steami" | "elpis" to AppView, detect paths `/epochs`, `/humanon`, `/steami`, `/elpis` on mount, render appropriate page components
-
-2. **Update PillarsSection.tsx**: 
-   - Keep section wrapper, ID, scroll behavior, entrance animations unchanged
-   - Replace the main grid with 3 large liquid-glass cards (EPOCHS, HUMANON, STEAMI) 
-   - Each card: large format, glass morphism, floating motion, yellow accent line on hover, elevation on hover, title + subtitle + description + 3 focus tags + "Explore" CTA button
-   - Keep smaller secondary display for remaining 4 pillars below (compact form)
-
-3. **Create EpochsPage.tsx**: Full immersive page — hero (climate/neural animated bg), mission section, Project GAIA card cluster with animated lab nodes, LAB INVOS & LAB NEIA glass panels, Project EIOS animated tech pipeline, Project STEMESA with "Conceptual Development Stage" label, legal footer note
-
-4. **Create HumanonPage.tsx**: Full immersive page — hero, value proposition interactive cards (5 items), program structure participants list, industry partnership animated workflow diagram, success metrics visual dashboard, legal footer note
-
-5. **Create SteamiPage.tsx**: Full immersive page — hero with "not media / decision-grade" positioning, core functions glass cards (5), structure network diagram (STEAMI Parent → Intelligence → Network), STEAMI Intelligence domain list with outputs, STEAMI Network distribution channels, feedback loop interactive animation, legal footer note
-
-6. **Create ElpisPage.tsx**: Advisory board page — hero (E.L.P.I.S acronym expanded), circular advisory board layout with placeholder members, 4 governance sections (Principles, Ethical Oversight, Strategic Guidance, Scientific Integrity)
-
-7. All new pages share the existing design system: neural-bg, glass morphism, yellow accents, Fraunces display font, Geist Mono labels, Sora body, reveal animations, gradient blue/black backgrounds
+1. Update `main.mo` — add HumanonMentor, HumanonProject, HumanonPartner, HumanonStats types; add all CRUD endpoints; seed with placeholder data
+2. Update `backend.d.ts` — add new type definitions and function signatures
+3. Update `useQueries.ts` — add all new query/mutation hooks
+4. Rebuild `HumanonPage.tsx` — full high-detail implementation with all 11 sections plus hero and footer
+5. Update `AdminDashboard.tsx` — add HUMANON Manager tab with 4 sub-tabs
+6. Validate (typecheck + lint + build)

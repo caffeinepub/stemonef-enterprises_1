@@ -7,6 +7,12 @@ export interface None {
     __kind__: "None";
 }
 export type Option<T> = Some<T> | None;
+export interface HumanonPartner {
+    id: bigint;
+    name: string;
+    description: string;
+    sector: string;
+}
 export interface Pillar {
     id: bigint;
     mandate: string;
@@ -16,6 +22,24 @@ export interface Pillar {
     governanceNote: string;
     initiatives: string;
     futureDirection: string;
+}
+export interface HumanonMentor {
+    id: bigint;
+    domain: string;
+    name: string;
+    role: string;
+    organization: string;
+    profileUrl: string;
+}
+export interface HumanonProject {
+    id: bigint;
+    title: string;
+    participantTeam: string;
+    publishedAt: bigint;
+    summary: string;
+    researchDomain: string;
+    mentorsInvolved: string;
+    outcome: string;
 }
 export interface FeedEntry {
     id: bigint;
@@ -37,6 +61,13 @@ export interface CollaborationRequest {
 export interface UserProfile {
     name: string;
 }
+export interface HumanonStats {
+    participantsEnrolled: bigint;
+    industryPartners: bigint;
+    careerPlacements: bigint;
+    countriesRepresented: bigint;
+    projectsCompleted: bigint;
+}
 export enum UserRole {
     admin = "admin",
     user = "user",
@@ -45,12 +76,22 @@ export enum UserRole {
 export interface backendInterface {
     assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
     createFeed(title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
+    createHumanonMentor(name: string, domain: string, organization: string, role: string, profileUrl: string): Promise<void>;
+    createHumanonPartner(name: string, sector: string, description: string): Promise<void>;
+    createHumanonProject(title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
     deleteFeed(id: bigint): Promise<void>;
+    deleteHumanonMentor(id: bigint): Promise<void>;
+    deleteHumanonPartner(id: bigint): Promise<void>;
+    deleteHumanonProject(id: bigint): Promise<void>;
     getAllPillars(): Promise<Array<Pillar>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
     getCallerUserRole(): Promise<UserRole>;
     getCollaborationRequests(): Promise<Array<CollaborationRequest>>;
     getFeaturedFeeds(): Promise<Array<FeedEntry>>;
+    getHumanonMentors(): Promise<Array<HumanonMentor>>;
+    getHumanonPartners(): Promise<Array<HumanonPartner>>;
+    getHumanonProjects(): Promise<Array<HumanonProject>>;
+    getHumanonStats(): Promise<HumanonStats>;
     getPathwayStats(): Promise<Array<[string, bigint]>>;
     getPublicFeeds(): Promise<Array<FeedEntry>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
@@ -60,4 +101,6 @@ export interface backendInterface {
     submitCollaborationRequest(name: string, email: string, pathway: string, message: string): Promise<void>;
     toggleFeatured(id: bigint): Promise<void>;
     updateFeed(id: bigint, title: string, summary: string, domain: string, isPublic: boolean, isFeatured: boolean): Promise<void>;
+    updateHumanonProject(id: bigint, title: string, researchDomain: string, participantTeam: string, summary: string, outcome: string, mentorsInvolved: string): Promise<void>;
+    updateHumanonStats(participantsEnrolled: bigint, projectsCompleted: bigint, industryPartners: bigint, careerPlacements: bigint, countriesRepresented: bigint): Promise<void>;
 }

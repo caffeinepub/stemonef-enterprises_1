@@ -302,23 +302,35 @@ export default function EquisPage({ onBack }: EquisPageProps) {
   const capitalPillars = [
     {
       color: "#d4a017",
+      glyph: "◆",
+      index: "01",
       title: "Impact Investment Facilitation",
-      desc: "Structuring mission-aligned investment vehicles with measurable financial and social returns.",
+      desc: "Structuring mission-aligned investment vehicles with measurable financial and social returns across deep tech, climate, and health sectors.",
+      badge: null,
     },
     {
       color: "#4a7ef7",
+      glyph: "◈",
+      index: "02",
       title: "Ethical Venture Partnerships",
-      desc: "Strategic partnerships with enterprises that share STEMONEF's ethical framework and long-term vision.",
+      desc: "Strategic partnerships with enterprises that share STEMONEF's ethical framework and long-term vision for systemic change.",
+      badge: null,
     },
     {
       color: "#22d3b0",
+      glyph: "◇",
+      index: "03",
       title: "Grant Management",
-      desc: "Institutional grant programs supporting research, talent incubation, and climate initiatives.",
+      desc: "Institutional grant programs supporting research, talent incubation, and climate initiatives with full transparency and ethics oversight.",
+      badge: null,
     },
     {
       color: "#a78bfa",
+      glyph: "⬡",
+      index: "04",
       title: "Revenue Reinvestment",
-      desc: "Constitutionally mandated reinvestment of operational surplus into mission-critical work across all pillars.",
+      desc: "All operational surplus is reinvested into mission-critical work across STEMONEF's core pillars — ensuring the enterprise remains permanently independent, ethically funded, and impact-driven.",
+      badge: "Constitutionally Mandated",
     },
   ];
 
@@ -556,69 +568,157 @@ export default function EquisPage({ onBack }: EquisPageProps) {
               ◈ CAPITAL ARCHITECTURE
             </div>
             <h2
-              className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
+              className="font-display text-4xl md:text-5xl font-light text-gradient-hero mb-4"
               style={{ letterSpacing: "0.08em" }}
             >
               Capital Pillars
             </h2>
+            <p
+              className="text-sm leading-relaxed max-w-2xl"
+              style={{
+                color: "rgba(255,255,255,0.45)",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              EQUIS operates through four interdependent capital mechanisms —
+              each serving a distinct function within the enterprise's financial
+              architecture. Together they form a closed, self-reinforcing system
+              where capital generation and mission delivery are inseparable.
+            </p>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-            {capitalPillars.map((p, i) => (
-              <div
-                key={p.title}
-                className="equis-reveal reveal"
-                style={{ transitionDelay: `${i * 0.1}s` }}
-                onMouseEnter={() => setHoveredPillar(i)}
-                onMouseLeave={() => setHoveredPillar(null)}
-              >
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-5 items-stretch">
+            {capitalPillars.map((p, i) => {
+              const rgb = p.color
+                .slice(1)
+                .match(/.{2}/g)!
+                .map((x) => Number.parseInt(x, 16))
+                .join(",");
+              return (
                 <div
-                  className="p-8 rounded-sm h-full transition-all duration-300"
-                  style={{
-                    background:
-                      hoveredPillar === i
-                        ? `rgba(${p.color
-                            .slice(1)
-                            .match(/.{2}/g)!
-                            .map((x) => Number.parseInt(x, 16))
-                            .join(",")},0.1)`
-                        : "rgba(255,255,255,0.025)",
-                    border: `1px solid ${hoveredPillar === i ? `${p.color}44` : "rgba(255,255,255,0.07)"}`,
-                    backdropFilter: "blur(12px)",
-                    borderTop: `2px solid ${p.color}77`,
-                    transform:
-                      hoveredPillar === i ? "translateY(-4px)" : "none",
-                    boxShadow:
-                      hoveredPillar === i
-                        ? `0 0 30px ${p.color}22, 0 8px 40px rgba(0,0,0,0.4)`
-                        : "none",
-                  }}
+                  key={p.title}
+                  data-ocid={`equis.capital.card.${i + 1}`}
+                  className="equis-reveal reveal"
+                  style={{ transitionDelay: `${i * 0.1}s` }}
+                  onMouseEnter={() => setHoveredPillar(i)}
+                  onMouseLeave={() => setHoveredPillar(null)}
                 >
                   <div
-                    className="w-8 h-px mb-5"
-                    style={{ background: `${p.color}88` }}
-                  />
-                  <h3
-                    className="font-display text-lg font-light mb-3"
+                    className="p-8 rounded-sm h-full transition-all duration-300 relative overflow-hidden flex flex-col"
                     style={{
-                      letterSpacing: "0.1em",
-                      color: "rgba(255,255,255,0.88)",
+                      background:
+                        hoveredPillar === i
+                          ? `rgba(${rgb},0.1)`
+                          : "rgba(255,255,255,0.025)",
+                      border: `1px solid ${hoveredPillar === i ? `${p.color}44` : "rgba(255,255,255,0.07)"}`,
+                      backdropFilter: "blur(12px)",
+                      borderTop: "none",
+                      transform:
+                        hoveredPillar === i ? "translateY(-5px)" : "none",
+                      boxShadow:
+                        hoveredPillar === i
+                          ? `0 0 40px rgba(${rgb},0.18), 0 12px 50px rgba(0,0,0,0.5)`
+                          : "none",
                     }}
                   >
-                    {p.title}
-                  </h3>
-                  <p
-                    className="text-sm leading-relaxed"
-                    style={{
-                      color: "rgba(255,255,255,0.5)",
-                      fontFamily: "Sora, sans-serif",
-                    }}
-                  >
-                    {p.desc}
-                  </p>
+                    {/* Gradient top accent bar */}
+                    <div
+                      className="absolute top-0 left-0 right-0"
+                      style={{
+                        height: "2px",
+                        background: `linear-gradient(90deg, transparent, ${p.color}cc, ${p.color}ff, ${p.color}cc, transparent)`,
+                      }}
+                    />
+
+                    {/* Animated scan line */}
+                    <div
+                      className="animate-card-scan pointer-events-none absolute left-0 right-0 z-10"
+                      style={{
+                        height: "1px",
+                        background: `linear-gradient(90deg, transparent, rgba(${rgb},0.35), transparent)`,
+                        ["--scan-delay" as string]: `${i * 1.4}s`,
+                      }}
+                      aria-hidden="true"
+                    />
+
+                    {/* Glyph top-right */}
+                    <div
+                      className="absolute top-4 right-5 font-mono-geist text-xl animate-glyph-pulse select-none"
+                      style={{
+                        color: `rgba(${rgb},0.55)`,
+                        ["--glyph-delay" as string]: `${i * 0.6}s`,
+                      }}
+                      aria-hidden="true"
+                    >
+                      {p.glyph}
+                    </div>
+
+                    {/* Index watermark */}
+                    <div
+                      className="absolute bottom-3 right-4 font-display font-light select-none pointer-events-none"
+                      style={{
+                        fontSize: "5rem",
+                        lineHeight: 1,
+                        color: `rgba(${rgb},0.06)`,
+                        letterSpacing: "0.05em",
+                      }}
+                      aria-hidden="true"
+                    >
+                      {p.index}
+                    </div>
+
+                    {/* Content */}
+                    <div className="relative z-10 flex flex-col flex-1">
+                      {/* Color rule */}
+                      <div
+                        className="w-10 h-px mb-5"
+                        style={{
+                          background: `linear-gradient(90deg, ${p.color}bb, ${p.color}22)`,
+                        }}
+                      />
+
+                      {/* Badge (for Revenue Reinvestment) */}
+                      {p.badge && (
+                        <div className="mb-3">
+                          <span
+                            className="font-mono-geist text-[8px] tracking-[0.25em] uppercase px-2 py-1 rounded-sm"
+                            style={{
+                              background: `rgba(${rgb},0.15)`,
+                              border: `1px solid rgba(${rgb},0.45)`,
+                              color: p.color,
+                              letterSpacing: "0.2em",
+                            }}
+                          >
+                            {p.badge}
+                          </span>
+                        </div>
+                      )}
+
+                      <h3
+                        className="font-display text-lg font-light mb-3"
+                        style={{
+                          letterSpacing: "0.08em",
+                          color: "rgba(255,255,255,0.9)",
+                          lineHeight: 1.3,
+                        }}
+                      >
+                        {p.title}
+                      </h3>
+                      <p
+                        className="text-sm leading-relaxed flex-1"
+                        style={{
+                          color: "rgba(255,255,255,0.58)",
+                          fontFamily: "Sora, sans-serif",
+                          lineHeight: 1.7,
+                        }}
+                      >
+                        {p.desc}
+                      </p>
+                    </div>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </section>

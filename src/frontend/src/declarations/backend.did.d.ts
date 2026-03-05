@@ -27,6 +27,37 @@ export interface FeedEntry {
   'timestamp' : bigint,
   'isPublic' : boolean,
 }
+export interface HumanonMentor {
+  'id' : bigint,
+  'domain' : string,
+  'name' : string,
+  'role' : string,
+  'organization' : string,
+  'profileUrl' : string,
+}
+export interface HumanonPartner {
+  'id' : bigint,
+  'name' : string,
+  'description' : string,
+  'sector' : string,
+}
+export interface HumanonProject {
+  'id' : bigint,
+  'title' : string,
+  'participantTeam' : string,
+  'publishedAt' : bigint,
+  'summary' : string,
+  'researchDomain' : string,
+  'mentorsInvolved' : string,
+  'outcome' : string,
+}
+export interface HumanonStats {
+  'participantsEnrolled' : bigint,
+  'industryPartners' : bigint,
+  'careerPlacements' : bigint,
+  'countriesRepresented' : bigint,
+  'projectsCompleted' : bigint,
+}
 export interface Pillar {
   'id' : bigint,
   'mandate' : string,
@@ -48,12 +79,28 @@ export interface _SERVICE {
     [string, string, string, boolean, boolean],
     undefined
   >,
+  'createHumanonMentor' : ActorMethod<
+    [string, string, string, string, string],
+    undefined
+  >,
+  'createHumanonPartner' : ActorMethod<[string, string, string], undefined>,
+  'createHumanonProject' : ActorMethod<
+    [string, string, string, string, string, string],
+    undefined
+  >,
   'deleteFeed' : ActorMethod<[bigint], undefined>,
+  'deleteHumanonMentor' : ActorMethod<[bigint], undefined>,
+  'deleteHumanonPartner' : ActorMethod<[bigint], undefined>,
+  'deleteHumanonProject' : ActorMethod<[bigint], undefined>,
   'getAllPillars' : ActorMethod<[], Array<Pillar>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole>,
   'getCollaborationRequests' : ActorMethod<[], Array<CollaborationRequest>>,
   'getFeaturedFeeds' : ActorMethod<[], Array<FeedEntry>>,
+  'getHumanonMentors' : ActorMethod<[], Array<HumanonMentor>>,
+  'getHumanonPartners' : ActorMethod<[], Array<HumanonPartner>>,
+  'getHumanonProjects' : ActorMethod<[], Array<HumanonProject>>,
+  'getHumanonStats' : ActorMethod<[], HumanonStats>,
   'getPathwayStats' : ActorMethod<[], Array<[string, bigint]>>,
   'getPublicFeeds' : ActorMethod<[], Array<FeedEntry>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
@@ -67,6 +114,14 @@ export interface _SERVICE {
   'toggleFeatured' : ActorMethod<[bigint], undefined>,
   'updateFeed' : ActorMethod<
     [bigint, string, string, string, boolean, boolean],
+    undefined
+  >,
+  'updateHumanonProject' : ActorMethod<
+    [bigint, string, string, string, string, string, string],
+    undefined
+  >,
+  'updateHumanonStats' : ActorMethod<
+    [bigint, bigint, bigint, bigint, bigint],
     undefined
   >,
 }

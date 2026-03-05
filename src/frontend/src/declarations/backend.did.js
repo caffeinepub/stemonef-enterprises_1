@@ -41,6 +41,37 @@ export const FeedEntry = IDL.Record({
   'timestamp' : IDL.Int,
   'isPublic' : IDL.Bool,
 });
+export const HumanonMentor = IDL.Record({
+  'id' : IDL.Nat,
+  'domain' : IDL.Text,
+  'name' : IDL.Text,
+  'role' : IDL.Text,
+  'organization' : IDL.Text,
+  'profileUrl' : IDL.Text,
+});
+export const HumanonPartner = IDL.Record({
+  'id' : IDL.Nat,
+  'name' : IDL.Text,
+  'description' : IDL.Text,
+  'sector' : IDL.Text,
+});
+export const HumanonProject = IDL.Record({
+  'id' : IDL.Nat,
+  'title' : IDL.Text,
+  'participantTeam' : IDL.Text,
+  'publishedAt' : IDL.Int,
+  'summary' : IDL.Text,
+  'researchDomain' : IDL.Text,
+  'mentorsInvolved' : IDL.Text,
+  'outcome' : IDL.Text,
+});
+export const HumanonStats = IDL.Record({
+  'participantsEnrolled' : IDL.Nat,
+  'industryPartners' : IDL.Nat,
+  'careerPlacements' : IDL.Nat,
+  'countriesRepresented' : IDL.Nat,
+  'projectsCompleted' : IDL.Nat,
+});
 
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -50,7 +81,21 @@ export const idlService = IDL.Service({
       [],
       [],
     ),
+  'createHumanonMentor' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'createHumanonPartner' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+  'createHumanonProject' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
   'deleteFeed' : IDL.Func([IDL.Nat], [], []),
+  'deleteHumanonMentor' : IDL.Func([IDL.Nat], [], []),
+  'deleteHumanonPartner' : IDL.Func([IDL.Nat], [], []),
+  'deleteHumanonProject' : IDL.Func([IDL.Nat], [], []),
   'getAllPillars' : IDL.Func([], [IDL.Vec(Pillar)], ['query']),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
   'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -60,6 +105,10 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getFeaturedFeeds' : IDL.Func([], [IDL.Vec(FeedEntry)], ['query']),
+  'getHumanonMentors' : IDL.Func([], [IDL.Vec(HumanonMentor)], ['query']),
+  'getHumanonPartners' : IDL.Func([], [IDL.Vec(HumanonPartner)], ['query']),
+  'getHumanonProjects' : IDL.Func([], [IDL.Vec(HumanonProject)], ['query']),
+  'getHumanonStats' : IDL.Func([], [HumanonStats], ['query']),
   'getPathwayStats' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
@@ -82,6 +131,16 @@ export const idlService = IDL.Service({
   'toggleFeatured' : IDL.Func([IDL.Nat], [], []),
   'updateFeed' : IDL.Func(
       [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Bool, IDL.Bool],
+      [],
+      [],
+    ),
+  'updateHumanonProject' : IDL.Func(
+      [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [],
+      [],
+    ),
+  'updateHumanonStats' : IDL.Func(
+      [IDL.Nat, IDL.Nat, IDL.Nat, IDL.Nat, IDL.Nat],
       [],
       [],
     ),
@@ -123,6 +182,37 @@ export const idlFactory = ({ IDL }) => {
     'timestamp' : IDL.Int,
     'isPublic' : IDL.Bool,
   });
+  const HumanonMentor = IDL.Record({
+    'id' : IDL.Nat,
+    'domain' : IDL.Text,
+    'name' : IDL.Text,
+    'role' : IDL.Text,
+    'organization' : IDL.Text,
+    'profileUrl' : IDL.Text,
+  });
+  const HumanonPartner = IDL.Record({
+    'id' : IDL.Nat,
+    'name' : IDL.Text,
+    'description' : IDL.Text,
+    'sector' : IDL.Text,
+  });
+  const HumanonProject = IDL.Record({
+    'id' : IDL.Nat,
+    'title' : IDL.Text,
+    'participantTeam' : IDL.Text,
+    'publishedAt' : IDL.Int,
+    'summary' : IDL.Text,
+    'researchDomain' : IDL.Text,
+    'mentorsInvolved' : IDL.Text,
+    'outcome' : IDL.Text,
+  });
+  const HumanonStats = IDL.Record({
+    'participantsEnrolled' : IDL.Nat,
+    'industryPartners' : IDL.Nat,
+    'careerPlacements' : IDL.Nat,
+    'countriesRepresented' : IDL.Nat,
+    'projectsCompleted' : IDL.Nat,
+  });
   
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
@@ -132,7 +222,21 @@ export const idlFactory = ({ IDL }) => {
         [],
         [],
       ),
+    'createHumanonMentor' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'createHumanonPartner' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
+    'createHumanonProject' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
     'deleteFeed' : IDL.Func([IDL.Nat], [], []),
+    'deleteHumanonMentor' : IDL.Func([IDL.Nat], [], []),
+    'deleteHumanonPartner' : IDL.Func([IDL.Nat], [], []),
+    'deleteHumanonProject' : IDL.Func([IDL.Nat], [], []),
     'getAllPillars' : IDL.Func([], [IDL.Vec(Pillar)], ['query']),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
     'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
@@ -142,6 +246,10 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getFeaturedFeeds' : IDL.Func([], [IDL.Vec(FeedEntry)], ['query']),
+    'getHumanonMentors' : IDL.Func([], [IDL.Vec(HumanonMentor)], ['query']),
+    'getHumanonPartners' : IDL.Func([], [IDL.Vec(HumanonPartner)], ['query']),
+    'getHumanonProjects' : IDL.Func([], [IDL.Vec(HumanonProject)], ['query']),
+    'getHumanonStats' : IDL.Func([], [HumanonStats], ['query']),
     'getPathwayStats' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Text, IDL.Nat))],
@@ -164,6 +272,16 @@ export const idlFactory = ({ IDL }) => {
     'toggleFeatured' : IDL.Func([IDL.Nat], [], []),
     'updateFeed' : IDL.Func(
         [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Bool, IDL.Bool],
+        [],
+        [],
+      ),
+    'updateHumanonProject' : IDL.Func(
+        [IDL.Nat, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [],
+        [],
+      ),
+    'updateHumanonStats' : IDL.Func(
+        [IDL.Nat, IDL.Nat, IDL.Nat, IDL.Nat, IDL.Nat],
         [],
         [],
       ),

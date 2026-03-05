@@ -223,3 +223,238 @@ export function useSaveCallerUserProfile() {
     },
   });
 }
+
+// ── HUMANON Query Hooks ──────────────────────────────────────────────────────
+
+import type {
+  HumanonMentor,
+  HumanonPartner,
+  HumanonProject,
+  HumanonStats,
+} from "../backend.d";
+
+export function useGetHumanonMentors() {
+  const { actor, isFetching } = useActor();
+  return useQuery<HumanonMentor[]>({
+    queryKey: ["humanonMentors"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getHumanonMentors();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 3 * 60 * 1000,
+  });
+}
+
+export function useGetHumanonProjects() {
+  const { actor, isFetching } = useActor();
+  return useQuery<HumanonProject[]>({
+    queryKey: ["humanonProjects"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getHumanonProjects();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 3 * 60 * 1000,
+  });
+}
+
+export function useGetHumanonPartners() {
+  const { actor, isFetching } = useActor();
+  return useQuery<HumanonPartner[]>({
+    queryKey: ["humanonPartners"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getHumanonPartners();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 3 * 60 * 1000,
+  });
+}
+
+export function useGetHumanonStats() {
+  const { actor, isFetching } = useActor();
+  return useQuery<HumanonStats | null>({
+    queryKey: ["humanonStats"],
+    queryFn: async () => {
+      if (!actor) return null;
+      return actor.getHumanonStats();
+    },
+    enabled: !!actor && !isFetching,
+    staleTime: 5 * 60 * 1000,
+  });
+}
+
+export function useCreateHumanonMentor() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      domain: string;
+      organization: string;
+      role: string;
+      profileUrl: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createHumanonMentor(
+        data.name,
+        data.domain,
+        data.organization,
+        data.role,
+        data.profileUrl,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonMentors"] });
+    },
+  });
+}
+
+export function useDeleteHumanonMentor() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteHumanonMentor(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonMentors"] });
+    },
+  });
+}
+
+export function useCreateHumanonProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      title: string;
+      researchDomain: string;
+      participantTeam: string;
+      summary: string;
+      outcome: string;
+      mentorsInvolved: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createHumanonProject(
+        data.title,
+        data.researchDomain,
+        data.participantTeam,
+        data.summary,
+        data.outcome,
+        data.mentorsInvolved,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonProjects"] });
+    },
+  });
+}
+
+export function useUpdateHumanonProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      id: bigint;
+      title: string;
+      researchDomain: string;
+      participantTeam: string;
+      summary: string;
+      outcome: string;
+      mentorsInvolved: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.updateHumanonProject(
+        data.id,
+        data.title,
+        data.researchDomain,
+        data.participantTeam,
+        data.summary,
+        data.outcome,
+        data.mentorsInvolved,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonProjects"] });
+    },
+  });
+}
+
+export function useDeleteHumanonProject() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteHumanonProject(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonProjects"] });
+    },
+  });
+}
+
+export function useCreateHumanonPartner() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      name: string;
+      sector: string;
+      description: string;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.createHumanonPartner(
+        data.name,
+        data.sector,
+        data.description,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonPartners"] });
+    },
+  });
+}
+
+export function useDeleteHumanonPartner() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: bigint) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.deleteHumanonPartner(id);
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonPartners"] });
+    },
+  });
+}
+
+export function useUpdateHumanonStats() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (data: {
+      participantsEnrolled: bigint;
+      projectsCompleted: bigint;
+      industryPartners: bigint;
+      careerPlacements: bigint;
+      countriesRepresented: bigint;
+    }) => {
+      if (!actor) throw new Error("Not connected");
+      return actor.updateHumanonStats(
+        data.participantsEnrolled,
+        data.projectsCompleted,
+        data.industryPartners,
+        data.careerPlacements,
+        data.countriesRepresented,
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["humanonStats"] });
+    },
+  });
+}

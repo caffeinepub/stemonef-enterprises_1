@@ -11,7 +11,9 @@ import Principal "mo:core/Principal";
 import Nat64 "mo:core/Nat64";
 import MixinAuthorization "authorization/MixinAuthorization";
 import AccessControl "authorization/access-control";
+import Migration "migration";
 
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -318,6 +320,10 @@ actor {
   };
 
   public shared ({ caller }) func logPathwayInterest(pathway : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can log pathway interests");
+    };
+
     pathwayInterests.add({
       pathway;
       timestamp = Time.now();
@@ -330,7 +336,7 @@ actor {
     };
 
     let pathwayMap = Map.empty<Text, Nat>();
-    
+
     for (interest in pathwayInterests.values()) {
       let currentCount = pathwayMap.get(interest.pathway);
       switch (currentCount) {
@@ -347,6 +353,10 @@ actor {
   };
 
   public shared ({ caller }) func submitCollaborationRequest(name : Text, email : Text, pathway : Text, message : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can submit collaboration requests");
+    };
+
     collaborationRequests.add({
       id = nextCollabReqId;
       name;
@@ -364,5 +374,362 @@ actor {
     };
 
     collaborationRequests.values().toArray();
+  };
+
+  // HUMANON data integration
+  // Humans, Projects, Partners, Stats
+  public type HumanonMentor = {
+    id : Nat;
+    name : Text;
+    domain : Text;
+    organization : Text;
+    role : Text;
+    profileUrl : Text;
+  };
+
+  public type HumanonProject = {
+    id : Nat;
+    title : Text;
+    researchDomain : Text;
+    participantTeam : Text;
+    summary : Text;
+    outcome : Text;
+    mentorsInvolved : Text;
+    publishedAt : Int;
+  };
+
+  public type HumanonPartner = {
+    id : Nat;
+    name : Text;
+    sector : Text;
+    description : Text;
+  };
+
+  public type HumanonStats = {
+    participantsEnrolled : Nat;
+    projectsCompleted : Nat;
+    industryPartners : Nat;
+    careerPlacements : Nat;
+    countriesRepresented : Nat;
+  };
+
+  // Auto-increment project and partner IDs
+  var nextProjectId = 5;
+  var nextPartnerId = 5;
+
+  let humanonMentors = List.fromArray<HumanonMentor>(
+    [
+      {
+        id = 1;
+        name = "Dr. Amara Osei";
+        domain = "Climate Systems";
+        organization = "EPOCHS Research Lab";
+        role = "Senior Research Mentor";
+        profileUrl = "";
+      },
+      {
+        id = 2;
+        name = "Prof. Lena Richter";
+        domain = "Ethical AI";
+        organization = "STEAMI Intelligence";
+        role = "AI Ethics Advisor";
+        profileUrl = "";
+      },
+      {
+        id = 3;
+        name = "Dr. Rani Patel";
+        domain = "Biomedical Research";
+        organization = "Global Health Institute";
+        role = "Research Director";
+        profileUrl = "";
+      },
+      {
+        id = 4;
+        name = "James Okoro";
+        domain = "Deep Technology";
+        organization = "EIOS Systems";
+        role = "Technology Lead";
+        profileUrl = "";
+      },
+      {
+        id = 5;
+        name = "Dr. Mei-Lin Zhao";
+        domain = "Environmental Science";
+        organization = "Project GAIA";
+        role = "Field Research Coordinator";
+        profileUrl = "";
+      },
+      {
+        id = 6;
+        name = "Prof. Samuel Torres";
+        domain = "Cognitive Systems";
+        organization = "STEMESA Lab";
+        role = "Cognitive Science Mentor";
+        profileUrl = "";
+      },
+    ]
+  );
+
+  let humanonProjects = List.fromArray<HumanonProject>(
+    [
+      {
+        id = 1;
+        title = "Urban Heat Mapping Initiative";
+        researchDomain = "Climate Systems";
+        participantTeam = "Aisha Ndoye, Karan Mehta, Sofia Alves";
+        summary = "Mapping urban heat islands across 12 cities";
+        outcome = "Dataset adopted by 3 municipal governments";
+        mentorsInvolved = "Dr. Amara Osei, Dr. Mei-Lin Zhao";
+        publishedAt = Time.now();
+      },
+      {
+        id = 2;
+        title = "Bias Detection in Healthcare AI";
+        researchDomain = "Ethical AI";
+        participantTeam = "Zara Ahmed, Liu Wei, Carlos Hernandez";
+        summary = "Framework for bias detection in clinical AI";
+        outcome = "Open-source adoption in multiple platforms";
+        mentorsInvolved = "Prof. Lena Richter, Dr. Rani Patel";
+        publishedAt = Time.now();
+      },
+      {
+        id = 3;
+        title = "Coastal Resilience Data Network";
+        researchDomain = "Environmental Intelligence";
+        participantTeam = "Olumide Bello, Priya Sharma, Thomas Müller";
+        summary = "Distributed IoT sensor network for coastal data";
+        outcome = "Policy citation and ecosystem adaptation";
+        mentorsInvolved = "Dr. Mei-Lin Zhao, James Okoro";
+        publishedAt = Time.now();
+      },
+      {
+        id = 4;
+        title = "Explainable Neural Decision Systems";
+        researchDomain = "Cognitive AI";
+        participantTeam = "Fatima Al-Hassan, Erik Lindqvist";
+        summary = "Enhanced interpretability tooling for neural networks";
+        outcome = "STEAMI adoption for global model deployment";
+        mentorsInvolved = "Prof. Samuel Torres, Prof. Lena Richter";
+        publishedAt = Time.now();
+      },
+    ]
+  );
+
+  let humanonPartners = List.fromArray<HumanonPartner>(
+    [
+      {
+        id = 1;
+        name = "Nexus Climate Solutions";
+        sector = "Climate Technology";
+        description = "Develops climate solutions for sustainable ecosystems";
+      },
+      {
+        id = 2;
+        name = "Meridian Health Systems";
+        sector = "Healthcare";
+        description = "Focuses on innovative healthcare improvements";
+      },
+      {
+        id = 3;
+        name = "Orion Deep Tech";
+        sector = "Technology Infrastructure";
+        description = "Pushes boundaries in technological advancements";
+      },
+      {
+        id = 4;
+        name = "Verdant Policy Group";
+        sector = "Policy and Governance";
+        description = "Leads in policy and governance innovation";
+      },
+    ]
+  );
+
+  var humanonStats : HumanonStats = {
+    participantsEnrolled = 30;
+    projectsCompleted = 12;
+    industryPartners = 8;
+    careerPlacements = 24;
+    countriesRepresented = 6;
+  };
+
+  // Query APIs
+  public query ({ caller }) func getHumanonMentors() : async [HumanonMentor] {
+    humanonMentors.toArray();
+  };
+
+  public query ({ caller }) func getHumanonProjects() : async [HumanonProject] {
+    humanonProjects.toArray();
+  };
+
+  public query ({ caller }) func getHumanonPartners() : async [HumanonPartner] {
+    humanonPartners.toArray();
+  };
+
+  public query ({ caller }) func getHumanonStats() : async HumanonStats {
+    humanonStats;
+  };
+
+  // Admin functions
+  public shared ({ caller }) func createHumanonMentor(
+    name : Text,
+    domain : Text,
+    organization : Text,
+    role : Text,
+    profileUrl : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create mentors");
+    };
+
+    let newMentor = {
+      id = humanonMentors.size() + 1;
+      name;
+      domain;
+      organization;
+      role;
+      profileUrl;
+    };
+
+    humanonMentors.add(newMentor);
+  };
+
+  public shared ({ caller }) func deleteHumanonMentor(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete mentors");
+    };
+
+    let filteredMentors = humanonMentors.filter(
+      func(mentor) { mentor.id != id }
+    );
+
+    humanonMentors.clear();
+    humanonMentors.addAll(filteredMentors.values());
+  };
+
+  public shared ({ caller }) func createHumanonProject(
+    title : Text,
+    researchDomain : Text,
+    participantTeam : Text,
+    summary : Text,
+    outcome : Text,
+    mentorsInvolved : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create projects");
+    };
+
+    let newProject = {
+      id = nextProjectId;
+      title;
+      researchDomain;
+      participantTeam;
+      summary;
+      outcome;
+      mentorsInvolved;
+      publishedAt = Time.now();
+    };
+
+    humanonProjects.add(newProject);
+    nextProjectId += 1;
+  };
+
+  public shared ({ caller }) func updateHumanonProject(
+    id : Nat,
+    title : Text,
+    researchDomain : Text,
+    participantTeam : Text,
+    summary : Text,
+    outcome : Text,
+    mentorsInvolved : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update projects");
+    };
+
+    let updatedProjects = humanonProjects.map<HumanonProject, HumanonProject>(
+      func(project) {
+        if (project.id == id) {
+          {
+            id;
+            title;
+            researchDomain;
+            participantTeam;
+            summary;
+            outcome;
+            mentorsInvolved;
+            publishedAt = Time.now();
+          };
+        } else { project };
+      }
+    );
+
+    humanonProjects.clear();
+    humanonProjects.addAll(updatedProjects.values());
+  };
+
+  public shared ({ caller }) func deleteHumanonProject(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete projects");
+    };
+
+    let filteredProjects = humanonProjects.filter(
+      func(project) { project.id != id }
+    );
+
+    humanonProjects.clear();
+    humanonProjects.addAll(filteredProjects.values());
+  };
+
+  public shared ({ caller }) func createHumanonPartner(
+    name : Text,
+    sector : Text,
+    description : Text,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can create partners");
+    };
+
+    let newPartner = {
+      id = nextPartnerId;
+      name;
+      sector;
+      description;
+    };
+
+    humanonPartners.add(newPartner);
+    nextPartnerId += 1;
+  };
+
+  public shared ({ caller }) func deleteHumanonPartner(id : Nat) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can delete partners");
+    };
+
+    let filteredPartners = humanonPartners.filter(
+      func(partner) { partner.id != id }
+    );
+
+    humanonPartners.clear();
+    humanonPartners.addAll(filteredPartners.values());
+  };
+
+  public shared ({ caller }) func updateHumanonStats(
+    participantsEnrolled : Nat,
+    projectsCompleted : Nat,
+    industryPartners : Nat,
+    careerPlacements : Nat,
+    countriesRepresented : Nat,
+  ) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can update stats");
+    };
+
+    humanonStats := {
+      participantsEnrolled;
+      projectsCompleted;
+      industryPartners;
+      careerPlacements;
+      countriesRepresented;
+    };
   };
 };
