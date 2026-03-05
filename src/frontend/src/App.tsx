@@ -2,6 +2,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import AICompanion from "./components/AICompanion";
+import AmbientSoundControl from "./components/AmbientSoundControl";
 import BootScreen from "./components/BootScreen";
 import CTASection from "./components/CTASection";
 import DualMissionSection from "./components/DualMissionSection";
@@ -17,8 +18,11 @@ import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import AdminDashboard from "./pages/AdminDashboard";
 import ElpisPage from "./pages/ElpisPage";
 import EpochsPage from "./pages/EpochsPage";
+import EquisPage from "./pages/EquisPage";
 import HumanonPage from "./pages/HumanonPage";
+import NovaPage from "./pages/NovaPage";
 import SteamiPage from "./pages/SteamiPage";
+import TerraPage from "./pages/TerraPage";
 import UserDashboard from "./pages/UserDashboard";
 
 type AppView =
@@ -28,7 +32,10 @@ type AppView =
   | "epochs"
   | "humanon"
   | "steami"
-  | "elpis";
+  | "elpis"
+  | "nova"
+  | "terra"
+  | "equis";
 
 const SECTION_IDS = [
   "hero",
@@ -203,7 +210,10 @@ export default function App() {
     view === "epochs" ||
     view === "humanon" ||
     view === "steami" ||
-    view === "elpis"
+    view === "elpis" ||
+    view === "nova" ||
+    view === "terra" ||
+    view === "equis"
   ) {
     return (
       <>
@@ -229,9 +239,62 @@ export default function App() {
           {view === "humanon" && <HumanonPage onBack={() => setView("home")} />}
           {view === "steami" && <SteamiPage onBack={() => setView("home")} />}
           {view === "elpis" && <ElpisPage onBack={() => setView("home")} />}
+          {view === "nova" && <NovaPage onBack={() => setView("home")} />}
+          {view === "terra" && <TerraPage onBack={() => setView("home")} />}
+          {view === "equis" && <EquisPage onBack={() => setView("home")} />}
 
           <Footer />
         </div>
+
+        {/* AI Companion — available on all pillar pages, z-index 9999 ensures
+            it floats above pillar 3D hero canvases */}
+        {!companionOpen && (
+          <button
+            type="button"
+            data-ocid="companion.toggle"
+            onClick={() => setCompanionOpen(true)}
+            className="fixed bottom-8 right-8 w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 animate-pulse-glow"
+            style={{
+              background: "rgba(4,5,14,0.95)",
+              border: "1px solid rgba(74,126,247,0.5)",
+              boxShadow: "0 0 20px rgba(74,126,247,0.25)",
+              cursor: "pointer",
+              zIndex: 9999,
+            }}
+            aria-label="Open AI Companion"
+          >
+            <span
+              className="font-mono-geist text-xs font-bold"
+              style={{
+                color: "rgba(74,126,247,0.95)",
+                letterSpacing: "0.05em",
+              }}
+            >
+              AI
+            </span>
+          </button>
+        )}
+
+        <AICompanion
+          isOpen={companionOpen}
+          onClose={() => setCompanionOpen(false)}
+          currentSection="pillars"
+          onScrollTo={(id) => {
+            setView("home");
+            setTimeout(() => {
+              const el = document.getElementById(id);
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+            }, 300);
+          }}
+          onNavigatePillar={(page) => setView(page as AppView)}
+        />
+
+        {/* Ambient audio — research theme on knowledge pages */}
+        <AmbientSoundControl
+          pageTheme={
+            view === "epochs" || view === "steami" ? "research" : "default"
+          }
+        />
         {PILLAR_TOASTER}
       </>
     );
@@ -309,6 +372,8 @@ export default function App() {
               isOpen={companionOpen}
               onClose={() => setCompanionOpen(false)}
               currentSection={currentSection}
+              onScrollTo={scrollTo}
+              onNavigatePillar={(page) => setView(page as AppView)}
             />
           </>
         )}
@@ -320,6 +385,9 @@ export default function App() {
             onChoosePath={handleSuggestionChoosePath}
           />
         )}
+
+        {/* Ambient audio control */}
+        {bootDone && <AmbientSoundControl pageTheme="default" />}
 
         {/* Admin navigation shortcut */}
         <div className="fixed bottom-8 left-8 z-40">

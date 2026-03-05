@@ -8,7 +8,7 @@ import { useState } from "react";
 import type { Pillar } from "../backend.d";
 import { useGetAllPillars } from "../hooks/useQueries";
 
-type PillarPage = "epochs" | "humanon" | "steami";
+type PillarPage = "epochs" | "humanon" | "steami" | "nova" | "terra" | "equis";
 
 const FALLBACK_PILLARS: Pillar[] = [
   {
@@ -107,22 +107,6 @@ const FALLBACK_PILLARS: Pillar[] = [
     governanceNote:
       "All capital sources screened against ethical investment criteria. Profit reinvestment is constitutionally mandated.",
   },
-  {
-    id: 7n,
-    name: "ETHOS",
-    mandate:
-      "Ethical Oversight & Governance body ensuring institutional integrity across all STEMONEF operations.",
-    strategicRole:
-      "Constitutional conscience of the enterprise — reviewing, auditing, and enforcing ethical standards system-wide.",
-    operationalModel:
-      "Independent review panels, continuous compliance monitoring, public ethics reporting, and governance advisory.",
-    initiatives:
-      "Ethics Charter (published), Annual Accountability Report, Independent Review Board, Whistleblower Protection System.",
-    futureDirection:
-      "Developing the first AI Ethics Certification standard for social science institutions globally.",
-    governanceNote:
-      "ETHOS operates with full independence. No pillar or executive can override its determinations.",
-  },
 ];
 
 // Featured pillar card data for the three core pillars
@@ -183,14 +167,88 @@ const FEATURED_PILLARS = [
   },
 ] as const;
 
+// Second row — launching soon pillars
+const EXPANDED_FEATURED_PILLARS = [
+  {
+    key: "nova" as PillarPage,
+    glyph: "▷",
+    index: "04",
+    title: "NOVA",
+    subtitle: "Media Translation & Storytelling",
+    description:
+      "The voice of the enterprise. NOVA converts complex institutional knowledge into narratives that inform, inspire, and shift public understanding — without sacrificing depth.",
+    focus: [
+      "Editorial Intelligence",
+      "Documentary Production",
+      "Digital Distribution",
+    ],
+    buttonLabel: "Explore NOVA",
+    accentColor: "#e86c3a",
+    accentGlow: "rgba(232,108,58,0.3)",
+    delay: "0s",
+  },
+  {
+    key: "terra" as PillarPage,
+    glyph: "⬡",
+    index: "05",
+    title: "TERRA",
+    subtitle: "Climate & Natural Life Research",
+    description:
+      "Where science meets the living earth. TERRA conducts planetary-scale research into climate systems, biodiversity, and ecological resilience — translating science into action.",
+    focus: [
+      "Climate Systems Modeling",
+      "Biodiversity Assessment",
+      "Restoration Science",
+    ],
+    buttonLabel: "Explore TERRA",
+    accentColor: "#22d3b0",
+    accentGlow: "rgba(34,211,176,0.3)",
+    delay: "0.3s",
+  },
+  {
+    key: "equis" as PillarPage,
+    glyph: "◎",
+    index: "06",
+    title: "EQUIS",
+    subtitle: "Equity & Sustainable Funding",
+    description:
+      "Capital in service of mission. EQUIS mobilizes ethical capital, manages impact investments, and ensures STEMONEF operates with independence and long-term resilience.",
+    focus: [
+      "Impact Investment",
+      "Ethical Partnerships",
+      "Revenue Reinvestment",
+    ],
+    buttonLabel: "Explore EQUIS",
+    accentColor: "#d4a017",
+    accentGlow: "rgba(212,160,23,0.3)",
+    delay: "0.6s",
+  },
+] as const;
+
+type AnyFeaturedPillar = {
+  key: PillarPage;
+  glyph: string;
+  index: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  focus: readonly string[];
+  buttonLabel: string;
+  accentColor: string;
+  accentGlow: string;
+  delay: string;
+};
+
 function FeaturedPillarCard({
   pillar,
   scanDelay,
   onNavigate,
+  launchingSoon,
 }: {
-  pillar: (typeof FEATURED_PILLARS)[number];
+  pillar: AnyFeaturedPillar;
   scanDelay: string;
   onNavigate?: (page: PillarPage) => void;
+  launchingSoon?: boolean;
 }) {
   const [hovered, setHovered] = useState(false);
 
@@ -267,11 +325,33 @@ function FeaturedPillarCard({
 
         {/* Subtitle */}
         <div
-          className="font-mono-geist text-[10px] tracking-[0.25em] uppercase mb-5"
+          className="font-mono-geist text-[10px] tracking-[0.25em] uppercase mb-3"
           style={{ color: pillar.accentColor, opacity: 0.75 }}
         >
           {pillar.subtitle}
         </div>
+
+        {/* Launching Soon badge */}
+        {launchingSoon && (
+          <div
+            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-sm mb-5 w-fit"
+            style={{
+              background: `${pillar.accentColor}12`,
+              border: `1px solid ${pillar.accentColor}44`,
+            }}
+          >
+            <div
+              className="w-1.5 h-1.5 rounded-full animate-pulse-glow"
+              style={{ background: pillar.accentColor }}
+            />
+            <span
+              className="font-mono-geist text-[9px] tracking-[0.25em] uppercase"
+              style={{ color: pillar.accentColor }}
+            >
+              Launching Soon
+            </span>
+          </div>
+        )}
 
         {/* Description */}
         <p
@@ -466,7 +546,7 @@ function PillarCard({
           style={{ color: color.line, letterSpacing: "0.2em" }}
         >
           {String(index + 1).padStart(2, "0")} /{" "}
-          <span style={{ color: "rgba(255,255,255,0.25)" }}>07</span>
+          <span style={{ color: "rgba(255,255,255,0.25)" }}>06</span>
         </div>
 
         {/* Name */}
@@ -594,6 +674,50 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
             />
           ))}
         </div>
+
+        {/* Expanded featured pillars — Launching Soon row */}
+        <div className="mt-6">
+          <div
+            className="flex items-center gap-4 mb-6"
+            style={{
+              animation: "fade-in-up 0.7s ease forwards",
+              animationDelay: "0.3s",
+              opacity: 0,
+            }}
+          >
+            <div
+              className="h-px flex-1"
+              style={{
+                background:
+                  "linear-gradient(90deg, rgba(212,160,23,0.3), transparent)",
+              }}
+            />
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.35em] uppercase px-3"
+              style={{ color: "rgba(212,160,23,0.55)" }}
+            >
+              NEXT PILLARS — LAUNCHING SOON
+            </div>
+            <div
+              className="h-px flex-1"
+              style={{
+                background:
+                  "linear-gradient(270deg, rgba(212,160,23,0.3), transparent)",
+              }}
+            />
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {EXPANDED_FEATURED_PILLARS.map((fp, cardIdx) => (
+              <FeaturedPillarCard
+                key={fp.key}
+                pillar={fp}
+                scanDelay={`${(cardIdx + 3) * 1.5}s`}
+                onNavigate={onNavigate}
+                launchingSoon
+              />
+            ))}
+          </div>
+        </div>
       </div>
 
       {/* Divider */}
@@ -618,7 +742,7 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
           className="font-display text-4xl md:text-5xl font-light mb-4 text-gradient-hero"
           style={{ letterSpacing: "0.08em" }}
         >
-          Seven Pillars
+          Six Pillars
         </h2>
         <p
           className="max-w-xl text-sm leading-relaxed"
@@ -627,8 +751,8 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
             fontFamily: "Sora, sans-serif",
           }}
         >
-          STEMONEF operates through seven interdependent structural pillars,
-          each carrying a distinct mandate while contributing to a unified
+          STEMONEF operates through six interdependent structural pillars, each
+          carrying a distinct mandate while contributing to a unified
           institutional mission.
         </p>
       </div>
@@ -636,7 +760,7 @@ export default function PillarsSection({ onNavigate }: PillarsSectionProps) {
       {/* Pillar grid */}
       {isLoading ? (
         <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-          {Array.from({ length: 7 }).map((_item, i) => (
+          {Array.from({ length: 6 }).map((_item, i) => (
             <div
               // biome-ignore lint/suspicious/noArrayIndexKey: skeleton placeholders with no stable ID
               key={i}

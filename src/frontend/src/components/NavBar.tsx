@@ -2,7 +2,14 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 
-type NavigablePillar = "epochs" | "humanon" | "steami" | "elpis";
+type NavigablePillar =
+  | "epochs"
+  | "humanon"
+  | "steami"
+  | "elpis"
+  | "nova"
+  | "terra"
+  | "equis";
 
 interface NavBarProps {
   onCompanionToggle: () => void;
@@ -18,10 +25,9 @@ const PILLAR_NAV: Array<{ label: string; navigateTo: NavigablePillar | null }> =
     { label: "EPOCHS", navigateTo: "epochs" },
     { label: "HUMANON", navigateTo: "humanon" },
     { label: "STEAMI", navigateTo: "steami" },
-    { label: "NOVA", navigateTo: null },
-    { label: "TERRA", navigateTo: null },
-    { label: "EQUIS", navigateTo: null },
-    { label: "ETHOS", navigateTo: null },
+    { label: "NOVA", navigateTo: "nova" },
+    { label: "TERRA", navigateTo: "terra" },
+    { label: "EQUIS", navigateTo: "equis" },
     { label: "E.L.P.I.S", navigateTo: "elpis" },
   ];
 
