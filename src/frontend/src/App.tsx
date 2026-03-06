@@ -291,7 +291,7 @@ export default function App() {
             onNavigate={(page) => setView(page as AppView)}
           />
           <HumanonSection />
-          <CTASection />
+          <CTASection onNavigate={(page) => setView(page as AppView)} />
         </main>
 
         <Footer />
