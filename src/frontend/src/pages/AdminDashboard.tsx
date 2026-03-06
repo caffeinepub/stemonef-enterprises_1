@@ -19,9 +19,11 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { FeedEntry } from "../backend.d";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useCreateElpisAnnouncement,
   useCreateElpisCouncilMember,
@@ -66,6 +68,59 @@ function formatDate(ts: bigint): string {
   return "—";
 }
 
+// ─── Category colours for admin ──────────────────────────────────────────────
+const SIGNAL_CATEGORIES = [
+  "AI",
+  "Climate",
+  "Technology",
+  "Policy",
+  "Research",
+  "Global Systems",
+] as const;
+type SignalCategory = (typeof SIGNAL_CATEGORIES)[number];
+
+const SIGNAL_CATEGORY_COLORS: Record<SignalCategory, string> = {
+  AI: "#4a7ef7",
+  Climate: "#34d399",
+  Technology: "#22d3ee",
+  Policy: "#a78bfa",
+  Research: "#f59e0b",
+  "Global Systems": "#d4a017",
+};
+
+// Local storage key for extended signal metadata
+const SIGNAL_META_KEY = "stemonef_signal_meta";
+
+interface SignalMeta {
+  source: string;
+  detailedInsight: string;
+}
+
+function loadSignalMeta(): Record<string, SignalMeta> {
+  try {
+    const raw = localStorage.getItem(SIGNAL_META_KEY);
+    return raw ? (JSON.parse(raw) as Record<string, SignalMeta>) : {};
+  } catch {
+    return {};
+  }
+}
+
+function saveSignalMeta(meta: Record<string, SignalMeta>) {
+  localStorage.setItem(SIGNAL_META_KEY, JSON.stringify(meta));
+}
+
+const adminInputStyle = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "rgba(255,255,255,0.8)",
+};
+
+const selectTriggerStyle = {
+  background: "rgba(255,255,255,0.04)",
+  border: "1px solid rgba(255,255,255,0.1)",
+  color: "rgba(255,255,255,0.8)",
+};
+
 function FeedTab() {
   const { data: feeds, isLoading } = useGetPublicFeeds();
   const createFeed = useCreateFeed();
@@ -74,37 +129,55 @@ function FeedTab() {
   const toggleFeatured = useToggleFeatured();
 
   const [editingId, setEditingId] = useState<bigint | null>(null);
+  const [signalMeta, setSignalMeta] =
+    useState<Record<string, SignalMeta>>(loadSignalMeta);
   const [newFeed, setNewFeed] = useState({
     title: "",
     summary: "",
-    domain: "",
+    domain: "" as SignalCategory | "",
     isPublic: true,
     isFeatured: false,
+    source: "",
+    detailedInsight: "",
   });
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newFeed.title || !newFeed.summary || !newFeed.domain) {
-      toast.error("All fields required");
+      toast.error("Title, summary and category are required");
       return;
     }
     try {
-      await createFeed.mutateAsync(newFeed);
+      await createFeed.mutateAsync({
+        title: newFeed.title,
+        summary: newFeed.summary,
+        domain: newFeed.domain,
+        isPublic: newFeed.isPublic,
+        isFeatured: newFeed.isFeatured,
+      });
       setNewFeed({
         title: "",
         summary: "",
         domain: "",
         isPublic: true,
         isFeatured: false,
+        source: "",
+        detailedInsight: "",
       });
-      toast.success("Feed created");
+      toast.success("Signal published");
     } catch {
-      toast.error("Failed to create feed");
+      toast.error("Failed to publish signal");
     }
   };
 
-  const [editData, setEditData] = useState<Partial<FeedEntry>>({});
+  const [editData, setEditData] = useState<
+    Partial<FeedEntry & { source: string; detailedInsight: string }>
+  >({});
   const startEdit = (feed: FeedEntry) => {
+    const meta = signalMeta[String(feed.id)] || {
+      source: "",
+      detailedInsight: "",
+    };
     setEditingId(feed.id);
     setEditData({
       title: feed.title,
@@ -112,6 +185,8 @@ function FeedTab() {
       domain: feed.domain,
       isPublic: feed.isPublic,
       isFeatured: feed.isFeatured,
+      source: meta.source,
+      detailedInsight: meta.detailedInsight,
     });
   };
 
@@ -127,49 +202,94 @@ function FeedTab() {
         isPublic: editData.isPublic ?? true,
         isFeatured: editData.isFeatured ?? false,
       });
+      // Update local meta
+      const updated = {
+        ...signalMeta,
+        [String(editingId)]: {
+          source: editData.source || "",
+          detailedInsight: editData.detailedInsight || "",
+        },
+      };
+      setSignalMeta(updated);
+      saveSignalMeta(updated);
       setEditingId(null);
-      toast.success("Feed updated");
+      toast.success("Signal updated");
     } catch {
       toast.error("Update failed");
     }
   };
 
   const handleDelete = async (id: bigint) => {
-    if (!confirm("Delete this feed entry?")) return;
+    if (!confirm("Delete this intelligence signal?")) return;
     try {
       await deleteFeed.mutateAsync(id);
-      toast.success("Feed deleted");
+      const updated = { ...signalMeta };
+      delete updated[String(id)];
+      setSignalMeta(updated);
+      saveSignalMeta(updated);
+      toast.success("Signal deleted");
     } catch {
       toast.error("Delete failed");
     }
   };
 
+  const categoryColor = (domain: string) =>
+    SIGNAL_CATEGORY_COLORS[domain as SignalCategory] || "#94a3b8";
+
   return (
     <div className="space-y-8">
-      {/* Create form */}
+      {/* ── Create form ── */}
       <div
         className="p-6 rounded-sm"
         style={{
-          background: "rgba(255,255,255,0.03)",
-          border: "1px solid rgba(255,255,255,0.07)",
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(212,160,23,0.15)",
         }}
       >
-        <div
-          className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-5"
-          style={{ color: "rgba(212,160,23,0.7)" }}
-        >
-          CREATE INTELLIGENCE ENTRY
+        {/* Form header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div
+            style={{
+              width: 3,
+              height: 28,
+              background:
+                "linear-gradient(180deg, #d4a017, rgba(212,160,23,0.1))",
+              borderRadius: "2px",
+            }}
+          />
+          <div>
+            <div
+              className="text-xs tracking-[0.3em] uppercase"
+              style={{
+                color: "rgba(212,160,23,0.8)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              ADD INTELLIGENCE SIGNAL
+            </div>
+            <div
+              className="text-[9px] tracking-[0.1em] mt-0.5"
+              style={{
+                color: "rgba(255,255,255,0.25)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              STEAMI Intelligence Feed Manager
+            </div>
+          </div>
         </div>
+
         <form
-          onSubmit={handleCreate}
+          onSubmit={(e) => void handleCreate(e)}
           className="grid grid-cols-1 md:grid-cols-2 gap-4"
         >
+          {/* Title */}
           <div>
             <Label
               className="text-[10px] tracking-widest uppercase"
               style={{ color: "rgba(255,255,255,0.4)" }}
             >
-              Title
+              Signal Title
             </Label>
             <Input
               data-ocid="admin.feed.input"
@@ -177,61 +297,76 @@ function FeedTab() {
               onChange={(e) =>
                 setNewFeed((p) => ({ ...p, title: e.target.value }))
               }
-              placeholder="Intelligence brief title"
+              placeholder="e.g. AI Governance Landscape"
               className="mt-1"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.8)",
-              }}
+              style={adminInputStyle}
             />
           </div>
+
+          {/* Category / Domain */}
           <div>
             <Label
               className="text-[10px] tracking-widest uppercase"
               style={{ color: "rgba(255,255,255,0.4)" }}
             >
-              Domain
+              Category
             </Label>
-            <Input
-              data-ocid="admin.feed.input"
+            <Select
               value={newFeed.domain}
-              onChange={(e) =>
-                setNewFeed((p) => ({ ...p, domain: e.target.value }))
+              onValueChange={(v) =>
+                setNewFeed((p) => ({ ...p, domain: v as SignalCategory }))
               }
-              placeholder="Climate / AI / Research / Health / Ethics"
-              className="mt-1"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.8)",
-              }}
-            />
+            >
+              <SelectTrigger
+                data-ocid="admin.feed.select"
+                className="mt-1"
+                style={selectTriggerStyle}
+              >
+                <SelectValue placeholder="Select category..." />
+              </SelectTrigger>
+              <SelectContent>
+                {SIGNAL_CATEGORIES.map((cat) => (
+                  <SelectItem key={cat} value={cat}>
+                    <span className="flex items-center gap-2">
+                      <span
+                        style={{
+                          width: 8,
+                          height: 8,
+                          borderRadius: "50%",
+                          background: categoryColor(cat),
+                          display: "inline-block",
+                          flexShrink: 0,
+                        }}
+                      />
+                      {cat}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
-          <div className="md:col-span-2">
+
+          {/* Source */}
+          <div>
             <Label
               className="text-[10px] tracking-widest uppercase"
               style={{ color: "rgba(255,255,255,0.4)" }}
             >
-              Summary
+              Source
             </Label>
-            <Textarea
-              data-ocid="admin.feed.textarea"
-              value={newFeed.summary}
+            <Input
+              value={newFeed.source}
               onChange={(e) =>
-                setNewFeed((p) => ({ ...p, summary: e.target.value }))
+                setNewFeed((p) => ({ ...p, source: e.target.value }))
               }
-              placeholder="Intelligence brief summary..."
-              rows={3}
-              className="mt-1 resize-none"
-              style={{
-                background: "rgba(255,255,255,0.04)",
-                border: "1px solid rgba(255,255,255,0.1)",
-                color: "rgba(255,255,255,0.8)",
-              }}
+              placeholder="e.g. STEAMI Intelligence"
+              className="mt-1"
+              style={adminInputStyle}
             />
           </div>
-          <div className="flex items-center gap-6">
+
+          {/* Switches */}
+          <div className="flex items-end gap-6 pb-1">
             <div className="flex items-center gap-2">
               <Switch
                 data-ocid="admin.feed.switch"
@@ -244,7 +379,7 @@ function FeedTab() {
                 className="text-xs"
                 style={{ color: "rgba(255,255,255,0.5)" }}
               >
-                Public
+                Published
               </Label>
             </div>
             <div className="flex items-center gap-2">
@@ -259,59 +394,140 @@ function FeedTab() {
                 className="text-xs"
                 style={{ color: "rgba(255,255,255,0.5)" }}
               >
-                Featured
+                Featured Signal
               </Label>
             </div>
           </div>
-          <div className="flex justify-end">
+
+          {/* Summary */}
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Signal Summary
+            </Label>
+            <Textarea
+              data-ocid="admin.feed.textarea"
+              value={newFeed.summary}
+              onChange={(e) =>
+                setNewFeed((p) => ({ ...p, summary: e.target.value }))
+              }
+              placeholder="Short intelligence summary shown on signal card..."
+              rows={3}
+              className="mt-1 resize-none"
+              style={adminInputStyle}
+            />
+          </div>
+
+          {/* Detailed insight */}
+          <div className="md:col-span-2">
+            <Label
+              className="text-[10px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.4)" }}
+            >
+              Detailed Insight (Expanded View)
+            </Label>
+            <Textarea
+              value={newFeed.detailedInsight}
+              onChange={(e) =>
+                setNewFeed((p) => ({ ...p, detailedInsight: e.target.value }))
+              }
+              placeholder="Extended intelligence brief for expanded view..."
+              rows={4}
+              className="mt-1 resize-none"
+              style={adminInputStyle}
+            />
+          </div>
+
+          {/* Submit */}
+          <div className="md:col-span-2 flex justify-end">
             <Button
               type="submit"
               data-ocid="admin.feed.submit_button"
               disabled={createFeed.isPending}
               style={{
-                background: "rgba(212,160,23,0.12)",
-                border: "1px solid rgba(212,160,23,0.4)",
-                color: "#d4a017",
+                background: newFeed.isPublic
+                  ? "rgba(212,160,23,0.12)"
+                  : "rgba(255,255,255,0.05)",
+                border: newFeed.isPublic
+                  ? "1px solid rgba(212,160,23,0.4)"
+                  : "1px solid rgba(255,255,255,0.15)",
+                color: newFeed.isPublic ? "#d4a017" : "rgba(255,255,255,0.5)",
                 fontFamily: "Geist Mono, monospace",
                 letterSpacing: "0.15em",
                 fontSize: "11px",
               }}
             >
-              {createFeed.isPending ? "CREATING..." : "CREATE ENTRY"}
+              {createFeed.isPending
+                ? "PROCESSING..."
+                : newFeed.isPublic
+                  ? "◆ PUBLISH SIGNAL"
+                  : "◇ SAVE AS DRAFT"}
             </Button>
           </div>
         </form>
       </div>
 
-      {/* Feed table */}
+      {/* ── Signal table ── */}
       <div
         className="rounded-sm overflow-hidden"
         style={{ border: "1px solid rgba(255,255,255,0.06)" }}
       >
+        {/* Table header */}
+        <div
+          className="px-4 py-3 flex items-center justify-between"
+          style={{
+            borderBottom: "1px solid rgba(255,255,255,0.05)",
+            background: "rgba(255,255,255,0.01)",
+          }}
+        >
+          <span
+            className="text-[9px] tracking-[0.25em] uppercase"
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            INTELLIGENCE SIGNALS
+          </span>
+          {!isLoading && (
+            <span
+              className="text-[9px] tracking-[0.15em]"
+              style={{
+                color: "rgba(74,126,247,0.6)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              {(feeds || []).length} TOTAL
+            </span>
+          )}
+        </div>
+
         {isLoading ? (
           <div
             data-ocid="admin.feed.loading_state"
             className="p-8 text-center font-mono-geist text-xs"
             style={{ color: "rgba(255,255,255,0.3)" }}
           >
-            Loading feed entries...
+            Loading signals...
           </div>
         ) : (
           <Table data-ocid="admin.feed.table">
             <TableHeader>
-              <TableRow style={{ borderColor: "rgba(255,255,255,0.06)" }}>
+              <TableRow style={{ borderColor: "rgba(255,255,255,0.05)" }}>
                 {[
-                  "Domain",
+                  "Category",
                   "Title",
                   "Featured",
-                  "Public",
-                  "Created",
+                  "Status",
+                  "Published",
                   "Actions",
                 ].map((h) => (
                   <TableHead
                     key={h}
-                    className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
-                    style={{ color: "rgba(255,255,255,0.3)" }}
+                    className="font-mono-geist text-[9px] tracking-[0.25em] uppercase"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
                   >
                     {h}
                   </TableHead>
@@ -327,23 +543,41 @@ function FeedTab() {
                 >
                   {editingId === feed.id ? (
                     <>
+                      {/* Edit: category select */}
                       <TableCell>
-                        <Input
+                        <Select
                           value={editData.domain || ""}
-                          onChange={(e) =>
-                            setEditData((p) => ({
-                              ...p,
-                              domain: e.target.value,
-                            }))
+                          onValueChange={(v) =>
+                            setEditData((p) => ({ ...p, domain: v }))
                           }
-                          className="h-7 text-xs"
-                          style={{
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "rgba(255,255,255,0.8)",
-                          }}
-                        />
+                        >
+                          <SelectTrigger
+                            className="h-7 text-xs min-w-[120px]"
+                            style={selectTriggerStyle}
+                          >
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {SIGNAL_CATEGORIES.map((cat) => (
+                              <SelectItem key={cat} value={cat}>
+                                <span className="flex items-center gap-2">
+                                  <span
+                                    style={{
+                                      width: 6,
+                                      height: 6,
+                                      borderRadius: "50%",
+                                      background: categoryColor(cat),
+                                      display: "inline-block",
+                                    }}
+                                  />
+                                  {cat}
+                                </span>
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
+                      {/* Edit: title */}
                       <TableCell>
                         <Input
                           value={editData.title || ""}
@@ -354,13 +588,10 @@ function FeedTab() {
                             }))
                           }
                           className="h-7 text-xs"
-                          style={{
-                            background: "rgba(255,255,255,0.04)",
-                            border: "1px solid rgba(255,255,255,0.1)",
-                            color: "rgba(255,255,255,0.8)",
-                          }}
+                          style={adminInputStyle}
                         />
                       </TableCell>
+                      {/* Edit: featured */}
                       <TableCell>
                         <Switch
                           checked={editData.isFeatured}
@@ -369,6 +600,7 @@ function FeedTab() {
                           }
                         />
                       </TableCell>
+                      {/* Edit: published */}
                       <TableCell>
                         <Switch
                           checked={editData.isPublic}
@@ -422,24 +654,53 @@ function FeedTab() {
                     </>
                   ) : (
                     <>
+                      {/* Domain cell with colour dot */}
                       <TableCell>
-                        <span
-                          className="text-[9px] tracking-widest uppercase px-2 py-0.5 rounded-sm"
-                          style={{
-                            color: "rgba(74,126,247,0.8)",
-                            background: "rgba(74,126,247,0.08)",
-                            fontFamily: "Geist Mono, monospace",
-                          }}
-                        >
-                          {feed.domain}
+                        <span className="flex items-center gap-1.5">
+                          <span
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: categoryColor(feed.domain),
+                              display: "inline-block",
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span
+                            className="text-[9px] tracking-widest uppercase"
+                            style={{
+                              color: categoryColor(feed.domain),
+                              fontFamily: "Geist Mono, monospace",
+                            }}
+                          >
+                            {feed.domain}
+                          </span>
                         </span>
                       </TableCell>
+                      {/* Title + DRAFT badge */}
                       <TableCell
-                        className="text-xs max-w-[200px] truncate"
+                        className="text-xs max-w-[180px]"
                         style={{ color: "rgba(255,255,255,0.65)" }}
                       >
-                        {feed.title}
+                        <div className="flex items-center gap-2">
+                          <span className="truncate">{feed.title}</span>
+                          {!feed.isPublic && (
+                            <span
+                              className="text-[7px] tracking-[0.2em] uppercase px-1.5 py-0.5 rounded-[1px] flex-shrink-0"
+                              style={{
+                                background: "rgba(248,113,113,0.1)",
+                                border: "1px solid rgba(248,113,113,0.3)",
+                                color: "rgba(248,113,113,0.8)",
+                                fontFamily: "Geist Mono, monospace",
+                              }}
+                            >
+                              DRAFT
+                            </span>
+                          )}
+                        </div>
                       </TableCell>
+                      {/* Featured toggle */}
                       <TableCell>
                         <button
                           type="button"
@@ -461,22 +722,26 @@ function FeedTab() {
                           {feed.isFeatured ? "◆ YES" : "◇ NO"}
                         </button>
                       </TableCell>
+                      {/* Published status */}
                       <TableCell
                         className="text-xs"
                         style={{
                           color: feed.isPublic
                             ? "rgba(52,211,153,0.7)"
                             : "rgba(255,255,255,0.25)",
+                          fontFamily: "Geist Mono, monospace",
                         }}
                       >
-                        {feed.isPublic ? "PUBLIC" : "RESTRICTED"}
+                        {feed.isPublic ? "PUBLISHED" : "DRAFT"}
                       </TableCell>
+                      {/* Date */}
                       <TableCell
                         className="text-xs"
                         style={{ color: "rgba(255,255,255,0.3)" }}
                       >
                         {formatDate(feed.timestamp)}
                       </TableCell>
+                      {/* Actions */}
                       <TableCell>
                         <div className="flex gap-2">
                           <button
@@ -528,7 +793,7 @@ function FeedTab() {
                       fontFamily: "Geist Mono, monospace",
                     }}
                   >
-                    No feed entries. Create the first intelligence brief above.
+                    No intelligence signals. Create the first signal above.
                   </TableCell>
                 </TableRow>
               )}
@@ -719,12 +984,6 @@ function PathwayStatsTab() {
 const TEAL = "#22d3b0";
 const GOLD = "#d4a017";
 const BLUE = "#4a7ef7";
-
-const adminInputStyle = {
-  background: "rgba(255,255,255,0.04)",
-  border: "1px solid rgba(255,255,255,0.1)",
-  color: "rgba(255,255,255,0.8)",
-};
 
 function HumanonMentorsTab() {
   const { data: mentors, isLoading } = useGetHumanonMentors();
@@ -3326,19 +3585,1324 @@ function ElpisAdminTab() {
   );
 }
 
+// ── Admin action logger ───────────────────────────────────────────────────────
+const ADMIN_LOG_KEY = "stemonef_admin_log";
+interface AdminLogEntry {
+  action: string;
+  ts: number;
+}
+function logAdminAction(action: string) {
+  try {
+    const raw = localStorage.getItem(ADMIN_LOG_KEY);
+    const log: AdminLogEntry[] = raw
+      ? (JSON.parse(raw) as AdminLogEntry[])
+      : [];
+    log.unshift({ action, ts: Date.now() });
+    localStorage.setItem(ADMIN_LOG_KEY, JSON.stringify(log.slice(0, 20)));
+  } catch {
+    /* silent */
+  }
+}
+function loadAdminLog(): AdminLogEntry[] {
+  try {
+    const raw = localStorage.getItem(ADMIN_LOG_KEY);
+    return raw ? (JSON.parse(raw) as AdminLogEntry[]) : [];
+  } catch {
+    return [];
+  }
+}
+
+// ── Enterprise Metrics (localStorage) ────────────────────────────────────────
+const METRICS_KEY = "stemonef_enterprise_metrics";
+interface EnterpriseMetrics {
+  pathways: number;
+  countries: number;
+  beneficiaries: string;
+  partners: number;
+  status: string;
+  progress: number;
+}
+const DEFAULT_METRICS: EnterpriseMetrics = {
+  pathways: 5,
+  countries: 2,
+  beneficiaries: "1M+ reached through knowledge dissemination",
+  partners: 4,
+  status: "Development Phase",
+  progress: 18,
+};
+function loadMetrics(): EnterpriseMetrics {
+  try {
+    const raw = localStorage.getItem(METRICS_KEY);
+    return raw ? (JSON.parse(raw) as EnterpriseMetrics) : DEFAULT_METRICS;
+  } catch {
+    return DEFAULT_METRICS;
+  }
+}
+
+// ── Sidebar module definitions ────────────────────────────────────────────────
+type AdminModule =
+  | "overview"
+  | "metrics"
+  | "feed"
+  | "requests"
+  | "stats"
+  | "research"
+  | "humanon"
+  | "partners"
+  | "steami"
+  | "elpis";
+
+interface SidebarItem {
+  id: AdminModule;
+  icon: string;
+  label: string;
+  group: string;
+  color: string;
+  description: string;
+}
+
+const SIDEBAR_ITEMS: SidebarItem[] = [
+  {
+    id: "overview",
+    icon: "◉",
+    label: "Overview",
+    group: "CORE",
+    color: "#4a7ef7",
+    description: "System dashboard & activity",
+  },
+  {
+    id: "metrics",
+    icon: "◈",
+    label: "Enterprise Metrics",
+    group: "CORE",
+    color: "#d4a017",
+    description: "Impact architecture data",
+  },
+  {
+    id: "feed",
+    icon: "◆",
+    label: "Intelligence Feed",
+    group: "INTELLIGENCE",
+    color: "#d4a017",
+    description: "Publish & manage signals",
+  },
+  {
+    id: "requests",
+    icon: "◇",
+    label: "Collaboration Reqs",
+    group: "INTELLIGENCE",
+    color: "#4a7ef7",
+    description: "Review inbound requests",
+  },
+  {
+    id: "stats",
+    icon: "▲",
+    label: "Pathway Statistics",
+    group: "INTELLIGENCE",
+    color: "#a78bfa",
+    description: "Visitor pathway data",
+  },
+  {
+    id: "research",
+    icon: "⬡",
+    label: "EPOCHS Research",
+    group: "RESEARCH",
+    color: "#f59e0b",
+    description: "Research library manager",
+  },
+  {
+    id: "humanon",
+    icon: "○",
+    label: "HUMANON",
+    group: "NETWORK",
+    color: "#22d3b0",
+    description: "Mentors, projects, partners",
+  },
+  {
+    id: "partners",
+    icon: "●",
+    label: "Partner Network",
+    group: "NETWORK",
+    color: "#4a7ef7",
+    description: "Institutional collaborations",
+  },
+  {
+    id: "steami",
+    icon: "▣",
+    label: "STEAMI Intelligence",
+    group: "GOVERNANCE",
+    color: "#d4a017",
+    description: "Intelligence briefs",
+  },
+  {
+    id: "elpis",
+    icon: "◫",
+    label: "ELPIS Council",
+    group: "GOVERNANCE",
+    color: "#d4a017",
+    description: "Council governance",
+  },
+];
+
+const GROUP_ORDER = [
+  "CORE",
+  "INTELLIGENCE",
+  "RESEARCH",
+  "NETWORK",
+  "GOVERNANCE",
+];
+
+// ── Overview Module ───────────────────────────────────────────────────────────
+function OverviewModule({
+  onNavigate,
+}: { onNavigate: (m: AdminModule) => void }) {
+  const { data: feeds } = useGetPublicFeeds();
+  const { data: requests } = useGetCollaborationRequests();
+  const { data: mentors } = useGetHumanonMentors();
+  const { data: projects } = useGetHumanonProjects();
+  const { data: partners } = useGetHumanonPartners();
+  const { data: members } = useGetElpisCouncilMembers();
+  const [log, setLog] = useState<AdminLogEntry[]>([]);
+  const [counts, setCounts] = useState<number[]>([0, 0, 0, 0, 0, 0, 0, 0]);
+  const [animating, setAnimating] = useState(false);
+
+  // Load log
+  useEffect(() => {
+    setLog(loadAdminLog());
+  }, []);
+
+  // Count-up animation
+  const researchEntries = (() => {
+    try {
+      const r = localStorage.getItem(RESEARCH_STORAGE_KEY);
+      return r ? (JSON.parse(r) as unknown[]).length : 0;
+    } catch {
+      return 0;
+    }
+  })();
+
+  const feedsLen = (feeds || []).length;
+  const requestsLen = (requests || []).length;
+  const mentorsLen = (mentors || []).length;
+  const projectsLen = (projects || []).length;
+  const partnersLen = (partners || []).length;
+  const membersLen = (members || []).length;
+  const featuredLen = (feeds || []).filter((f) => f.isFeatured).length;
+
+  const targets = [
+    feedsLen,
+    requestsLen,
+    mentorsLen,
+    projectsLen,
+    partnersLen,
+    membersLen,
+    researchEntries,
+    featuredLen,
+  ];
+
+  useEffect(() => {
+    setAnimating(true);
+    const duration = 1200;
+    const start = Date.now();
+    const localTargets = [
+      feedsLen,
+      requestsLen,
+      mentorsLen,
+      projectsLen,
+      partnersLen,
+      membersLen,
+      researchEntries,
+      featuredLen,
+    ];
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      const t = Math.min(elapsed / duration, 1);
+      const eased = 1 - (1 - t) ** 3;
+      setCounts(localTargets.map((target) => Math.round(target * eased)));
+      if (t < 1) requestAnimationFrame(tick);
+      else setAnimating(false);
+    };
+    requestAnimationFrame(tick);
+  }, [
+    feedsLen,
+    requestsLen,
+    mentorsLen,
+    projectsLen,
+    partnersLen,
+    membersLen,
+    researchEntries,
+    featuredLen,
+  ]);
+
+  const statCards = [
+    {
+      label: "Intelligence Signals",
+      idx: 0,
+      color: "#d4a017",
+      module: "feed" as AdminModule,
+      icon: "◆",
+    },
+    {
+      label: "Collaboration Requests",
+      idx: 1,
+      color: "#4a7ef7",
+      module: "requests" as AdminModule,
+      icon: "◇",
+    },
+    {
+      label: "Mentors",
+      idx: 2,
+      color: "#22d3b0",
+      module: "humanon" as AdminModule,
+      icon: "○",
+    },
+    {
+      label: "Research Projects",
+      idx: 3,
+      color: "#f59e0b",
+      module: "humanon" as AdminModule,
+      icon: "⬡",
+    },
+    {
+      label: "Industry Partners",
+      idx: 4,
+      color: "#4a7ef7",
+      module: "partners" as AdminModule,
+      icon: "●",
+    },
+    {
+      label: "Council Members",
+      idx: 5,
+      color: "#d4a017",
+      module: "elpis" as AdminModule,
+      icon: "◫",
+    },
+    {
+      label: "Research Entries",
+      idx: 6,
+      color: "#a78bfa",
+      module: "research" as AdminModule,
+      icon: "▣",
+    },
+    {
+      label: "Featured Signals",
+      idx: 7,
+      color: "#34d399",
+      module: "feed" as AdminModule,
+      icon: "◆",
+    },
+  ];
+
+  const relTime = (ts: number) => {
+    const diff = Date.now() - ts;
+    if (diff < 60000) return `${Math.floor(diff / 1000)}s ago`;
+    if (diff < 3600000) return `${Math.floor(diff / 60000)}m ago`;
+    return `${Math.floor(diff / 3600000)}h ago`;
+  };
+
+  return (
+    <div className="space-y-8">
+      {/* Stat cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {statCards.map(({ label, idx, color, module, icon }, i) => (
+          <button
+            type="button"
+            key={label}
+            data-ocid={`admin.overview.card.${i + 1}`}
+            className="p-5 rounded-sm cursor-pointer transition-all duration-300 group text-left w-full"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderTop: `2px solid ${color}40`,
+              animationDelay: `${i * 60}ms`,
+            }}
+            onClick={() => onNavigate(module)}
+          >
+            <div className="flex items-start justify-between mb-3">
+              <span style={{ color: `${color}99`, fontSize: "14px" }}>
+                {icon}
+              </span>
+              <span
+                className="text-[8px] tracking-[0.2em] uppercase opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                style={{ color, fontFamily: "Geist Mono, monospace" }}
+              >
+                MANAGE →
+              </span>
+            </div>
+            <div
+              className="text-3xl font-light mb-1"
+              style={{
+                color,
+                fontFamily: "Fraunces, serif",
+                letterSpacing: "0.05em",
+              }}
+            >
+              {animating ? counts[idx] : targets[idx]}
+            </div>
+            <div
+              className="text-[9px] tracking-[0.2em] uppercase"
+              style={{
+                color: "rgba(255,255,255,0.35)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              {label}
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Quick actions */}
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div
+          className="text-[9px] tracking-[0.3em] uppercase mb-4"
+          style={{
+            color: "rgba(212,160,23,0.6)",
+            fontFamily: "Geist Mono, monospace",
+          }}
+        >
+          QUICK ACTIONS
+        </div>
+        <div className="flex flex-wrap gap-3">
+          {[
+            {
+              label: "◆ Publish Intelligence Signal",
+              module: "feed" as AdminModule,
+              color: "#d4a017",
+            },
+            {
+              label: "⬡ Add Research Entry",
+              module: "research" as AdminModule,
+              color: "#f59e0b",
+            },
+            {
+              label: "◇ Review Collaboration Requests",
+              module: "requests" as AdminModule,
+              color: "#4a7ef7",
+            },
+            {
+              label: "○ Add Mentor",
+              module: "humanon" as AdminModule,
+              color: "#22d3b0",
+            },
+            {
+              label: "◈ Update Enterprise Metrics",
+              module: "metrics" as AdminModule,
+              color: "#d4a017",
+            },
+          ].map(({ label, module, color }) => (
+            <button
+              key={label}
+              type="button"
+              data-ocid="admin.overview.primary_button"
+              onClick={() => onNavigate(module)}
+              className="px-4 py-2 text-[10px] tracking-widest uppercase transition-all duration-200"
+              style={{
+                background: `${color}10`,
+                border: `1px solid ${color}30`,
+                color: `${color}cc`,
+                fontFamily: "Geist Mono, monospace",
+                cursor: "pointer",
+                borderRadius: "2px",
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Activity log */}
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <div
+            className="text-[9px] tracking-[0.3em] uppercase"
+            style={{
+              color: "rgba(74,126,247,0.6)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            SYSTEM ACTIVITY LOG
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              localStorage.removeItem(ADMIN_LOG_KEY);
+              setLog([]);
+            }}
+            className="text-[8px] tracking-widest uppercase opacity-30 hover:opacity-60 transition-opacity"
+            style={{
+              background: "none",
+              border: "none",
+              color: "rgba(248,113,113,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              cursor: "pointer",
+            }}
+          >
+            CLEAR
+          </button>
+        </div>
+        {log.length === 0 ? (
+          <div
+            data-ocid="admin.overview.empty_state"
+            className="text-[10px] text-center py-4"
+            style={{
+              color: "rgba(255,255,255,0.2)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            No admin actions recorded yet.
+          </div>
+        ) : (
+          <div className="space-y-2">
+            {log.slice(0, 10).map((entry, i) => (
+              <div
+                key={`${entry.ts}-${i}`}
+                data-ocid={`admin.overview.item.${i + 1}`}
+                className="flex items-center justify-between py-2 px-3 rounded-sm"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  borderLeft: "2px solid rgba(74,126,247,0.3)",
+                }}
+              >
+                <span
+                  className="text-[10px]"
+                  style={{
+                    color: "rgba(255,255,255,0.55)",
+                    fontFamily: "Sora, sans-serif",
+                  }}
+                >
+                  {entry.action}
+                </span>
+                <span
+                  className="text-[8px] tracking-widest"
+                  style={{
+                    color: "rgba(255,255,255,0.2)",
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  {relTime(entry.ts)}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ── Enterprise Metrics Module ─────────────────────────────────────────────────
+function EnterpriseMetricsModule() {
+  const [form, setForm] = useState<EnterpriseMetrics>(loadMetrics);
+
+  const handleSave = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem(METRICS_KEY, JSON.stringify(form));
+    logAdminAction("Enterprise metrics updated");
+    toast.success("Metrics saved — homepage will reflect changes on next load");
+  };
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      {/* Form */}
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.02)",
+          border: "1px solid rgba(212,160,23,0.15)",
+        }}
+      >
+        <div className="flex items-center gap-3 mb-6">
+          <div
+            style={{
+              width: 3,
+              height: 28,
+              background:
+                "linear-gradient(180deg,#d4a017,rgba(212,160,23,0.1))",
+              borderRadius: 2,
+            }}
+          />
+          <div>
+            <div
+              className="text-[9px] tracking-[0.3em] uppercase"
+              style={{
+                color: "rgba(212,160,23,0.7)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              ENTERPRISE METRICS MANAGER
+            </div>
+            <div
+              className="text-[8px] mt-0.5"
+              style={{
+                color: "rgba(255,255,255,0.25)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              Controls Impact Architecture numbers on homepage
+            </div>
+          </div>
+        </div>
+
+        <form onSubmit={handleSave} className="space-y-4">
+          {[
+            {
+              key: "pathways",
+              label: "Active Impact Pathways",
+              type: "number",
+            },
+            { key: "countries", label: "Countries Active", type: "number" },
+            {
+              key: "partners",
+              label: "Institutional Collaborations",
+              type: "number",
+            },
+            {
+              key: "progress",
+              label: "Model Development Progress (%)",
+              type: "number",
+            },
+          ].map(({ key, label, type }) => (
+            <div key={key}>
+              <Label
+                className="text-[9px] tracking-widest uppercase"
+                style={{ color: "rgba(255,255,255,0.35)" }}
+              >
+                {label}
+              </Label>
+              <Input
+                data-ocid="admin.metrics.input"
+                type={type}
+                value={form[key as keyof EnterpriseMetrics] as string | number}
+                onChange={(e) =>
+                  setForm((p) => ({
+                    ...p,
+                    [key]:
+                      type === "number"
+                        ? Number(e.target.value)
+                        : e.target.value,
+                  }))
+                }
+                className="mt-1"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.8)",
+                }}
+              />
+            </div>
+          ))}
+          <div>
+            <Label
+              className="text-[9px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              Beneficiaries Description
+            </Label>
+            <Input
+              data-ocid="admin.metrics.input"
+              value={form.beneficiaries}
+              onChange={(e) =>
+                setForm((p) => ({ ...p, beneficiaries: e.target.value }))
+              }
+              className="mt-1"
+              style={{
+                background: "rgba(255,255,255,0.04)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                color: "rgba(255,255,255,0.8)",
+              }}
+            />
+          </div>
+          <div>
+            <Label
+              className="text-[9px] tracking-widest uppercase"
+              style={{ color: "rgba(255,255,255,0.35)" }}
+            >
+              Enterprise Status
+            </Label>
+            <Select
+              value={form.status}
+              onValueChange={(v) => setForm((p) => ({ ...p, status: v }))}
+            >
+              <SelectTrigger
+                data-ocid="admin.metrics.select"
+                className="mt-1"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.8)",
+                }}
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {[
+                  "Development Phase",
+                  "Launch Phase",
+                  "Operational",
+                  "Scaling",
+                ].map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex justify-end pt-2">
+            <Button
+              type="submit"
+              data-ocid="admin.metrics.submit_button"
+              style={{
+                background: "rgba(212,160,23,0.12)",
+                border: "1px solid rgba(212,160,23,0.4)",
+                color: "#d4a017",
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                fontSize: "11px",
+              }}
+            >
+              ◆ SAVE METRICS
+            </Button>
+          </div>
+        </form>
+      </div>
+
+      {/* Live preview */}
+      <div
+        className="p-6 rounded-sm"
+        style={{
+          background: "rgba(255,255,255,0.015)",
+          border: "1px solid rgba(255,255,255,0.06)",
+        }}
+      >
+        <div
+          className="text-[9px] tracking-[0.3em] uppercase mb-5"
+          style={{
+            color: "rgba(255,255,255,0.25)",
+            fontFamily: "Geist Mono, monospace",
+          }}
+        >
+          LIVE PREVIEW — IMPACT ARCHITECTURE CARD
+        </div>
+        <div
+          className="p-5 rounded-sm space-y-4"
+          style={{
+            background: "rgba(4,5,14,0.8)",
+            border: "1px solid rgba(74,126,247,0.15)",
+          }}
+        >
+          {[
+            {
+              label: "ACTIVE IMPACT PATHWAYS",
+              value: String(form.pathways).padStart(2, "0"),
+              color: "#4a7ef7",
+            },
+            {
+              label: "GLOBAL REACH",
+              value: `${form.countries} countries active`,
+              color: "#d4a017",
+            },
+            {
+              label: "BENEFICIARIES",
+              value: form.beneficiaries,
+              color: "#22d3b0",
+            },
+            {
+              label: "PARTNERS",
+              value: `${form.partners} institutional collaborations`,
+              color: "#a78bfa",
+            },
+          ].map(({ label, value, color }) => (
+            <div key={label} className="flex items-start gap-3">
+              <div
+                style={{
+                  width: 2,
+                  height: 32,
+                  background: color,
+                  borderRadius: 1,
+                  flexShrink: 0,
+                  marginTop: 4,
+                }}
+              />
+              <div>
+                <div
+                  className="text-[8px] tracking-[0.25em] uppercase"
+                  style={{
+                    color: "rgba(255,255,255,0.3)",
+                    fontFamily: "Geist Mono, monospace",
+                  }}
+                >
+                  {label}
+                </div>
+                <div
+                  className="text-sm font-light mt-0.5"
+                  style={{ color, fontFamily: "Fraunces, serif" }}
+                >
+                  {value}
+                </div>
+              </div>
+            </div>
+          ))}
+          <div
+            className="mt-4 pt-4"
+            style={{ borderTop: "1px solid rgba(255,255,255,0.05)" }}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span
+                className="text-[8px] tracking-widest uppercase"
+                style={{
+                  color: "rgba(255,255,255,0.25)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                MODEL DEVELOPMENT PROGRESS
+              </span>
+              <span
+                className="text-[8px]"
+                style={{
+                  color: "rgba(212,160,23,0.6)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                {form.progress}%
+              </span>
+            </div>
+            <div
+              className="h-1 rounded-full overflow-hidden"
+              style={{ background: "rgba(255,255,255,0.05)" }}
+            >
+              <div
+                className="h-full rounded-full"
+                style={{
+                  width: `${form.progress}%`,
+                  background:
+                    "linear-gradient(90deg,rgba(74,126,247,0.7),rgba(212,160,23,0.7))",
+                }}
+              />
+            </div>
+            <div
+              className="mt-2 text-[8px] tracking-widest uppercase"
+              style={{
+                color: "rgba(212,160,23,0.5)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              STATUS: {form.status}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Module container wrapper ──────────────────────────────────────────────────
+function ModuleWrapper({
+  title,
+  subtitle,
+  color,
+  children,
+}: {
+  title: string;
+  subtitle: string;
+  color: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div>
+      <div
+        className="flex items-center gap-4 mb-8 pb-6"
+        style={{ borderBottom: "1px solid rgba(255,255,255,0.05)" }}
+      >
+        <div
+          style={{
+            width: 3,
+            height: 40,
+            background: `linear-gradient(180deg,${color},${color}20)`,
+            borderRadius: 2,
+          }}
+        />
+        <div>
+          <div
+            className="text-[9px] tracking-[0.35em] uppercase mb-1"
+            style={{ color: `${color}99`, fontFamily: "Geist Mono, monospace" }}
+          >
+            CONTROL MODULE
+          </div>
+          <h2
+            className="text-xl font-light"
+            style={{
+              fontFamily: "Fraunces, serif",
+              letterSpacing: "0.1em",
+              color: "rgba(255,255,255,0.9)",
+            }}
+          >
+            {title}
+          </h2>
+          <p
+            className="text-[10px] mt-1"
+            style={{
+              color: "rgba(255,255,255,0.3)",
+              fontFamily: "Sora, sans-serif",
+            }}
+          >
+            {subtitle}
+          </p>
+        </div>
+      </div>
+      {children}
+    </div>
+  );
+}
+
+// ── Live clock ────────────────────────────────────────────────────────────────
+function LiveClock() {
+  const [time, setTime] = useState(() =>
+    new Date().toISOString().substring(11, 19),
+  );
+  useEffect(() => {
+    const id = setInterval(
+      () => setTime(new Date().toISOString().substring(11, 19)),
+      1000,
+    );
+    return () => clearInterval(id);
+  }, []);
+  return <span>{time} UTC</span>;
+}
+
+// ── MAIN ADMIN DASHBOARD ──────────────────────────────────────────────────────
 export default function AdminDashboard({
   onGoHome,
 }: {
   onGoHome: () => void;
 }) {
+  const { identity, login, isInitializing } = useInternetIdentity();
   const { data: isAdmin, isLoading } = useIsAdmin();
+  const queryClient = useQueryClient();
+  const [activeModule, setActiveModule] = useState<AdminModule>("overview");
+  const [sidebarExpanded, setSidebarExpanded] = useState(true);
+  const [transitioning, setTransitioning] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
 
+  // Admin token input state
+  const [adminSecret, setAdminSecret] = useState("");
+  const [showSecret, setShowSecret] = useState(false);
+  const [tokenError, setTokenError] = useState("");
+  const [tokenStored, setTokenStored] = useState(false);
+
+  // Only redirect to home if backend definitively says NOT admin (after loading finishes)
+  // Never redirect during loading or before token has been submitted
   useEffect(() => {
-    if (!isLoading && isAdmin === false) {
+    const hasToken = !!sessionStorage.getItem("caffeineAdminToken");
+    if (
+      !isLoading &&
+      identity &&
+      isAdmin === false &&
+      hasToken &&
+      tokenStored
+    ) {
+      toast.error("ACCESS DENIED — Principal is not registered as admin");
       onGoHome();
     }
-  }, [isAdmin, isLoading, onGoHome]);
+  }, [isAdmin, isLoading, identity, onGoHome, tokenStored]);
 
+  const navigateTo = useCallback(
+    (module: AdminModule) => {
+      if (module === activeModule) return;
+      setTransitioning(true);
+      setTimeout(() => {
+        setActiveModule(module);
+        setTransitioning(false);
+        contentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+      }, 200);
+    },
+    [activeModule],
+  );
+
+  // Store token then invalidate actor + isAdmin queries so they rebuild with the new token
+  const handleAdminLogin = () => {
+    if (!adminSecret.trim()) {
+      setTokenError("ADMIN TOKEN REQUIRED — Enter your secret access key");
+      return;
+    }
+    setTokenError("");
+    try {
+      sessionStorage.setItem("caffeineAdminToken", adminSecret.trim());
+      setTokenStored(true);
+    } catch {
+      setTokenError("STORAGE ERROR — Unable to store token. Please try again.");
+      return;
+    }
+    if (identity) {
+      // Already authenticated — invalidate the actor and isAdmin queries so they
+      // rebuild with the new token. No page reload needed (which would reset the view).
+      queryClient.invalidateQueries({ queryKey: ["actor"] });
+      queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
+    } else {
+      login();
+    }
+  };
+
+  // Show boot spinner while Internet Identity SDK is initialising
+  if (isInitializing) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--neural-bg)" }}
+      >
+        <div
+          data-ocid="admin.loading_state"
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
+          style={{ color: "rgba(74,126,247,0.6)" }}
+        >
+          INITIALIZING...
+        </div>
+      </div>
+    );
+  }
+
+  // ── Cinematic auth gate ────────────────────────────────────────────────────
+  // Show the gate if: not logged in, OR logged in but no token stored yet
+  if (!identity || !sessionStorage.getItem("caffeineAdminToken")) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center relative overflow-hidden"
+        style={{ background: "var(--neural-bg)" }}
+      >
+        {/* Animated dot grid background */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            backgroundImage:
+              "radial-gradient(rgba(74,126,247,0.08) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+          }}
+        />
+        {/* Drifting glow orbs */}
+        <div
+          className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle,rgba(74,126,247,0.04) 0%,transparent 70%)",
+            animation: "pulse 6s ease-in-out infinite",
+          }}
+        />
+        <div
+          className="absolute bottom-1/4 right-1/4 w-72 h-72 rounded-full pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(circle,rgba(212,160,23,0.04) 0%,transparent 70%)",
+            animation: "pulse 8s ease-in-out infinite reverse",
+          }}
+        />
+
+        <div
+          className="relative flex flex-col items-center gap-6 p-10 rounded-sm max-w-md w-full mx-4 overflow-hidden"
+          style={{
+            background: "rgba(4,5,14,0.92)",
+            border: "1px solid rgba(212,160,23,0.25)",
+            backdropFilter: "blur(16px)",
+            boxShadow:
+              "0 0 60px rgba(212,160,23,0.05), 0 0 120px rgba(74,126,247,0.04)",
+          }}
+        >
+          {/* Scan-line animation */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              background:
+                "linear-gradient(180deg,transparent 0%,rgba(74,126,247,0.04) 50%,transparent 100%)",
+              backgroundSize: "100% 60px",
+              animation: "scanMove 3s linear infinite",
+            }}
+          />
+          {/* Top gold accent line */}
+          <div
+            className="absolute top-0 left-0 right-0 h-px"
+            style={{
+              background:
+                "linear-gradient(90deg,transparent,rgba(212,160,23,0.6),transparent)",
+            }}
+          />
+
+          {/* Concentric rings icon */}
+          <div
+            className="relative flex items-center justify-center"
+            style={{ width: 100, height: 100 }}
+          >
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="absolute rounded-full border"
+                style={{
+                  width: 36 + i * 26,
+                  height: 36 + i * 26,
+                  borderColor: `rgba(212,160,23,${0.18 - i * 0.05})`,
+                  animation: `pulse ${2.5 + i * 0.8}s ease-in-out infinite`,
+                  animationDelay: `${i * 0.4}s`,
+                }}
+              />
+            ))}
+            <div
+              className="relative w-10 h-10 rounded-full flex items-center justify-center"
+              style={{
+                background: "rgba(212,160,23,0.1)",
+                border: "1px solid rgba(212,160,23,0.5)",
+                boxShadow: "0 0 20px rgba(212,160,23,0.2)",
+              }}
+            >
+              <span style={{ color: "#d4a017", fontSize: "16px" }}>◆</span>
+            </div>
+          </div>
+
+          {/* Title block */}
+          <div className="text-center space-y-2">
+            <div
+              className="text-[8px] tracking-[0.5em] uppercase"
+              style={{
+                color: "rgba(212,160,23,0.55)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              SECURE ACCESS PROTOCOL · LEVEL 5 CLEARANCE
+            </div>
+            <h1
+              className="font-display text-2xl font-light"
+              style={{
+                letterSpacing: "0.1em",
+                background: "linear-gradient(135deg,#4a7ef7,#ffffff)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+              }}
+            >
+              STEMONEF
+              <br />
+              ADMIN CONTROL CENTER
+            </h1>
+            <p
+              className="text-[11px] leading-relaxed"
+              style={{
+                color: "rgba(255,255,255,0.28)",
+                fontFamily: "Sora, sans-serif",
+              }}
+            >
+              Enter your admin secret key, then verify your identity. This panel
+              controls all content, research, intelligence, and operational
+              systems.
+            </p>
+          </div>
+
+          {/* ── Admin Token Input ── */}
+          <div className="w-full space-y-2">
+            <div
+              className="text-[8px] tracking-[0.3em] uppercase mb-1"
+              style={{
+                color: "rgba(212,160,23,0.5)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              ADMIN SECRET KEY
+            </div>
+            <div className="relative w-full">
+              <input
+                data-ocid="admin.login.input"
+                type={showSecret ? "text" : "password"}
+                value={adminSecret}
+                onChange={(e) => {
+                  setAdminSecret(e.target.value);
+                  if (tokenError) setTokenError("");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter") handleAdminLogin();
+                }}
+                placeholder="Enter admin secret key..."
+                className="w-full pr-10 py-3 px-4 text-xs rounded-sm outline-none transition-all duration-200"
+                style={{
+                  background: "rgba(255,255,255,0.04)",
+                  border: tokenError
+                    ? "1px solid rgba(239,68,68,0.6)"
+                    : tokenStored
+                      ? "1px solid rgba(52,211,153,0.4)"
+                      : "1px solid rgba(212,160,23,0.2)",
+                  color: "rgba(255,255,255,0.8)",
+                  fontFamily: "Geist Mono, monospace",
+                  letterSpacing: showSecret ? "0.05em" : "0.2em",
+                  boxShadow: tokenError
+                    ? "0 0 12px rgba(239,68,68,0.1)"
+                    : "none",
+                }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowSecret((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] transition-opacity opacity-40 hover:opacity-80"
+                style={{
+                  color: "rgba(255,255,255,0.6)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                {showSecret ? "HIDE" : "SHOW"}
+              </button>
+            </div>
+            {tokenError && (
+              <div
+                className="text-[9px] tracking-[0.15em] uppercase"
+                style={{
+                  color: "rgba(239,68,68,0.8)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                ⚠ {tokenError}
+              </div>
+            )}
+            {tokenStored && !tokenError && (
+              <div
+                className="text-[9px] tracking-[0.15em] uppercase"
+                style={{
+                  color: "rgba(52,211,153,0.7)",
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                ✓ TOKEN STORED · PROCEEDING TO IDENTITY VERIFICATION
+              </div>
+            )}
+          </div>
+
+          {/* Divider */}
+          <div
+            className="w-full h-px"
+            style={{ background: "rgba(255,255,255,0.04)" }}
+          />
+
+          {/* Action buttons */}
+          <div className="w-full space-y-3">
+            <button
+              type="button"
+              data-ocid="admin.login.primary_button"
+              onClick={handleAdminLogin}
+              className="w-full py-3.5 text-xs tracking-[0.2em] uppercase transition-all duration-300 relative overflow-hidden"
+              style={{
+                background: "rgba(212,160,23,0.1)",
+                border: "1px solid rgba(212,160,23,0.5)",
+                color: "#d4a017",
+                fontFamily: "Geist Mono, monospace",
+                cursor: "pointer",
+                borderRadius: "2px",
+                boxShadow: "0 0 20px rgba(212,160,23,0.08)",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(212,160,23,0.18)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 30px rgba(212,160,23,0.18)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(212,160,23,0.1)";
+                (e.currentTarget as HTMLButtonElement).style.boxShadow =
+                  "0 0 20px rgba(212,160,23,0.08)";
+              }}
+            >
+              {identity
+                ? "◆ SUBMIT TOKEN & ENTER CONTROL CENTER"
+                : "◆ AUTHENTICATE WITH INTERNET IDENTITY"}
+            </button>
+            <button
+              type="button"
+              data-ocid="admin.login.cancel_button"
+              onClick={onGoHome}
+              className="w-full py-2 text-[10px] tracking-[0.2em] uppercase transition-opacity duration-200 opacity-40 hover:opacity-70"
+              style={{
+                background: "none",
+                border: "1px solid rgba(255,255,255,0.08)",
+                color: "rgba(255,255,255,0.5)",
+                fontFamily: "Geist Mono, monospace",
+                cursor: "pointer",
+                borderRadius: "2px",
+              }}
+            >
+              ← RETURN TO HOMEPAGE
+            </button>
+          </div>
+
+          {/* Instructions */}
+          <div
+            className="w-full p-3 rounded-sm space-y-1"
+            style={{
+              background: "rgba(74,126,247,0.04)",
+              border: "1px solid rgba(74,126,247,0.1)",
+            }}
+          >
+            <div
+              className="text-[8px] tracking-[0.3em] uppercase mb-1"
+              style={{
+                color: "rgba(74,126,247,0.6)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              HOW TO ACCESS
+            </div>
+            {(identity
+              ? [
+                  "1. Enter the admin secret key in the field above",
+                  "2. Click Submit — you are already authenticated",
+                  "3. The console will open immediately",
+                ]
+              : [
+                  "1. Enter the admin secret key provided during system setup",
+                  "2. Click Authenticate — Internet Identity will open",
+                  "3. Complete identity verification in the popup",
+                  "4. First-time setup: the first principal to use the correct key becomes admin",
+                ]
+            ).map((line) => (
+              <div
+                key={line}
+                className="text-[10px] leading-relaxed"
+                style={{
+                  color: "rgba(255,255,255,0.25)",
+                  fontFamily: "Sora, sans-serif",
+                }}
+              >
+                {line}
+              </div>
+            ))}
+          </div>
+
+          {/* Bottom telemetry */}
+          <div
+            className="text-[7px] tracking-[0.2em] uppercase"
+            style={{
+              color: "rgba(255,255,255,0.12)",
+              fontFamily: "Geist Mono, monospace",
+            }}
+          >
+            ENCRYPTION ACTIVE · AUDIT LOGGING ENABLED · SESSION MONITORED
+          </div>
+        </div>
+
+        <style>{`
+          @keyframes scanMove { 0%{background-position:0 -60px} 100%{background-position:0 100vh} }
+        `}</style>
+      </div>
+    );
+  }
+
+  // Logged in but admin status still loading
   if (isLoading) {
     return (
       <div
@@ -3356,47 +4920,152 @@ export default function AdminDashboard({
     );
   }
 
+  // isAdmin is still undefined (query hasn't run yet or is fetching) — show loading
+  if (isAdmin === undefined || isAdmin === null) {
+    return (
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ background: "var(--neural-bg)" }}
+      >
+        <div
+          data-ocid="admin.loading_state"
+          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
+          style={{ color: "rgba(74,126,247,0.6)" }}
+        >
+          LOADING CONTROL CENTER...
+        </div>
+      </div>
+    );
+  }
+
   if (!isAdmin) return null;
+
+  const activeItem =
+    SIDEBAR_ITEMS.find((i) => i.id === activeModule) ?? SIDEBAR_ITEMS[0];
+  const groups = GROUP_ORDER.map((g) => ({
+    group: g,
+    items: SIDEBAR_ITEMS.filter((i) => i.group === g),
+  }));
 
   return (
     <div
-      className="min-h-screen"
-      style={{ background: "var(--neural-bg)", paddingTop: "80px" }}
+      className="min-h-screen flex flex-col"
+      style={{ background: "var(--neural-bg)" }}
     >
-      <div className="max-w-7xl mx-auto px-6 py-12">
-        {/* Header */}
-        <div className="flex items-center justify-between mb-10">
+      {/* ── TOP HEADER BAR ── */}
+      <div
+        className="relative z-40 flex items-center justify-between px-6 overflow-hidden"
+        style={{
+          height: 70,
+          background: "rgba(4,5,14,0.97)",
+          borderBottom: "1px solid rgba(212,160,23,0.12)",
+          backdropFilter: "blur(12px)",
+          boxShadow:
+            "0 1px 0 rgba(212,160,23,0.08), 0 4px 30px rgba(0,0,0,0.5)",
+        }}
+      >
+        {/* Animated scan-line */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(90deg,transparent,rgba(74,126,247,0.08),transparent)",
+            backgroundSize: "200% 100%",
+            animation: "headerScan 4s ease-in-out infinite",
+          }}
+        />
+        {/* Gold bottom line */}
+        <div
+          className="absolute bottom-0 left-0 right-0 h-px"
+          style={{
+            background:
+              "linear-gradient(90deg,transparent,rgba(212,160,23,0.4),transparent)",
+          }}
+        />
+
+        {/* Left: branding */}
+        <div className="flex items-center gap-3 z-10">
+          <div
+            className="w-7 h-7 rounded-sm flex items-center justify-center"
+            style={{
+              background: "rgba(212,160,23,0.1)",
+              border: "1px solid rgba(212,160,23,0.3)",
+            }}
+          >
+            <span style={{ color: "#d4a017", fontSize: "12px" }}>◆</span>
+          </div>
           <div>
             <div
-              className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-2"
-              style={{ color: "rgba(212,160,23,0.7)" }}
-            >
-              ◆ ADMIN CONSOLE
-            </div>
-            <h1
-              className="font-display text-3xl font-light"
+              className="text-[7px] tracking-[0.4em] uppercase"
               style={{
-                letterSpacing: "0.12em",
-                background: "linear-gradient(135deg, #4a7ef7, #ffffff)",
+                color: "rgba(212,160,23,0.5)",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              STEMONEF ENTERPRISES
+            </div>
+            <div
+              className="text-sm font-light hidden sm:block"
+              style={{
+                fontFamily: "Fraunces, serif",
+                letterSpacing: "0.15em",
+                background: "linear-gradient(135deg,#4a7ef7,#fff)",
                 WebkitBackgroundClip: "text",
                 WebkitTextFillColor: "transparent",
                 backgroundClip: "text",
               }}
             >
-              Intelligence Dashboard
-            </h1>
+              ADMIN CONTROL CENTER
+            </div>
+          </div>
+        </div>
+
+        {/* Center: telemetry */}
+        <div
+          className="hidden md:flex items-center gap-2 text-[8px] tracking-[0.2em] uppercase z-10"
+          style={{
+            color: "rgba(255,255,255,0.25)",
+            fontFamily: "Geist Mono, monospace",
+          }}
+        >
+          <span style={{ color: "rgba(52,211,153,0.7)" }}>◉</span>
+          <span>SYSTEM: ONLINE</span>
+          <span style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
+          <span>MODULES: {SIDEBAR_ITEMS.length} ACTIVE</span>
+          <span style={{ color: "rgba(255,255,255,0.12)" }}>|</span>
+          <LiveClock />
+          <span
+            className="animate-pulse"
+            style={{ color: "rgba(74,126,247,0.6)" }}
+          >
+            ▌
+          </span>
+        </div>
+
+        {/* Right: actions */}
+        <div className="flex items-center gap-3 z-10">
+          <div
+            className="px-2.5 py-1 text-[8px] tracking-[0.2em] uppercase"
+            style={{
+              background: "rgba(74,126,247,0.1)",
+              border: "1px solid rgba(74,126,247,0.25)",
+              color: "rgba(74,126,247,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              borderRadius: "2px",
+            }}
+          >
+            ADMIN
           </div>
           <button
             type="button"
             data-ocid="admin.secondary_button"
             onClick={onGoHome}
-            className="px-5 py-2.5 text-xs tracking-widest uppercase transition-all duration-200"
+            className="px-3 py-1.5 text-[9px] tracking-widest uppercase transition-all duration-200 opacity-60 hover:opacity-100"
             style={{
               background: "rgba(255,255,255,0.03)",
               border: "1px solid rgba(255,255,255,0.1)",
-              color: "rgba(255,255,255,0.5)",
+              color: "rgba(255,255,255,0.6)",
               fontFamily: "Geist Mono, monospace",
-              letterSpacing: "0.15em",
               cursor: "pointer",
               borderRadius: "2px",
             }}
@@ -3404,118 +5073,327 @@ export default function AdminDashboard({
             ← HOMEPAGE
           </button>
         </div>
+      </div>
 
-        {/* Tabs */}
-        <Tabs data-ocid="admin.tab" defaultValue="feed">
-          <TabsList
-            className="mb-8 flex-wrap h-auto gap-1"
+      <style>{`
+        @keyframes headerScan { 0%{background-position:-100% 0} 100%{background-position:200% 0} }
+      `}</style>
+
+      {/* ── BODY: sidebar + content ── */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* ── SIDEBAR ── */}
+        <div
+          className="flex-shrink-0 overflow-y-auto overflow-x-hidden transition-all duration-200 relative"
+          style={{
+            width: sidebarExpanded ? 220 : 56,
+            background: "rgba(4,5,14,0.95)",
+            borderRight: "1px solid rgba(255,255,255,0.05)",
+            minHeight: "calc(100vh - 70px)",
+          }}
+        >
+          {/* Gold left accent */}
+          <div
+            className="absolute left-0 top-0 bottom-0 w-px"
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.06)",
-              borderRadius: "2px",
+              background:
+                "linear-gradient(180deg,rgba(212,160,23,0.3),rgba(212,160,23,0.05),transparent)",
+            }}
+          />
+
+          {/* Collapse toggle */}
+          <button
+            type="button"
+            data-ocid="admin.sidebar.toggle"
+            onClick={() => setSidebarExpanded((p) => !p)}
+            className="w-full flex items-center justify-end px-3 py-3 transition-opacity hover:opacity-80"
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              borderBottom: "1px solid rgba(255,255,255,0.04)",
             }}
           >
-            {[
-              { value: "feed", label: "Intelligence Feed" },
-              { value: "requests", label: "Collaboration Requests" },
-              { value: "stats", label: "Pathway Statistics" },
-              { value: "research", label: "EPOCHS Research" },
-              { value: "humanon", label: "HUMANON" },
-              { value: "steami", label: "STEAMI" },
-              { value: "elpis", label: "ELPIS Council" },
-            ].map(({ value, label }) => (
-              <TabsTrigger
-                key={value}
-                value={value}
-                data-ocid={`admin.${value}.tab`}
-                className="text-xs tracking-widest uppercase"
+            <span
+              style={{
+                color: "rgba(255,255,255,0.2)",
+                fontSize: "10px",
+                fontFamily: "Geist Mono, monospace",
+              }}
+            >
+              {sidebarExpanded ? "◂" : "▸"}
+            </span>
+          </button>
+
+          {/* Navigation groups */}
+          <div className="py-2">
+            {groups.map(({ group, items }) => (
+              <div key={group} className="mb-1">
+                {sidebarExpanded && (
+                  <div
+                    className="px-4 py-2 text-[7px] tracking-[0.35em] uppercase"
+                    style={{
+                      color: "rgba(255,255,255,0.18)",
+                      fontFamily: "Geist Mono, monospace",
+                    }}
+                  >
+                    {group}
+                  </div>
+                )}
+                {items.map((item) => {
+                  const isActive = activeModule === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      data-ocid={`admin.${item.id}.link`}
+                      onClick={() => navigateTo(item.id)}
+                      title={!sidebarExpanded ? item.label : undefined}
+                      className="w-full flex items-center gap-3 px-3 py-2.5 transition-all duration-150 relative"
+                      style={{
+                        background: isActive ? `${item.color}10` : "none",
+                        border: "none",
+                        cursor: "pointer",
+                        borderLeft: isActive
+                          ? `2px solid ${item.color}`
+                          : "2px solid transparent",
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isActive)
+                          (
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "rgba(74,126,247,0.06)";
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isActive)
+                          (
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "none";
+                      }}
+                    >
+                      <span
+                        className="flex-shrink-0 text-sm"
+                        style={{
+                          color: isActive
+                            ? item.color
+                            : "rgba(255,255,255,0.3)",
+                          width: 20,
+                          textAlign: "center",
+                          transition: "color 0.15s",
+                        }}
+                      >
+                        {item.icon}
+                      </span>
+                      {sidebarExpanded && (
+                        <span
+                          className="text-[10px] tracking-wide truncate"
+                          style={{
+                            color: isActive
+                              ? "rgba(255,255,255,0.85)"
+                              : "rgba(255,255,255,0.45)",
+                            fontFamily: "Geist Mono, monospace",
+                            letterSpacing: "0.06em",
+                            transition: "color 0.15s",
+                          }}
+                        >
+                          {item.label}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Sidebar footer */}
+          {sidebarExpanded && (
+            <div
+              className="absolute bottom-0 left-0 right-0 p-4"
+              style={{ borderTop: "1px solid rgba(255,255,255,0.04)" }}
+            >
+              <div
+                className="text-[7px] tracking-[0.2em] uppercase text-center"
                 style={{
+                  color: "rgba(255,255,255,0.12)",
                   fontFamily: "Geist Mono, monospace",
-                  letterSpacing: "0.12em",
                 }}
               >
-                {label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+                STEMONEF v3.0
+                <br />
+                ADMIN CONSOLE
+              </div>
+            </div>
+          )}
+        </div>
 
-          <TabsContent value="feed">
-            <FeedTab />
-          </TabsContent>
-
-          <TabsContent value="requests">
-            <RequestsTab />
-          </TabsContent>
-
-          <TabsContent value="stats">
+        {/* ── MAIN CONTENT AREA ── */}
+        <div
+          ref={contentRef}
+          className="flex-1 overflow-y-auto"
+          style={{ maxHeight: "calc(100vh - 70px)" }}
+        >
+          {/* Module sub-header */}
+          <div
+            className="sticky top-0 z-20 flex items-center gap-4 px-8 py-4"
+            style={{
+              background: "rgba(4,5,14,0.95)",
+              borderBottom: "1px solid rgba(255,255,255,0.04)",
+              backdropFilter: "blur(8px)",
+            }}
+          >
+            <span style={{ color: activeItem.color, fontSize: "14px" }}>
+              {activeItem.icon}
+            </span>
+            <div>
+              <div
+                className="text-[8px] tracking-[0.35em] uppercase"
+                style={{
+                  color: `${activeItem.color}70`,
+                  fontFamily: "Geist Mono, monospace",
+                }}
+              >
+                {activeItem.group} MODULE
+              </div>
+              <div
+                className="text-sm"
+                style={{
+                  color: "rgba(255,255,255,0.7)",
+                  fontFamily: "Geist Mono, monospace",
+                  letterSpacing: "0.08em",
+                }}
+              >
+                {activeItem.label}
+              </div>
+            </div>
             <div
-              className="p-8 rounded-sm"
+              className="ml-auto text-[8px] tracking-widest uppercase"
               style={{
-                background: "rgba(255,255,255,0.02)",
-                border: "1px solid rgba(255,255,255,0.06)",
+                color: "rgba(255,255,255,0.2)",
+                fontFamily: "Geist Mono, monospace",
               }}
             >
-              <div
-                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
-                style={{ color: "rgba(212,160,23,0.7)" }}
-              >
-                PATHWAY INTEREST DISTRIBUTION
-              </div>
-              <PathwayStatsTab />
+              {activeItem.description}
             </div>
-          </TabsContent>
+          </div>
 
-          <TabsContent value="research">
-            <div
-              className="p-1 rounded-sm"
-              style={{
-                background: "rgba(255,255,255,0.01)",
-              }}
-            >
-              <div
-                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
-                style={{ color: "rgba(212,160,23,0.7)" }}
+          {/* Module content with fade transition */}
+          <div
+            className="p-8"
+            style={{
+              opacity: transitioning ? 0 : 1,
+              transform: transitioning ? "translateY(8px)" : "translateY(0)",
+              transition: "opacity 0.2s ease, transform 0.2s ease",
+            }}
+          >
+            {activeModule === "overview" && (
+              <OverviewModule onNavigate={navigateTo} />
+            )}
+
+            {activeModule === "metrics" && (
+              <ModuleWrapper
+                title="Enterprise Metrics Manager"
+                subtitle="Control the Impact Architecture data displayed on the homepage Enterprise Engine section."
+                color="#d4a017"
               >
-                EPOCHS RESEARCH LIBRARY MANAGER
-              </div>
-              <EpochsResearchTab />
-            </div>
-          </TabsContent>
+                <EnterpriseMetricsModule />
+              </ModuleWrapper>
+            )}
 
-          <TabsContent value="humanon">
-            <div
-              className="p-1 rounded-sm"
-              style={{ background: "rgba(255,255,255,0.01)" }}
-            >
-              <div
-                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
-                style={{ color: "rgba(34,211,176,0.7)" }}
+            {activeModule === "feed" && (
+              <ModuleWrapper
+                title="Intelligence Feed Manager"
+                subtitle="Publish, edit, and manage intelligence signals displayed in the Live Intelligence Feed section."
+                color="#d4a017"
               >
-                HUMANON ECOSYSTEM MANAGER
-              </div>
-              <HumanonManagerTab />
-            </div>
-          </TabsContent>
+                <FeedTab />
+              </ModuleWrapper>
+            )}
 
-          <TabsContent value="steami">
-            <SteamiAdminTab />
-          </TabsContent>
-
-          <TabsContent value="elpis">
-            <div
-              className="p-1 rounded-sm"
-              style={{ background: "rgba(255,255,255,0.01)" }}
-            >
-              <div
-                className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
-                style={{ color: "rgba(212,160,23,0.7)" }}
+            {activeModule === "requests" && (
+              <ModuleWrapper
+                title="Collaboration Requests"
+                subtitle="Review inbound collaboration and pathway interest requests submitted through the website."
+                color="#4a7ef7"
               >
-                E.L.P.I.S COUNCIL MANAGER
-              </div>
-              <ElpisAdminTab />
-            </div>
-          </TabsContent>
-        </Tabs>
+                <RequestsTab />
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "stats" && (
+              <ModuleWrapper
+                title="Pathway Statistics"
+                subtitle="Visualize visitor interest distribution across STEMONEF engagement pathways."
+                color="#a78bfa"
+              >
+                <div
+                  className="p-8 rounded-sm"
+                  style={{
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <div
+                    className="font-mono-geist text-xs tracking-[0.3em] uppercase mb-6"
+                    style={{ color: "rgba(212,160,23,0.7)" }}
+                  >
+                    PATHWAY INTEREST DISTRIBUTION
+                  </div>
+                  <PathwayStatsTab />
+                </div>
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "research" && (
+              <ModuleWrapper
+                title="EPOCHS Research Library"
+                subtitle="Manage the EPOCHS research library — upload, edit, and publish research entries, datasets, and working papers."
+                color="#f59e0b"
+              >
+                <EpochsResearchTab />
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "humanon" && (
+              <ModuleWrapper
+                title="HUMANON Ecosystem Manager"
+                subtitle="Manage mentors, participant projects, industry partners, and program statistics for the HUMANON pillar."
+                color="#22d3b0"
+              >
+                <HumanonManagerTab />
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "partners" && (
+              <ModuleWrapper
+                title="Partner Network Manager"
+                subtitle="Manage institutional and industry partners contributing to the STEMONEF mission."
+                color="#4a7ef7"
+              >
+                <HumanonPartnersTab />
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "steami" && (
+              <ModuleWrapper
+                title="STEAMI Intelligence Manager"
+                subtitle="Publish and manage intelligence briefs distributed through the STEAMI platform."
+                color="#d4a017"
+              >
+                <SteamiAdminTab />
+              </ModuleWrapper>
+            )}
+
+            {activeModule === "elpis" && (
+              <ModuleWrapper
+                title="E.L.P.I.S Council Manager"
+                subtitle="Manage council members, policy guidance areas, and governance announcements for E.L.P.I.S."
+                color="#d4a017"
+              >
+                <ElpisAdminTab />
+              </ModuleWrapper>
+            )}
+          </div>
+        </div>
       </div>
     </div>
   );

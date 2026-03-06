@@ -165,8 +165,16 @@ const ENGINE_STYLES = `
   0%, 100% { opacity: 1; r: 4; }
   50% { opacity: 0.55; r: 5.5; }
 }
+@keyframes node-breathe {
+  0%, 100% { opacity: 0.04; transform: scale(1); }
+  50% { opacity: 0.18; transform: scale(1.08); }
+}
 @keyframes signal-flow {
   0% { stroke-dashoffset: 40; }
+  100% { stroke-dashoffset: 0; }
+}
+@keyframes line-flow {
+  0% { stroke-dashoffset: 20; }
   100% { stroke-dashoffset: 0; }
 }
 @keyframes orbit-glow {
@@ -187,9 +195,26 @@ const ENGINE_STYLES = `
   90% { opacity: 0.2; }
   100% { transform: translateY(200%); opacity: 0; }
 }
+@keyframes metric-pulse {
+  0%, 88%, 100% { opacity: 1; box-shadow: none; }
+  90% { opacity: 0.6; box-shadow: 0 0 6px rgba(212,160,23,0.5); }
+  95% { opacity: 1; box-shadow: 0 0 10px rgba(212,160,23,0.7); }
+}
+@keyframes dev-phase-blink {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 0.3; }
+}
+@keyframes tag-slide-in {
+  from { opacity: 0; transform: translateY(-4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 `;
 
-/* ─── NodeTooltip ──────────────────────────────────────────────────────────── */
+/* ─── NodeTooltip — anchored inside SVG container, no overflow ─────────────── */
 interface TooltipProps {
   pillar: Pillar;
   x: number;
@@ -197,26 +222,45 @@ interface TooltipProps {
   svgSize: number;
 }
 function NodeTooltip({ pillar, x, y, svgSize }: TooltipProps) {
-  const isBottom = y > svgSize / 2;
+  const TIP_W = 190; // px — fixed width so we can clamp
+  const TIP_H = 72; // approximate height
+
+  // Raw % from SVG coords
+  const rawLeftPct = (x / svgSize) * 100;
+  const rawTopPct = (y / svgSize) * 100;
+
+  // Convert to px assuming svgSize container
+  let leftPx = (rawLeftPct / 100) * svgSize - TIP_W / 2;
+  let topPx: number;
+
+  const isBottom = y > svgSize * 0.6;
+  if (isBottom) {
+    topPx = (rawTopPct / 100) * svgSize - TIP_H - 14;
+  } else {
+    topPx = (rawTopPct / 100) * svgSize + 14;
+  }
+
+  // Clamp so tooltip stays inside container
+  const PADDING = 6;
+  leftPx = Math.max(PADDING, Math.min(svgSize - TIP_W - PADDING, leftPx));
+  topPx = Math.max(PADDING, Math.min(svgSize - TIP_H - PADDING, topPx));
+
   const tipStyle: React.CSSProperties = {
     position: "absolute",
-    left: `${(x / svgSize) * 100}%`,
-    top: isBottom
-      ? `${(y / svgSize) * 100 - 28}%`
-      : `${(y / svgSize) * 100 + 8}%`,
-    transform: "translateX(-50%)",
+    left: leftPx,
+    top: topPx,
+    width: TIP_W,
     background: "rgba(4,5,14,0.97)",
     border: "1px solid rgba(212,160,23,0.45)",
     backdropFilter: "blur(20px)",
     WebkitBackdropFilter: "blur(20px)",
     padding: "10px 14px",
     borderRadius: "2px",
-    minWidth: "180px",
-    maxWidth: "220px",
     zIndex: 50,
     pointerEvents: "none",
-    animation: "fade-in-up 0.2s ease forwards",
+    animation: "fade-in-up 0.25s ease forwards",
     boxShadow: "0 0 30px rgba(212,160,23,0.12), 0 8px 32px rgba(0,0,0,0.8)",
+    overflow: "hidden",
   };
 
   return (
@@ -257,6 +301,19 @@ function NodeTooltip({ pillar, x, y, svgSize }: TooltipProps) {
           {pillar.activeSystems.join(" · ")}
         </span>
       </div>
+      {/* Animated bottom accent line */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: 0,
+          left: 0,
+          right: 0,
+          height: "1px",
+          background:
+            "linear-gradient(90deg, transparent, rgba(212,160,23,0.5), transparent)",
+          animation: "scan-sweep 2s ease-in-out infinite",
+        }}
+      />
     </div>
   );
 }
@@ -423,13 +480,20 @@ function EngineSVG({
               y2={next.y}
               stroke={
                 isHovered
-                  ? "rgba(212,160,23,0.4)"
+                  ? "rgba(212,160,23,0.55)"
                   : isActive
-                    ? "rgba(74,126,247,0.5)"
+                    ? "rgba(74,126,247,0.55)"
                     : "rgba(74,126,247,0.07)"
               }
-              strokeWidth={isHovered ? 1.4 : isActive ? 1.1 : 0.5}
-              style={{ transition: "stroke 0.3s ease, stroke-width 0.3s ease" }}
+              strokeWidth={isHovered ? 1.6 : isActive ? 1.2 : 0.5}
+              strokeDasharray={isActive || isHovered ? "4 4" : undefined}
+              style={{
+                transition: "stroke 0.25s ease, stroke-width 0.25s ease",
+                animation:
+                  isActive || isHovered
+                    ? `line-flow ${1.6 + i * 0.2}s linear infinite`
+                    : undefined,
+              }}
             />
           );
         })}
@@ -513,13 +577,23 @@ function EngineSVG({
               onMouseLeave={() => onNodeHover(null)}
               style={{ cursor: "pointer" }}
             >
-              {/* Outer ambient glow */}
+              {/* Outer ambient glow — breathing */}
               <circle
                 cx={pos.x}
                 cy={pos.y}
                 r={glowCircleR}
-                fill={nodeColor.glow}
-                style={{ transition: "fill 0.3s ease" }}
+                fill={
+                  isHovered
+                    ? "rgba(212,160,23,0.22)"
+                    : isHighlighted
+                      ? "rgba(74,126,247,0.18)"
+                      : "rgba(74,126,247,0.04)"
+                }
+                style={{
+                  transition: "fill 0.3s ease",
+                  transformOrigin: `${pos.x}px ${pos.y}px`,
+                  animation: `node-breathe ${4 + i * 0.5}s ease-in-out ${i * 0.6}s infinite`,
+                }}
               />
 
               {/* Pulse ring — CSS animated */}
@@ -537,8 +611,8 @@ function EngineSVG({
                 }
                 strokeWidth="0.8"
                 style={{
-                  animation: `node-pulse-ring ${2.5 + i * 0.3}s ease-in-out ${i * 0.4}s infinite`,
-                  transition: "stroke 0.3s ease",
+                  animation: `node-pulse-ring ${3.5 + i * 0.4}s ease-in-out ${i * 0.55}s infinite`,
+                  transition: "stroke 0.25s ease",
                 }}
               />
 
@@ -1033,10 +1107,6 @@ export default function EnterpriseEngine() {
                     onMouseEnter={() => setHoveredImpact(i)}
                     onMouseLeave={() => setHoveredImpact(null)}
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "8px 10px",
                       borderRadius: "1px",
                       cursor: "pointer",
                       borderLeft:
@@ -1045,97 +1115,135 @@ export default function EnterpriseEngine() {
                           : "2px solid transparent",
                       background:
                         hoveredImpact === i
-                          ? "rgba(52,211,153,0.06)"
+                          ? "rgba(52,211,153,0.05)"
                           : "transparent",
-                      transition: "all 0.2s ease",
-                      position: "relative",
+                      transition: "all 0.25s ease",
+                      overflow: "hidden",
                     }}
                   >
-                    {/* Color dot */}
-                    <span
+                    {/* Main row */}
+                    <div
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        background: domain.color,
-                        flexShrink: 0,
-                        boxShadow:
-                          hoveredImpact === i
-                            ? `0 0 8px ${domain.color}`
-                            : "none",
-                        transition: "box-shadow 0.2s ease",
-                      }}
-                    />
-                    {/* Label */}
-                    <span
-                      style={{
-                        fontFamily: "Sora, sans-serif",
-                        fontSize: "12px",
-                        color:
-                          hoveredImpact === i
-                            ? "rgba(255,255,255,0.9)"
-                            : "rgba(255,255,255,0.6)",
-                        flex: 1,
-                        transition: "color 0.2s ease",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "10px",
+                        padding: "8px 10px",
                       }}
                     >
-                      {domain.label}
-                    </span>
-                    {/* Hover arrow */}
-                    <span
-                      style={{
-                        fontFamily: "Geist Mono, monospace",
-                        fontSize: "10px",
-                        color: domain.color,
-                        opacity: hoveredImpact === i ? 1 : 0,
-                        transform:
-                          hoveredImpact === i
-                            ? "translateX(0)"
-                            : "translateX(-6px)",
-                        transition: "opacity 0.2s ease, transform 0.2s ease",
-                      }}
-                    >
-                      →
-                    </span>
-                    {/* Hover pillar tags */}
-                    {hoveredImpact === i && (
-                      <div
+                      {/* Color dot */}
+                      <span
                         style={{
-                          position: "absolute",
-                          right: 0,
-                          top: "50%",
-                          transform: "translate(calc(100% + 8px), -50%)",
-                          display: "flex",
-                          gap: 4,
-                          zIndex: 10,
-                          pointerEvents: "none",
+                          width: 6,
+                          height: 6,
+                          borderRadius: "50%",
+                          background: domain.color,
+                          flexShrink: 0,
+                          boxShadow:
+                            hoveredImpact === i
+                              ? `0 0 8px ${domain.color}`
+                              : "none",
+                          transition: "box-shadow 0.25s ease",
+                        }}
+                      />
+                      {/* Label */}
+                      <span
+                        style={{
+                          fontFamily: "Sora, sans-serif",
+                          fontSize: "12px",
+                          color:
+                            hoveredImpact === i
+                              ? "rgba(255,255,255,0.9)"
+                              : "rgba(255,255,255,0.6)",
+                          flex: 1,
+                          transition: "color 0.25s ease",
                         }}
                       >
-                        {domain.pillars.map((pi) => (
-                          <span
-                            key={pi}
-                            style={{
-                              fontFamily: "Geist Mono, monospace",
-                              fontSize: "8px",
-                              color: "rgba(74,126,247,0.85)",
-                              background: "rgba(74,126,247,0.1)",
-                              border: "1px solid rgba(74,126,247,0.3)",
-                              padding: "2px 5px",
-                              borderRadius: "1px",
-                              letterSpacing: "0.1em",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
-                            {PILLARS[pi].shortLabel}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                        {domain.label}
+                      </span>
+                      {/* Hover arrow */}
+                      <span
+                        style={{
+                          fontFamily: "Geist Mono, monospace",
+                          fontSize: "10px",
+                          color: domain.color,
+                          opacity: hoveredImpact === i ? 1 : 0,
+                          transform:
+                            hoveredImpact === i
+                              ? "translateX(0)"
+                              : "translateX(-6px)",
+                          transition:
+                            "opacity 0.25s ease, transform 0.25s ease",
+                        }}
+                      >
+                        →
+                      </span>
+                    </div>
+                    {/* In-flow pillar tags — NO absolute positioning, no overflow */}
+                    <div
+                      style={{
+                        maxHeight: hoveredImpact === i ? "32px" : "0px",
+                        opacity: hoveredImpact === i ? 1 : 0,
+                        overflow: "hidden",
+                        transition: "max-height 0.25s ease, opacity 0.25s ease",
+                        paddingLeft: "26px",
+                        paddingBottom: hoveredImpact === i ? "8px" : "0px",
+                        display: "flex",
+                        gap: 4,
+                        flexWrap: "wrap",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontFamily: "Geist Mono, monospace",
+                          fontSize: "8px",
+                          color: "rgba(255,255,255,0.3)",
+                          letterSpacing: "0.1em",
+                          alignSelf: "center",
+                          marginRight: 2,
+                        }}
+                      >
+                        PILLARS:
+                      </span>
+                      {domain.pillars.map((pi) => (
+                        <span
+                          key={pi}
+                          style={{
+                            fontFamily: "Geist Mono, monospace",
+                            fontSize: "8px",
+                            color: "rgba(74,126,247,0.9)",
+                            background: "rgba(74,126,247,0.1)",
+                            border: "1px solid rgba(74,126,247,0.3)",
+                            padding: "2px 6px",
+                            borderRadius: "1px",
+                            letterSpacing: "0.12em",
+                            animation: "tag-slide-in 0.2s ease forwards",
+                          }}
+                        >
+                          {PILLARS[pi].shortLabel}
+                        </span>
+                      ))}
+                      <span
+                        style={{
+                          fontFamily: "Geist Mono, monospace",
+                          fontSize: "8px",
+                          color: "rgba(255,255,255,0.2)",
+                          letterSpacing: "0.08em",
+                          alignSelf: "center",
+                          marginLeft: 4,
+                        }}
+                      >
+                        —{" "}
+                        {PILLARS[domain.pillars[0]].description
+                          .split(" ")
+                          .slice(0, 3)
+                          .join(" ")}
+                      </span>
+                    </div>
                   </div>
                 ))}
               </div>
 
-              {/* Stats footer */}
+              {/* Stats footer — accurate early-stage metrics */}
               <div
                 style={{
                   marginTop: "18px",
@@ -1143,56 +1251,152 @@ export default function EnterpriseEngine() {
                   borderTop: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
+                {/* Active Impact Pathways header */}
                 <div
-                  className="font-mono-geist text-[8px] tracking-[0.3em] uppercase mb-3"
-                  style={{ color: "rgba(52,211,153,0.6)" }}
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    marginBottom: "10px",
+                  }}
                 >
-                  ACTIVE IMPACT PATHWAYS{" "}
                   <span
+                    className="font-mono-geist"
                     style={{
-                      color: "rgba(212,160,23,0.8)",
+                      fontSize: "8px",
+                      color: "rgba(52,211,153,0.7)",
+                      letterSpacing: "0.25em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    ACTIVE IMPACT PATHWAYS
+                  </span>
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "16px",
+                      color: "rgba(212,160,23,0.9)",
                       fontWeight: 700,
-                      fontSize: "10px",
+                      letterSpacing: "0.05em",
                     }}
                   >
                     05
                   </span>
                 </div>
-                {[
-                  ["REACH", "127 countries active"],
-                  ["BENEFICIARIES", "2.4M+ engaged"],
-                  ["PARTNERS", "89 institutional nodes"],
-                ].map(([key, val]) => (
-                  <div
-                    key={key}
+
+                {/* GLOBAL REACH */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "4px 0",
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <span
+                    className="font-mono-geist"
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "3px 0",
+                      fontSize: "8px",
+                      color: "rgba(255,255,255,0.3)",
+                      letterSpacing: "0.15em",
                     }}
+                  >
+                    GLOBAL REACH
+                  </span>
+                  <span
+                    className="font-mono-geist"
+                    style={{ fontSize: "9px", color: "rgba(255,255,255,0.6)" }}
+                  >
+                    2 countries active
+                  </span>
+                </div>
+
+                {/* BENEFICIARIES */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "flex-start",
+                    padding: "4px 0",
+                    gap: 8,
+                    borderBottom: "1px solid rgba(255,255,255,0.04)",
+                  }}
+                >
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "8px",
+                      color: "rgba(255,255,255,0.3)",
+                      letterSpacing: "0.15em",
+                      flexShrink: 0,
+                    }}
+                  >
+                    BENEFICIARIES
+                  </span>
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "9px",
+                      color: "rgba(255,255,255,0.6)",
+                      textAlign: "right",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    1M+ reached through
+                    <br />
+                    knowledge dissemination
+                  </span>
+                </div>
+
+                {/* PARTNERS — with pulse growth badge */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "4px 0",
+                  }}
+                >
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "8px",
+                      color: "rgba(255,255,255,0.3)",
+                      letterSpacing: "0.15em",
+                    }}
+                  >
+                    PARTNERS
+                  </span>
+                  <div
+                    style={{ display: "flex", alignItems: "center", gap: 6 }}
                   >
                     <span
                       className="font-mono-geist"
                       style={{
-                        fontSize: "8px",
-                        color: "rgba(255,255,255,0.3)",
-                        letterSpacing: "0.15em",
+                        fontSize: "9px",
+                        color: "rgba(255,255,255,0.6)",
                       }}
                     >
-                      {key}
+                      4 institutional
                     </span>
                     <span
                       className="font-mono-geist"
                       style={{
-                        fontSize: "9px",
-                        color: "rgba(255,255,255,0.55)",
+                        fontSize: "7px",
+                        color: "rgba(212,160,23,0.85)",
+                        background: "rgba(212,160,23,0.08)",
+                        border: "1px solid rgba(212,160,23,0.25)",
+                        padding: "1px 5px",
+                        borderRadius: "1px",
+                        letterSpacing: "0.12em",
+                        animation: "metric-pulse 8s ease-in-out infinite",
                       }}
                     >
-                      {val}
+                      ↑ growing
                     </span>
                   </div>
-                ))}
+                </div>
               </div>
             </div>
 
@@ -1201,37 +1405,55 @@ export default function EnterpriseEngine() {
               className="lg:col-span-3 flex flex-col items-center justify-center"
               style={{ position: "relative" }}
             >
-              {/* Status badge above */}
+              {/* Status badge above — development phase */}
               <div
                 style={{
                   display: "flex",
+                  flexDirection: "column",
                   alignItems: "center",
-                  gap: 6,
+                  gap: 4,
                   marginBottom: 16,
                   opacity: animationStep >= 3 ? 1 : 0,
                   transition: "opacity 0.5s ease 0.3s",
                 }}
               >
-                <span
-                  style={{
-                    width: 5,
-                    height: 5,
-                    borderRadius: "50%",
-                    background: "rgba(52,211,153,0.9)",
-                    boxShadow: "0 0 8px rgba(52,211,153,0.7)",
-                    animation: "node-pulse-ring 2s ease-in-out infinite",
-                    display: "inline-block",
-                  }}
-                />
+                <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                  <span
+                    style={{
+                      width: 5,
+                      height: 5,
+                      borderRadius: "50%",
+                      background: "rgba(212,160,23,0.9)",
+                      boxShadow: "0 0 8px rgba(212,160,23,0.6)",
+                      animation: "dev-phase-blink 2.5s ease-in-out infinite",
+                      display: "inline-block",
+                    }}
+                  />
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "8px",
+                      color: "rgba(212,160,23,0.75)",
+                      letterSpacing: "0.25em",
+                    }}
+                  >
+                    ENTERPRISE ENGINE STATUS
+                  </span>
+                </div>
                 <span
                   className="font-mono-geist"
                   style={{
-                    fontSize: "8px",
-                    color: "rgba(52,211,153,0.7)",
-                    letterSpacing: "0.25em",
+                    fontSize: "7px",
+                    color: "rgba(212,160,23,0.45)",
+                    letterSpacing: "0.3em",
+                    textTransform: "uppercase",
+                    background: "rgba(212,160,23,0.05)",
+                    border: "1px solid rgba(212,160,23,0.15)",
+                    padding: "2px 10px",
+                    borderRadius: "1px",
                   }}
                 >
-                  SYSTEM OPERATIONAL
+                  Development Phase
                 </span>
               </div>
 
@@ -1419,7 +1641,7 @@ export default function EnterpriseEngine() {
                 ))}
               </div>
 
-              {/* Detail rows */}
+              {/* Development-phase narrative */}
               <div
                 style={{
                   marginTop: "18px",
@@ -1427,45 +1649,141 @@ export default function EnterpriseEngine() {
                   borderTop: "1px solid rgba(255,255,255,0.06)",
                 }}
               >
-                {[
-                  ["REVENUE CYCLE", "Quarterly reinvestment"],
-                  ["ALLOCATION", "78% to Impact Architecture"],
-                  ["GROWTH RATE", "+34% YoY"],
-                  ["TRANSPARENCY", "Public audit trails"],
-                ].map(([key, val]) => (
+                {/* REVENUE CYCLE heading */}
+                <div
+                  className="font-mono-geist"
+                  style={{
+                    fontSize: "8px",
+                    color: "rgba(74,126,247,0.65)",
+                    letterSpacing: "0.3em",
+                    textTransform: "uppercase",
+                    marginBottom: "8px",
+                  }}
+                >
+                  REVENUE CYCLE
+                </div>
+                <p
+                  style={{
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "10px",
+                    color: "rgba(255,255,255,0.45)",
+                    lineHeight: 1.7,
+                    marginBottom: "12px",
+                  }}
+                >
+                  STEMONEF is building a sustainable enterprise model where
+                  revenue generated through innovation, intelligence services,
+                  media production, and ethical investments will be reinvested
+                  into mission-driven programs.
+                </p>
+
+                {/* ALLOCATION MODEL */}
+                <div
+                  style={{
+                    padding: "7px 10px",
+                    background: "rgba(74,126,247,0.04)",
+                    border: "1px solid rgba(74,126,247,0.1)",
+                    borderRadius: "1px",
+                    marginBottom: "8px",
+                  }}
+                >
                   <div
-                    key={key}
+                    className="font-mono-geist"
                     style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: "3px 0",
+                      fontSize: "7px",
+                      color: "rgba(74,126,247,0.6)",
+                      letterSpacing: "0.25em",
+                      marginBottom: "3px",
+                      textTransform: "uppercase",
                     }}
                   >
-                    <span
-                      className="font-mono-geist"
-                      style={{
-                        fontSize: "8px",
-                        color: "rgba(255,255,255,0.3)",
-                        letterSpacing: "0.1em",
-                      }}
-                    >
-                      {key}
-                    </span>
-                    <span
-                      className="font-mono-geist"
-                      style={{
-                        fontSize: "9px",
-                        color: "rgba(255,255,255,0.55)",
-                      }}
-                    >
-                      {val}
-                    </span>
+                    ALLOCATION MODEL
                   </div>
-                ))}
+                  <div
+                    style={{
+                      fontFamily: "Sora, sans-serif",
+                      fontSize: "9px",
+                      color: "rgba(255,255,255,0.35)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Reinvestment architecture currently under development.
+                  </div>
+                </div>
+
+                {/* TRANSPARENCY */}
+                <div
+                  style={{
+                    padding: "7px 10px",
+                    background: "rgba(212,160,23,0.03)",
+                    border: "1px solid rgba(212,160,23,0.1)",
+                    borderRadius: "1px",
+                    marginBottom: "12px",
+                  }}
+                >
+                  <div
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "7px",
+                      color: "rgba(212,160,23,0.6)",
+                      letterSpacing: "0.25em",
+                      marginBottom: "3px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    TRANSPARENCY
+                  </div>
+                  <div
+                    style={{
+                      fontFamily: "Sora, sans-serif",
+                      fontSize: "9px",
+                      color: "rgba(255,255,255,0.35)",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    Financial reporting and public accountability systems will
+                    be introduced as operational programs scale.
+                  </div>
+                </div>
+
+                {/* STATUS indicator */}
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    padding: "5px 10px",
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    borderRadius: "1px",
+                  }}
+                >
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "8px",
+                      color: "rgba(255,255,255,0.25)",
+                      letterSpacing: "0.2em",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    STATUS
+                  </span>
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "8px",
+                      color: "rgba(212,160,23,0.65)",
+                      letterSpacing: "0.15em",
+                      animation: "dev-phase-blink 3s ease-in-out infinite",
+                    }}
+                  >
+                    Development Phase
+                  </span>
+                </div>
               </div>
 
-              {/* Sustainability Index bar */}
+              {/* Model Development Progress bar */}
               <div style={{ marginTop: "16px" }}>
                 <div
                   style={{
@@ -1478,18 +1796,19 @@ export default function EnterpriseEngine() {
                   <span
                     className="font-mono-geist"
                     style={{
-                      fontSize: "8px",
-                      color: "rgba(255,255,255,0.35)",
+                      fontSize: "7px",
+                      color: "rgba(255,255,255,0.25)",
                       letterSpacing: "0.2em",
+                      textTransform: "uppercase",
                     }}
                   >
-                    SUSTAINABILITY INDEX
+                    MODEL DEVELOPMENT PROGRESS
                   </span>
                   <span
                     className="font-mono-geist"
-                    style={{ fontSize: "9px", color: "rgba(212,160,23,0.8)" }}
+                    style={{ fontSize: "9px", color: "rgba(212,160,23,0.7)" }}
                   >
-                    78%
+                    18%
                   </span>
                 </div>
                 <div
@@ -1503,13 +1822,13 @@ export default function EnterpriseEngine() {
                   <div
                     style={{
                       height: "100%",
-                      width: animationStep >= 4 ? "78%" : "0%",
+                      width: animationStep >= 4 ? "18%" : "0%",
                       background:
-                        "linear-gradient(90deg, rgba(212,160,23,0.6), rgba(212,160,23,0.9))",
+                        "linear-gradient(90deg, rgba(212,160,23,0.4), rgba(212,160,23,0.7))",
                       borderRadius: "1px",
                       transition:
-                        "width 1.2s cubic-bezier(0.16, 1, 0.3, 1) 0.3s",
-                      boxShadow: "0 0 6px rgba(212,160,23,0.4)",
+                        "width 1.5s cubic-bezier(0.16, 1, 0.3, 1) 0.4s",
+                      boxShadow: "0 0 6px rgba(212,160,23,0.3)",
                     }}
                   />
                 </div>
@@ -1562,29 +1881,57 @@ export default function EnterpriseEngine() {
               ))}
             </div>
 
-            {/* Constitutional mandate caption */}
+            {/* Founding principle caption */}
             <div
               className="mt-8 mx-auto"
               style={{
-                maxWidth: "460px",
-                padding: "12px 20px",
+                maxWidth: "520px",
+                padding: "14px 22px",
                 border: "1px solid rgba(212,160,23,0.12)",
                 background: "rgba(212,160,23,0.03)",
                 borderRadius: "1px",
+                position: "relative",
+                overflow: "hidden",
               }}
             >
+              {/* Animated top accent */}
+              <div
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  height: "1px",
+                  background:
+                    "linear-gradient(90deg, transparent, rgba(212,160,23,0.35), transparent)",
+                  animation: "scan-sweep 10s ease-in-out infinite",
+                }}
+              />
+              <div
+                className="font-mono-geist"
+                style={{
+                  fontSize: "7px",
+                  color: "rgba(212,160,23,0.5)",
+                  letterSpacing: "0.3em",
+                  textTransform: "uppercase",
+                  marginBottom: "6px",
+                }}
+              >
+                FOUNDING PRINCIPLE
+              </div>
               <p
                 className="font-mono-geist"
                 style={{
                   fontSize: "9px",
                   color: "rgba(255,255,255,0.3)",
-                  letterSpacing: "0.08em",
-                  lineHeight: "1.7",
+                  letterSpacing: "0.06em",
+                  lineHeight: "1.8",
                 }}
               >
-                All revenue streams are constitutionally mandated to reinvest
-                profits into STEMONEF's humanitarian and environmental impact
-                architecture.
+                Revenue generated through innovation, intelligence services, and
+                ethical investments is structurally committed to reinvestment
+                into STEMONEF's humanitarian and environmental mission — a
+                principle built into the enterprise model from inception.
               </p>
             </div>
           </div>

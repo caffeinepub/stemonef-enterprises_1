@@ -357,7 +357,6 @@ function ElpisHeroCanvas() {
   }, []);
 
   return (
-    // biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative canvas, tabIndex=-1 makes it non-focusable
     <canvas
       ref={canvasRef}
       className="absolute inset-0 w-full h-full"

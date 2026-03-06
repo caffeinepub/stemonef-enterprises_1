@@ -1,5 +1,5 @@
 import { Toaster } from "@/components/ui/sonner";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AICompanion from "./components/AICompanion";
 import AmbientSoundControl from "./components/AmbientSoundControl";
@@ -10,11 +10,15 @@ import Footer from "./components/Footer";
 import HeroSection from "./components/HeroSection";
 import HumanonSection from "./components/HumanonSection";
 import IntelligenceFeed from "./components/IntelligenceFeed";
+import { FALLBACK_FEEDS } from "./components/IntelligenceFeed";
+import LibraryDrawer from "./components/LibraryDrawer";
 import NavBar from "./components/NavBar";
 import PathwaySection from "./components/PathwaySection";
 import PillarsSection from "./components/PillarsSection";
 import SuggestionToast from "./components/SuggestionToast";
+import { useBookmarks } from "./hooks/useBookmarks";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
+import { useGetFeaturedFeeds, useGetPublicFeeds } from "./hooks/useQueries";
 import AdminDashboard from "./pages/AdminDashboard";
 import ElpisPage from "./pages/ElpisPage";
 import EpochsPage from "./pages/EpochsPage";
@@ -51,26 +55,48 @@ export default function App() {
   const [view, setView] = useState<AppView>("home");
   const [bootDone, setBootDone] = useState(false);
   const [companionOpen, setCompanionOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
   const [currentSection, setCurrentSection] = useState("hero");
   const [showSuggestion, setShowSuggestion] = useState(false);
   const suggestionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const interactedRef = useRef(false);
   const { isLoginSuccess, identity } = useInternetIdentity();
+  const { count: bookmarkCount } = useBookmarks();
 
-  // Detect admin route from URL or hash
+  // Feeds for LibraryDrawer
+  const { data: featuredFeeds } = useGetFeaturedFeeds();
+  const { data: publicFeedsData } = useGetPublicFeeds();
+  const allFeedsForDrawer = useMemo(() => {
+    const merged = [...(featuredFeeds || []), ...(publicFeedsData || [])];
+    const seen = new Set<string>();
+    const unique = merged.filter((f) => {
+      const key = String(f.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    return unique.length > 0 ? unique : FALLBACK_FEEDS;
+  }, [featuredFeeds, publicFeedsData]);
+
+  // Detect admin route from URL or hash, or if an admin token is already stored
   useEffect(() => {
     const path = window.location.pathname;
     const hash = window.location.hash;
-    if (path === "/admin" || hash === "#admin") {
+    const hasAdminToken = !!sessionStorage.getItem("caffeineAdminToken");
+    if (path === "/admin" || hash === "#admin" || hasAdminToken) {
       setView("admin");
       setBootDone(true);
     }
   }, []);
 
-  // Redirect to user dashboard on successful login
+  // Redirect to user dashboard on successful login — but not if already on admin view
   useEffect(() => {
     if (isLoginSuccess && identity && view === "home") {
-      setView("dashboard");
+      // Don't redirect if there's an admin token — they authenticated for admin access
+      const hasAdminToken = !!sessionStorage.getItem("caffeineAdminToken");
+      if (!hasAdminToken) {
+        setView("dashboard");
+      }
     }
   }, [isLoginSuccess, identity, view]);
 
@@ -234,6 +260,8 @@ export default function App() {
             }}
             onDashboard={() => setView("dashboard")}
             onNavigatePillar={(page) => setView(page)}
+            onOpenLibrary={() => setLibraryOpen(true)}
+            libraryCount={bookmarkCount}
           />
 
           {view === "epochs" && <EpochsPage onBack={() => setView("home")} />}
@@ -251,6 +279,12 @@ export default function App() {
           pageTheme={
             view === "epochs" || view === "steami" ? "research" : "default"
           }
+        />
+        {/* Library Drawer available on pillar pages too */}
+        <LibraryDrawer
+          isOpen={libraryOpen}
+          onClose={() => setLibraryOpen(false)}
+          allFeeds={allFeedsForDrawer}
         />
         {PILLAR_TOASTER}
       </>
@@ -277,13 +311,15 @@ export default function App() {
           onScrollTo={scrollTo}
           onDashboard={() => setView("dashboard")}
           onNavigatePillar={(page) => setView(page)}
+          onOpenLibrary={() => setLibraryOpen(true)}
+          libraryCount={bookmarkCount}
         />
 
         <main>
           <HeroSection onScrollTo={scrollTo} />
           <PillarsSection onNavigate={(page) => setView(page)} />
           <EnterpriseEngine />
-          <IntelligenceFeed />
+          <IntelligenceFeed onOpenLibrary={() => setLibraryOpen(true)} />
           <PathwaySection
             onPathwaySelect={() => {
               /* adaptive highlighting */
@@ -345,6 +381,13 @@ export default function App() {
         {/* Ambient audio control */}
         {bootDone && <AmbientSoundControl pageTheme="default" />}
       </div>
+
+      {/* Library Drawer — always rendered at app level */}
+      <LibraryDrawer
+        isOpen={libraryOpen}
+        onClose={() => setLibraryOpen(false)}
+        allFeeds={allFeedsForDrawer}
+      />
 
       {/* Admin navigation shortcut — always rendered, never inside opacity wrapper */}
       <div className="fixed bottom-8 left-8 z-50">

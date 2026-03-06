@@ -4,11 +4,13 @@ import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { FeedEntry, Pillar } from "../backend.d";
+import { useBookmarks } from "../hooks/useBookmarks";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useGetAllPillars,
   useGetCallerUserProfile,
   useGetFeaturedFeeds,
+  useGetPublicFeeds,
   useLogPathwayInterest,
   useSaveCallerUserProfile,
 } from "../hooks/useQueries";
@@ -554,6 +556,293 @@ function PathwaySection() {
   );
 }
 
+// ─── Domain color helper for library ──────────────────────────────────────────
+const FEED_DOMAIN_COLORS_LIB: Record<string, { color: string; bg: string }> = {
+  AI: { color: "#4a7ef7", bg: "rgba(74,126,247,0.1)" },
+  Climate: { color: "#34d399", bg: "rgba(52,211,153,0.1)" },
+  Technology: { color: "#22d3ee", bg: "rgba(34,211,238,0.1)" },
+  Policy: { color: "#a78bfa", bg: "rgba(167,139,250,0.1)" },
+  Research: { color: "#f59e0b", bg: "rgba(245,158,11,0.1)" },
+  "Global Systems": { color: "#d4a017", bg: "rgba(212,160,23,0.1)" },
+};
+
+function getLibDomainColor(domain: string) {
+  return (
+    FEED_DOMAIN_COLORS_LIB[domain] ?? {
+      color: "#94a3b8",
+      bg: "rgba(148,163,184,0.1)",
+    }
+  );
+}
+
+function deriveSignalStrengthLib(entry: FeedEntry): number {
+  if (entry.isFeatured) return 5;
+  const age = Date.now() - Number(entry.timestamp);
+  if (age < 86400000) return 4;
+  if (age < 259200000) return 3;
+  if (age < 604800000) return 2;
+  return 1;
+}
+
+function formatTimestampLib(ts: bigint): string {
+  const ms = Number(ts);
+  if (ms < 1e12) return "—";
+  const diff = Date.now() - ms;
+  const minutes = Math.floor(diff / 60000);
+  const hours = Math.floor(diff / 3600000);
+  const days = Math.floor(diff / 86400000);
+  if (diff < 60000) return "Just now";
+  if (minutes < 60) return `${minutes}m ago`;
+  if (hours < 24) return `${hours}h ago`;
+  return `${days}d ago`;
+}
+
+function LibraryStrengthBars({
+  strength,
+  color,
+}: { strength: number; color: string }) {
+  return (
+    <div className="flex items-end gap-[2px]">
+      {([6, 8, 11, 14, 16] as const).map((h) => (
+        <div
+          key={`ls-${h}`}
+          style={{
+            width: "3px",
+            height: `${h}px`,
+            background: color,
+            opacity: [6, 8, 11, 14, 16].indexOf(h) < strength ? 0.9 : 0.12,
+            borderRadius: "1px",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+function LibrarySignalCard({
+  entry,
+  index,
+  onRemove,
+}: { entry: FeedEntry; index: number; onRemove: (id: string) => void }) {
+  const dc = getLibDomainColor(entry.domain);
+  const strength = deriveSignalStrengthLib(entry);
+
+  return (
+    <motion.div
+      data-ocid={`dashboard.library.item.${index + 1}`}
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, x: -20, height: 0 }}
+      transition={{ delay: index * 0.06, duration: 0.35 }}
+      className="relative rounded-[2px] overflow-hidden"
+      style={{
+        background: "rgba(255,255,255,0.025)",
+        border: "1px solid rgba(255,255,255,0.06)",
+        borderLeft: `2px solid ${dc.color}`,
+      }}
+    >
+      <div className="p-4">
+        <div className="flex items-start justify-between gap-3 mb-3">
+          <div className="flex items-center gap-2 flex-wrap">
+            <span
+              style={{
+                fontFamily: "Geist Mono, monospace",
+                fontSize: "8px",
+                letterSpacing: "0.2em",
+                textTransform: "uppercase",
+                padding: "2px 6px",
+                borderRadius: "1px",
+                background: dc.bg,
+                color: dc.color,
+              }}
+            >
+              {entry.domain}
+            </span>
+            {entry.isFeatured && (
+              <span
+                style={{
+                  fontFamily: "Geist Mono, monospace",
+                  fontSize: "7px",
+                  letterSpacing: "0.2em",
+                  color: "#d4a017",
+                }}
+              >
+                ◆ PRIORITY
+              </span>
+            )}
+          </div>
+          <button
+            type="button"
+            data-ocid={`dashboard.library.delete_button.${index + 1}`}
+            onClick={() => onRemove(String(entry.id))}
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "7px",
+              letterSpacing: "0.15em",
+              textTransform: "uppercase",
+              padding: "2px 6px",
+              borderRadius: "1px",
+              background: "transparent",
+              border: "1px solid rgba(248,113,113,0.2)",
+              color: "rgba(248,113,113,0.45)",
+              cursor: "pointer",
+              flexShrink: 0,
+              transition: "all 200ms",
+            }}
+            onMouseEnter={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "rgba(248,113,113,0.85)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "rgba(248,113,113,0.5)";
+            }}
+            onMouseLeave={(e) => {
+              (e.currentTarget as HTMLButtonElement).style.color =
+                "rgba(248,113,113,0.45)";
+              (e.currentTarget as HTMLButtonElement).style.borderColor =
+                "rgba(248,113,113,0.2)";
+            }}
+          >
+            REMOVE
+          </button>
+        </div>
+
+        <h3
+          className="font-display text-sm font-light leading-snug mb-2"
+          style={{ color: "rgba(255,255,255,0.88)" }}
+        >
+          {entry.title}
+        </h3>
+
+        <p
+          className="font-sans text-[11px] leading-relaxed mb-3"
+          style={{ color: "rgba(255,255,255,0.42)" }}
+        >
+          {entry.summary}
+        </p>
+
+        <div className="flex items-center justify-between">
+          <span
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "8px",
+              color: "rgba(255,255,255,0.2)",
+              letterSpacing: "0.1em",
+            }}
+          >
+            ◷ {formatTimestampLib(entry.timestamp)} · STEAMI
+          </span>
+          <LibraryStrengthBars strength={strength} color={dc.color} />
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function LibrarySection({ allFeeds }: { allFeeds: FeedEntry[] }) {
+  const { bookmarks, removeBookmark, clearAll, count } = useBookmarks();
+
+  const bookmarkedEntries = allFeeds.filter((f) =>
+    bookmarks.includes(String(f.id)),
+  );
+
+  return (
+    <section data-ocid="dashboard.library.section">
+      <div className="flex items-center justify-between mb-1">
+        <SectionHeader label="MY SIGNAL LIBRARY" accent="gold" />
+        {count > 0 && (
+          <button
+            type="button"
+            data-ocid="dashboard.library.clear_button"
+            onClick={clearAll}
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "7px",
+              letterSpacing: "0.2em",
+              textTransform: "uppercase",
+              padding: "3px 8px",
+              borderRadius: "1px",
+              background: "transparent",
+              border: "1px solid rgba(248,113,113,0.2)",
+              color: "rgba(248,113,113,0.35)",
+              cursor: "pointer",
+              marginBottom: "4px",
+            }}
+          >
+            CLEAR ALL ({count})
+          </button>
+        )}
+      </div>
+
+      {count === 0 ? (
+        <div
+          data-ocid="dashboard.library.empty_state"
+          className="mt-5 rounded-sm py-12 text-center"
+          style={{
+            background: "rgba(255,255,255,0.015)",
+            border: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          <div className="flex flex-col items-center gap-3">
+            <div
+              style={{
+                width: "40px",
+                height: "40px",
+                borderRadius: "50%",
+                background: "rgba(212,160,23,0.05)",
+                border: "1px solid rgba(212,160,23,0.12)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="rgba(212,160,23,0.4)"
+                strokeWidth="1.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-label="Bookmark"
+                role="img"
+              >
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+            </div>
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.3em] uppercase"
+              style={{ color: "rgba(255,255,255,0.2)" }}
+            >
+              YOUR LIBRARY IS EMPTY
+            </div>
+            <div
+              className="font-sans text-xs max-w-xs"
+              style={{ color: "rgba(255,255,255,0.15)", lineHeight: 1.7 }}
+            >
+              Bookmark signals from the Intelligence Feed to save them to your
+              personal research library.
+            </div>
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mt-5">
+          <AnimatePresence>
+            {bookmarkedEntries.map((entry, i) => (
+              <LibrarySignalCard
+                key={String(entry.id)}
+                entry={entry}
+                index={i}
+                onRemove={removeBookmark}
+              />
+            ))}
+          </AnimatePresence>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function SectionHeader({
   label,
   accent,
@@ -589,6 +878,21 @@ function SectionHeader({
 
 export default function UserDashboard({ onGoHome }: UserDashboardProps) {
   const { clear, identity } = useInternetIdentity();
+  const { count: bookmarkCount } = useBookmarks();
+  const { data: featuredFeeds } = useGetFeaturedFeeds();
+  const { data: publicFeedsData } = useGetPublicFeeds();
+
+  // Merge all feeds for library resolution
+  const allFeedsForLib = (() => {
+    const merged = [...(featuredFeeds || []), ...(publicFeedsData || [])];
+    const seen = new Set<string>();
+    return merged.filter((f) => {
+      const key = String(f.id);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  })();
 
   const principalText = identity?.getPrincipal().toText() ?? "";
   const truncatedPrincipal =
@@ -742,7 +1046,7 @@ export default function UserDashboard({ onGoHome }: UserDashboardProps) {
           </div>
 
           {/* Status indicators */}
-          <div className="lg:col-span-2 grid grid-cols-3 gap-4">
+          <div className="lg:col-span-2 grid grid-cols-2 md:grid-cols-4 gap-4">
             {[
               {
                 label: "ACCESS LEVEL",
@@ -782,6 +1086,35 @@ export default function UserDashboard({ onGoHome }: UserDashboardProps) {
                 </div>
               </div>
             ))}
+            {/* Bookmarks stat */}
+            <div
+              className="rounded-sm p-5 flex flex-col gap-2"
+              style={{
+                background:
+                  bookmarkCount > 0
+                    ? "rgba(212,160,23,0.04)"
+                    : "rgba(255,255,255,0.025)",
+                border: `1px solid ${bookmarkCount > 0 ? "rgba(212,160,23,0.15)" : "rgba(255,255,255,0.06)"}`,
+                transition: "all 300ms",
+              }}
+            >
+              <div
+                className="font-mono-geist text-[8px] tracking-[0.35em] uppercase"
+                style={{ color: "rgba(255,255,255,0.3)" }}
+              >
+                BOOKMARKS
+              </div>
+              <div
+                className="font-mono-geist text-sm tracking-widest font-medium"
+                style={{
+                  color:
+                    bookmarkCount > 0 ? "#d4a017" : "rgba(255,255,255,0.25)",
+                  transition: "color 300ms",
+                }}
+              >
+                {bookmarkCount > 0 ? `${bookmarkCount} SAVED` : "NONE"}
+              </div>
+            </div>
           </div>
         </motion.div>
 
@@ -803,11 +1136,20 @@ export default function UserDashboard({ onGoHome }: UserDashboardProps) {
           <PillarsSection />
         </motion.div>
 
+        {/* My Signal Library */}
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.45, delay: 0.3 }}
+        >
+          <LibrarySection allFeeds={allFeedsForLib} />
+        </motion.div>
+
         {/* Pathways */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.32 }}
+          transition={{ duration: 0.45, delay: 0.38 }}
         >
           <PathwaySection />
         </motion.div>

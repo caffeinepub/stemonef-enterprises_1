@@ -17,6 +17,8 @@ interface NavBarProps {
   onScrollTo: (id: string) => void;
   onDashboard?: () => void;
   onNavigatePillar?: (page: NavigablePillar) => void;
+  onOpenLibrary?: () => void;
+  libraryCount?: number;
 }
 
 // Pillars that navigate to dedicated pages vs those that scroll to section
@@ -37,6 +39,8 @@ export default function NavBar({
   onScrollTo,
   onDashboard,
   onNavigatePillar,
+  onOpenLibrary,
+  libraryCount = 0,
 }: NavBarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -176,6 +180,74 @@ export default function NavBar({
             />
             AI
           </button>
+
+          {/* MY LIBRARY button — desktop only */}
+          {onOpenLibrary && (
+            <button
+              type="button"
+              data-ocid="nav.library.button"
+              onClick={onOpenLibrary}
+              className="hidden md:flex items-center gap-1.5 px-3 py-2 rounded-sm text-xs tracking-widest uppercase transition-all duration-200"
+              style={{
+                background: "none",
+                border: `1px solid ${libraryCount > 0 ? "rgba(212,160,23,0.5)" : "rgba(212,160,23,0.25)"}`,
+                color:
+                  libraryCount > 0
+                    ? "rgba(212,160,23,0.9)"
+                    : "rgba(212,160,23,0.6)",
+                fontFamily: "Geist Mono, monospace",
+                letterSpacing: "0.15em",
+                cursor: "pointer",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(212,160,23,0.08)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(212,160,23,0.5)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "none";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  libraryCount > 0
+                    ? "rgba(212,160,23,0.5)"
+                    : "rgba(212,160,23,0.25)";
+              }}
+            >
+              <svg
+                width="10"
+                height="10"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+              </svg>
+              MY LIBRARY
+              {libraryCount > 0 && (
+                <span
+                  style={{
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    minWidth: "16px",
+                    height: "16px",
+                    borderRadius: "50%",
+                    background: "rgba(212,160,23,0.2)",
+                    border: "1px solid rgba(212,160,23,0.4)",
+                    fontSize: "7px",
+                    padding: "0 3px",
+                  }}
+                >
+                  {libraryCount}
+                </span>
+              )}
+            </button>
+          )}
 
           {/* Login / Dashboard + Sign Out */}
           {!isInitializing &&
