@@ -78,25 +78,20 @@ export default function App() {
     return unique.length > 0 ? unique : FALLBACK_FEEDS;
   }, [featuredFeeds, publicFeedsData]);
 
-  // Detect admin route from URL or hash, or if an admin token is already stored
+  // Detect admin route from URL or hash
   useEffect(() => {
     const path = window.location.pathname;
     const hash = window.location.hash;
-    const hasAdminToken = !!sessionStorage.getItem("caffeineAdminToken");
-    if (path === "/admin" || hash === "#admin" || hasAdminToken) {
+    if (path === "/admin" || hash === "#admin") {
       setView("admin");
       setBootDone(true);
     }
   }, []);
 
-  // Redirect to user dashboard on successful login — but not if already on admin view
+  // Redirect to user dashboard on successful login
   useEffect(() => {
     if (isLoginSuccess && identity && view === "home") {
-      // Don't redirect if there's an admin token — they authenticated for admin access
-      const hasAdminToken = !!sessionStorage.getItem("caffeineAdminToken");
-      if (!hasAdminToken) {
-        setView("dashboard");
-      }
+      setView("dashboard");
     }
   }, [isLoginSuccess, identity, view]);
 

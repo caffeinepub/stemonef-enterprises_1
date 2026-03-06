@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Textarea } from "@/components/ui/textarea";
-import { useQueryClient } from "@tanstack/react-query";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { FeedEntry } from "../backend.d";
@@ -4492,7 +4491,6 @@ export default function AdminDashboard({
 }) {
   const { identity, login, isInitializing } = useInternetIdentity();
   const { data: isAdmin, isLoading } = useIsAdmin();
-  const queryClient = useQueryClient();
   const [activeModule, setActiveModule] = useState<AdminModule>("overview");
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [transitioning, setTransitioning] = useState(false);
@@ -4504,21 +4502,13 @@ export default function AdminDashboard({
   const [tokenError, setTokenError] = useState("");
   const [tokenStored, setTokenStored] = useState(false);
 
-  // Only redirect to home if backend definitively says NOT admin (after loading finishes)
-  // Never redirect during loading or before token has been submitted
+  // Only redirect if: identity present + token was given + backend confirmed NOT admin
   useEffect(() => {
     const hasToken = !!sessionStorage.getItem("caffeineAdminToken");
-    if (
-      !isLoading &&
-      identity &&
-      isAdmin === false &&
-      hasToken &&
-      tokenStored
-    ) {
-      toast.error("ACCESS DENIED — Principal is not registered as admin");
+    if (!isLoading && identity && isAdmin === false && hasToken) {
       onGoHome();
     }
-  }, [isAdmin, isLoading, identity, onGoHome, tokenStored]);
+  }, [isAdmin, isLoading, identity, onGoHome]);
 
   const navigateTo = useCallback(
     (module: AdminModule) => {
@@ -4533,7 +4523,8 @@ export default function AdminDashboard({
     [activeModule],
   );
 
-  // Store token then invalidate actor + isAdmin queries so they rebuild with the new token
+  // Store token under the EXACT key useActor.ts reads: "caffeineAdminToken"
+  // If user is already logged in with II, invalidate actor cache so it re-initialises with the new token
   const handleAdminLogin = () => {
     if (!adminSecret.trim()) {
       setTokenError("ADMIN TOKEN REQUIRED — Enter your secret access key");
@@ -4548,10 +4539,8 @@ export default function AdminDashboard({
       return;
     }
     if (identity) {
-      // Already authenticated — invalidate the actor and isAdmin queries so they
-      // rebuild with the new token. No page reload needed (which would reset the view).
-      queryClient.invalidateQueries({ queryKey: ["actor"] });
-      queryClient.invalidateQueries({ queryKey: ["isAdmin"] });
+      // Already authenticated — reload the page so the actor is rebuilt with the new token
+      window.location.reload();
     } else {
       login();
     }
@@ -4915,24 +4904,6 @@ export default function AdminDashboard({
           style={{ color: "rgba(74,126,247,0.6)" }}
         >
           VERIFYING ACCESS...
-        </div>
-      </div>
-    );
-  }
-
-  // isAdmin is still undefined (query hasn't run yet or is fetching) — show loading
-  if (isAdmin === undefined || isAdmin === null) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--neural-bg)" }}
-      >
-        <div
-          data-ocid="admin.loading_state"
-          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
-          style={{ color: "rgba(74,126,247,0.6)" }}
-        >
-          LOADING CONTROL CENTER...
         </div>
       </div>
     );
