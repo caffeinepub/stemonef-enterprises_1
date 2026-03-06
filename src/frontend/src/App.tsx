@@ -2,11 +2,13 @@ import { Toaster } from "@/components/ui/sonner";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import AICompanion from "./components/AICompanion";
+import AboutSection from "./components/AboutSection";
 import AmbientSoundControl from "./components/AmbientSoundControl";
 import BootScreen from "./components/BootScreen";
 import CTASection from "./components/CTASection";
 import EnterpriseEngine from "./components/EnterpriseEngine";
 import Footer from "./components/Footer";
+import FoundersSignal from "./components/FoundersSignal";
 import HeroSection from "./components/HeroSection";
 import HumanonSection from "./components/HumanonSection";
 import IntelligenceFeed from "./components/IntelligenceFeed";
@@ -24,6 +26,8 @@ import ElpisPage from "./pages/ElpisPage";
 import EpochsPage from "./pages/EpochsPage";
 import EquisPage from "./pages/EquisPage";
 import HumanonPage from "./pages/HumanonPage";
+import InstitutionalPage from "./pages/InstitutionalPage";
+import type { InstitutionalView } from "./pages/InstitutionalPage";
 import NovaPage from "./pages/NovaPage";
 import SteamiPage from "./pages/SteamiPage";
 import TerraPage from "./pages/TerraPage";
@@ -39,12 +43,15 @@ type AppView =
   | "elpis"
   | "nova"
   | "terra"
-  | "equis";
+  | "equis"
+  | "institutional";
 
 const SECTION_IDS = [
+  "splash",
   "hero",
   "pillars",
   "mission",
+  "about",
   "feed",
   "pathway",
   "humanon",
@@ -53,6 +60,8 @@ const SECTION_IDS = [
 
 export default function App() {
   const [view, setView] = useState<AppView>("home");
+  const [institutionalPage, setInstitutionalPage] =
+    useState<InstitutionalView>("ethics-charter");
   const [bootDone, setBootDone] = useState(false);
   const [companionOpen, setCompanionOpen] = useState(false);
   const [libraryOpen, setLibraryOpen] = useState(false);
@@ -213,6 +222,59 @@ export default function App() {
     );
   }
 
+  // ── Institutional pages ────────────────────────────────────────────────────
+  if (view === "institutional") {
+    return (
+      <>
+        <div style={{ background: "#04050e", minHeight: "100vh" }}>
+          <NavBar
+            onCompanionToggle={() => setCompanionOpen((p) => !p)}
+            companionOpen={companionOpen}
+            onScrollTo={(id) => {
+              setView("home");
+              setTimeout(() => {
+                const el = document.getElementById(id);
+                if (el)
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }, 300);
+            }}
+            onDashboard={() => setView("dashboard")}
+            onNavigatePillar={(page) => setView(page)}
+            onOpenLibrary={() => setLibraryOpen(true)}
+            libraryCount={bookmarkCount}
+          />
+          <InstitutionalPage
+            page={institutionalPage}
+            onBack={() => setView("home")}
+          />
+          <Footer
+            onNavigate={(pg) => {
+              setInstitutionalPage(pg as InstitutionalView);
+              setView("institutional");
+            }}
+            onPillarNavigate={(pg) => setView(pg as AppView)}
+          />
+        </div>
+        <LibraryDrawer
+          isOpen={libraryOpen}
+          onClose={() => setLibraryOpen(false)}
+          allFeeds={allFeedsForDrawer}
+        />
+        <Toaster
+          toastOptions={{
+            style: {
+              background: "rgba(4,6,18,0.97)",
+              border: "1px solid rgba(212,160,23,0.3)",
+              color: "rgba(255,255,255,0.8)",
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "11px",
+            },
+          }}
+        />
+      </>
+    );
+  }
+
   // ── Pillar pages ───────────────────────────────────────────────────────────
   const PILLAR_TOASTER = (
     <Toaster
@@ -267,7 +329,13 @@ export default function App() {
           {view === "terra" && <TerraPage onBack={() => setView("home")} />}
           {view === "equis" && <EquisPage onBack={() => setView("home")} />}
 
-          <Footer />
+          <Footer
+            onNavigate={(pg) => {
+              setInstitutionalPage(pg as InstitutionalView);
+              setView("institutional");
+            }}
+            onPillarNavigate={(pg) => setView(pg as AppView)}
+          />
         </div>
         {/* Ambient audio — research theme on knowledge pages */}
         <AmbientSoundControl
@@ -314,6 +382,7 @@ export default function App() {
           <HeroSection onScrollTo={scrollTo} />
           <PillarsSection onNavigate={(page) => setView(page)} />
           <EnterpriseEngine />
+          <AboutSection onScrollTo={scrollTo} />
           <IntelligenceFeed onOpenLibrary={() => setLibraryOpen(true)} />
           <PathwaySection
             onPathwaySelect={() => {
@@ -325,7 +394,13 @@ export default function App() {
           <CTASection onNavigate={(page) => setView(page as AppView)} />
         </main>
 
-        <Footer />
+        <Footer
+          onNavigate={(pg) => {
+            setInstitutionalPage(pg as InstitutionalView);
+            setView("institutional");
+          }}
+          onPillarNavigate={(pg) => setView(pg as AppView)}
+        />
 
         {/* AI Companion */}
         {bootDone && (
@@ -375,6 +450,9 @@ export default function App() {
 
         {/* Ambient audio control */}
         {bootDone && <AmbientSoundControl pageTheme="default" />}
+
+        {/* Founder's Signal — floating corner indicator */}
+        {bootDone && <FoundersSignal />}
       </div>
 
       {/* Library Drawer — always rendered at app level */}

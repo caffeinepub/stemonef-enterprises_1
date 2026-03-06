@@ -370,7 +370,7 @@ function PulseRing({ color, fast }: { color: string; fast: boolean }) {
   );
 }
 
-// ─── Bookmark Button ──────────────────────────────────────────────────────────
+// ─── Bookmark Button (inline, lives in card footer) ───────────────────────────
 function BookmarkButton({
   id,
   isBookmarked,
@@ -397,10 +397,6 @@ function BookmarkButton({
       aria-label={isBookmarked ? "Remove bookmark" : "Bookmark signal"}
       title={isBookmarked ? "Remove from library" : "Save to library"}
       style={{
-        position: "absolute",
-        top: "8px",
-        right: "8px",
-        zIndex: 3,
         background: isBookmarked
           ? "rgba(212,160,23,0.12)"
           : "rgba(255,255,255,0.04)",
@@ -415,6 +411,7 @@ function BookmarkButton({
         transition: "all 250ms",
         boxShadow: isBookmarked ? "0 0 12px rgba(212,160,23,0.2)" : "none",
         animation: bouncing ? "bookmark-bounce 400ms ease-out" : "none",
+        flexShrink: 0,
       }}
       onMouseEnter={(e) => {
         (e.currentTarget as HTMLButtonElement).style.background = isBookmarked
@@ -597,13 +594,6 @@ function SignalCard({
         <RankBadge rank={rank} visible={visible} />
       )}
 
-      {/* Bookmark button */}
-      <BookmarkButton
-        id={String(entry.id)}
-        isBookmarked={bookmarked}
-        onToggle={handleBookmarkToggle}
-      />
-
       <div
         className="p-5 flex flex-col gap-4 flex-1"
         style={{ paddingLeft: "18px", paddingTop: showRank ? "32px" : "20px" }}
@@ -671,7 +661,6 @@ function SignalCard({
             lineHeight: 1.45,
             fontWeight: 400,
             transition: "color 200ms",
-            paddingRight: "24px",
           }}
         >
           {entry.title}
@@ -734,25 +723,32 @@ function SignalCard({
               ◷ {formatTimestamp(entry.timestamp)}
             </span>
           </div>
-          <button
-            type="button"
-            data-ocid={`feed.item.${index + 1}.button`}
-            onClick={(e) => {
-              e.stopPropagation();
-              setExpanded((v) => !v);
-            }}
-            className="text-[8px] tracking-[0.2em] uppercase px-2 py-1 rounded-[1px] transition-all duration-200"
-            style={{
-              fontFamily: "Geist Mono, monospace",
-              background: expanded ? `${domainStyle.color}20` : "transparent",
-              border: `1px solid ${domainStyle.color}40`,
-              color: domainStyle.color,
-              cursor: "pointer",
-              whiteSpace: "nowrap",
-            }}
-          >
-            {expanded ? "CLOSE SIGNAL ▲" : "EXPAND SIGNAL ▾"}
-          </button>
+          <div className="flex items-center gap-2">
+            <BookmarkButton
+              id={String(entry.id)}
+              isBookmarked={bookmarked}
+              onToggle={handleBookmarkToggle}
+            />
+            <button
+              type="button"
+              data-ocid={`feed.item.${index + 1}.button`}
+              onClick={(e) => {
+                e.stopPropagation();
+                setExpanded((v) => !v);
+              }}
+              className="text-[8px] tracking-[0.2em] uppercase px-2 py-1 rounded-[1px] transition-all duration-200"
+              style={{
+                fontFamily: "Geist Mono, monospace",
+                background: expanded ? `${domainStyle.color}20` : "transparent",
+                border: `1px solid ${domainStyle.color}40`,
+                color: domainStyle.color,
+                cursor: "pointer",
+                whiteSpace: "nowrap",
+              }}
+            >
+              {expanded ? "CLOSE SIGNAL ▲" : "EXPAND SIGNAL ▾"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -1317,6 +1313,44 @@ export default function IntelligenceFeed({
               transition: "opacity 500ms ease",
             }}
           >
+            {/* Title block — sits above the command bar, well clear of it */}
+            <div className="mb-8 w-full text-left">
+              <div
+                className="font-mono-geist text-[9px] tracking-[0.35em] uppercase mb-3"
+                style={{ color: "rgba(212,160,23,0.6)" }}
+              >
+                STEMONEF / INTELLIGENCE DIVISION
+              </div>
+              <h2
+                className="font-display font-light leading-none mb-3 text-left"
+                style={{
+                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
+                  letterSpacing: "0.04em",
+                  background:
+                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Signal Intelligence
+              </h2>
+              <p
+                className="text-xs text-left"
+                style={{
+                  color: "rgba(255,255,255,0.3)",
+                  fontFamily: "Sora, sans-serif",
+                  maxWidth: "520px",
+                  lineHeight: 1.7,
+                }}
+              >
+                Real-time intelligence synthesis from STEAMI's global monitoring
+                network. Each signal represents a synthesised insight from
+                cross-domain research, policy analysis, and institutional
+                intelligence tracking.
+              </p>
+            </div>
+
             {/* Top rule */}
             <div
               style={{
@@ -1521,38 +1555,6 @@ export default function IntelligenceFeed({
                   </span>
                 </div>
               </div>
-            </div>
-
-            {/* Title block */}
-            <div className="mb-8">
-              <h2
-                className="font-display font-light leading-none mb-2"
-                style={{
-                  fontSize: "clamp(2rem, 5vw, 3.5rem)",
-                  letterSpacing: "0.04em",
-                  background:
-                    "linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.4) 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                }}
-              >
-                Signal Intelligence
-              </h2>
-              <p
-                className="text-xs"
-                style={{
-                  color: "rgba(255,255,255,0.3)",
-                  fontFamily: "Sora, sans-serif",
-                  maxWidth: "520px",
-                  lineHeight: 1.7,
-                }}
-              >
-                Real-time intelligence synthesis from STEAMI's global monitoring
-                network. Each signal represents a synthesised insight from
-                cross-domain research, policy analysis, and institutional
-                intelligence tracking.
-              </p>
             </div>
 
             {/* Sort mode + Category filter row */}

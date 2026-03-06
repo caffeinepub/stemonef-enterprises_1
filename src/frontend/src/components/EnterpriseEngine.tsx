@@ -350,7 +350,7 @@ function EngineSVG({
     >
       <svg
         role="img"
-        aria-label="STEMONEF Enterprise Engine — interactive pillar network visualization"
+        aria-label="STEMONEF ENTERPRISE ENGINE — interactive pillar network visualization"
         width={svgSize}
         height={svgSize}
         viewBox={`0 0 ${svgSize} ${svgSize}`}
@@ -1037,7 +1037,7 @@ export default function EnterpriseEngine() {
               className="font-display text-4xl md:text-5xl font-light text-gradient-hero"
               style={{ letterSpacing: "0.08em" }}
             >
-              STEMONEF Enterprise Engine
+              STEMONEF ENTERPRISE ENGINE
             </h2>
             <p
               className="mt-3 text-sm"

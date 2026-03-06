@@ -1,3 +1,5 @@
+import { useEffect, useRef, useState } from "react";
+
 const STAGES = [
   {
     step: "01",
@@ -38,8 +40,32 @@ const STAGES = [
 ];
 
 export default function HumanonSection() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const [sectionVisible, setSectionVisible] = useState(false);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            setSectionVisible(true);
+            observer.disconnect();
+          }
+        }
+      },
+      { threshold: 0.05, rootMargin: "0px 0px -30px 0px" },
+    );
+
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
   return (
     <section
+      ref={sectionRef}
       data-ocid="humanon.section"
       id="humanon"
       className="relative py-28 px-6"
@@ -81,23 +107,33 @@ export default function HumanonSection() {
         </div>
 
         {/* Pipeline visualization */}
-        <div className="relative">
+        <div className="relative" style={{ overflow: "visible" }}>
           {/* Connection line */}
           <div
-            className="absolute top-12 left-[12.5%] right-[12.5%] h-px hidden lg:block"
+            className="absolute top-12 left-[12.5%] right-[12.5%] h-px hidden md:block"
             style={{ zIndex: 0 }}
           >
             <div className="progress-flow-line w-full h-full" />
           </div>
 
           {/* Stages */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-[1]">
+          <div
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 relative z-[1]"
+            style={{ overflow: "visible" }}
+          >
             {STAGES.map((stage, i) => (
               <div
                 key={stage.step}
                 data-ocid={`humanon.item.${i + 1}`}
-                className="flex flex-col items-center text-center group reveal"
-                style={{ animationDelay: `${i * 0.15}s` }}
+                className="flex flex-col items-center text-center group"
+                style={{
+                  minHeight: "200px",
+                  opacity: sectionVisible ? 1 : 0,
+                  transform: sectionVisible
+                    ? "translateY(0)"
+                    : "translateY(30px)",
+                  transition: `opacity 600ms ease ${i * 120}ms, transform 600ms ease ${i * 120}ms`,
+                }}
               >
                 {/* Node */}
                 <div
