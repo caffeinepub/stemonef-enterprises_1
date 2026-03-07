@@ -1,5 +1,1128 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
+// ── Civilization Epoch Data ──────────────────────────────────────────────────
+interface EpochData {
+  id: number;
+  label: string;
+  period: string;
+  shortLabel: string;
+  ambientColor: string;
+  accentColor: string;
+  scientificContext: string;
+  keyBreakthroughs: string[];
+  keySignals: string[];
+  strategicImplications: string;
+  forwardTrajectory: string;
+  deepDives: {
+    principles: string;
+    technologies: string;
+    consequences: string;
+    questions: string;
+  };
+}
+
+const CIVILIZATION_EPOCHS: EpochData[] = [
+  {
+    id: 1,
+    label: "Early Scientific Foundations",
+    period: "Antiquity–1650s",
+    shortLabel: "Foundations",
+    ambientColor: "rgba(212,160,23,0.04)",
+    accentColor: "rgba(212,160,23,0.8)",
+    scientificContext:
+      "The emergence of systematic observation and rational inquiry as frameworks for understanding nature. Greek natural philosophy, Islamic preservation and expansion of knowledge, and the European Scientific Revolution established empirical method as civilization's primary epistemic tool.",
+    keyBreakthroughs: [
+      "Euclidean geometry and deductive logic",
+      "Archimedes' mechanics and hydrostatics",
+      "Al-Haytham's optics and experimental method",
+      "Copernican heliocentrism",
+      "Galileo's kinematics",
+      "Vesalius's anatomical atlas",
+      "Kepler's orbital laws",
+      "Newton's laws of motion and universal gravitation",
+      "Leibniz and Newton's calculus",
+    ],
+    keySignals: [
+      "Observational astronomy replaces cosmological dogma",
+      "Mathematical formalism applied to physical motion",
+      "Printing press enables knowledge propagation at scale",
+      "Royal societies institutionalize peer verification",
+      "Separation of natural philosophy from theological authority",
+    ],
+    strategicImplications:
+      "Established the epistemic infrastructure — empirical testing, mathematical modeling, institutional verification — that all subsequent science inherits. This epoch didn't just discover facts; it invented the method of discovery.",
+    forwardTrajectory:
+      "Created the analytical mechanics and mathematical tools that directly enabled the Industrial Revolution's engineering breakthroughs.",
+    deepDives: {
+      principles:
+        "Inertia, gravitational attraction, geometric optics, deductive proof, experimental falsification",
+      technologies:
+        "Printing press, telescope, microscope, pendulum clock, calculating machines",
+      consequences:
+        "Secular epistemology displaces theological authority over natural knowledge; mathematics becomes the language of physics",
+      questions:
+        "What is the nature of gravitational action at a distance? How do living systems differ from mechanical ones?",
+    },
+  },
+  {
+    id: 2,
+    label: "Industrial Transformation",
+    period: "1700s–1860s",
+    shortLabel: "Industrial",
+    ambientColor: "rgba(100,116,139,0.04)",
+    accentColor: "rgba(148,163,184,0.8)",
+    scientificContext:
+      "Thermodynamics and mechanical engineering combined to convert scientific understanding of energy into large-scale productive systems. Coal, steam, and iron created an energy regime that reorganized labor, geography, and economic structure across civilization.",
+    keyBreakthroughs: [
+      "Watt's steam engine efficiency redesign",
+      "Faraday's electromagnetic induction",
+      "Carnot's thermodynamic efficiency theory",
+      "Dalton's atomic theory",
+      "Pasteur's germ theory",
+      "Darwin's evolutionary framework",
+      "Maxwell's electromagnetic field equations",
+      "Bessemer steel process",
+    ],
+    keySignals: [
+      "Steam power decouples production from biological energy limits",
+      "Factory system concentrates labor and capital",
+      "Railway networks create national economic integration",
+      "Germ theory enables evidence-based medicine",
+      "Thermodynamic limits formalized — entropy as universal constraint",
+    ],
+    strategicImplications:
+      "Industrial transformation proved that energy conversion at scale could reorganize civilization. Simultaneously, Darwin and Pasteur revealed that life itself operated on discoverable scientific principles — dissolving the final boundary between physics and biology.",
+    forwardTrajectory:
+      "Faraday and Maxwell's electromagnetic discoveries directly spawned electrical infrastructure and wireless communication in the following epoch.",
+    deepDives: {
+      principles:
+        "Thermodynamic laws, electromagnetic field theory, atomic theory, natural selection, germ-disease causation",
+      technologies:
+        "Steam engine, railway, telegraph, precision machining, chemical manufacturing",
+      consequences:
+        "Fossil fuel dependency as the foundational energy substrate of industrial civilization; urbanization accelerates; life expectancy increases with sanitation science",
+      questions:
+        "What is the ultimate source of the sun's energy? What carries electromagnetic waves through space?",
+    },
+  },
+  {
+    id: 3,
+    label: "Electrical & Electronic Age",
+    period: "1860s–1945",
+    shortLabel: "Electrical",
+    ambientColor: "rgba(99,102,241,0.05)",
+    accentColor: "rgba(129,140,248,0.8)",
+    scientificContext:
+      "Electromagnetism was tamed into infrastructure. Simultaneously, quantum mechanics and relativity fundamentally restructured physics' conception of matter, energy, space, and time — revealing a universe far stranger than classical mechanics had implied.",
+    keyBreakthroughs: [
+      "Edison and Tesla's electrical infrastructure",
+      "Hertz's radio wave demonstration",
+      "Einstein's special and general relativity",
+      "Planck's quantum hypothesis",
+      "Bohr's atomic model",
+      "Rutherford's nuclear structure",
+      "Fleming's penicillin",
+      "Heisenberg's uncertainty principle",
+      "Schrödinger's wave mechanics",
+      "Turing's computability theory",
+    ],
+    keySignals: [
+      "Electrical grids restructure urban infrastructure and daily life",
+      "Radio creates planetary-scale simultaneous communication",
+      "Quantum mechanics invalidates classical determinism at small scales",
+      "Relativity unifies space, time, mass, and energy",
+      "Nuclear binding energy identified as civilization-altering force",
+    ],
+    strategicImplications:
+      "The quantum revolution was not merely a scientific advance — it was an epistemic rupture. Determinism collapsed at the subatomic level. Probability replaced certainty as the fundamental description of nature. Meanwhile, electrification created the infrastructure substrate that all subsequent digital civilization depends upon.",
+    forwardTrajectory:
+      "Quantum mechanics directly enabled semiconductor physics, which enabled transistors, which enabled computing.",
+    deepDives: {
+      principles:
+        "Wave-particle duality, uncertainty principle, relativistic spacetime, nuclear binding energy, electromagnetic wave propagation",
+      technologies:
+        "Electrical grid, radio, cathode ray tubes, vacuum tubes, early aircraft, penicillin",
+      consequences:
+        "Atomic weapons introduce existential risk as a structural feature of advanced civilization; quantum physics enables electronics revolution",
+      questions:
+        "How to interpret quantum measurement and the collapse of the wave function? What is the quantum theory of gravity?",
+    },
+  },
+  {
+    id: 4,
+    label: "Computing Revolution",
+    period: "1945–1995",
+    shortLabel: "Computing",
+    ambientColor: "rgba(6,182,212,0.04)",
+    accentColor: "rgba(34,211,238,0.8)",
+    scientificContext:
+      "Information was formalized as a measurable physical quantity. The transistor, integrated circuit, and software created a new class of general-purpose machines that could model, simulate, and process any computable process — effectively creating a new layer of cognitive infrastructure for civilization.",
+    keyBreakthroughs: [
+      "Von Neumann architecture",
+      "Shannon's information theory",
+      "Transistor invention (Shockley, Bardeen, Brattain)",
+      "Integrated circuit (Kilby, Noyce)",
+      "ARPANET",
+      "Unix operating system",
+      "DNA structure (Watson, Crick)",
+      "Recombinant DNA",
+      "Personal computer",
+      "World Wide Web foundation (Berners-Lee)",
+    ],
+    keySignals: [
+      "Information formalized as measurable physical quantity",
+      "Moore's Law drives exponential performance scaling",
+      "Software creates a programmable cognitive layer",
+      "Molecular biology reveals genetic information architecture",
+      "Computer simulation enables complex system modeling",
+    ],
+    strategicImplications:
+      "Computing redefined intelligence itself as an information process. The same information-theoretic framework that Shannon applied to communication channels was shown to underlie both computation and biological genetics — revealing a deep structural unity between information, life, and mind.",
+    forwardTrajectory:
+      "The internet infrastructure and software systems built in this epoch became the substrate for the networked intelligence explosion of the 1990s–2020s.",
+    deepDives: {
+      principles:
+        "Information entropy, Boolean logic, computability limits (Gödel, Turing), molecular genetics, complexity theory",
+      technologies:
+        "Transistor, integrated circuit, DRAM, fiber optics, TCP/IP protocol stack, Unix/Linux, database systems",
+      consequences:
+        "Global knowledge becomes digitizable and searchable; economic value shifts toward information goods; AI becomes a structural research agenda",
+      questions:
+        "What are the limits of computation? Can consciousness be computed? What is the relationship between information and physical entropy?",
+    },
+  },
+  {
+    id: 5,
+    label: "Networked Intelligence",
+    period: "1995–2020s",
+    shortLabel: "Networked",
+    ambientColor: "rgba(74,126,247,0.05)",
+    accentColor: "rgba(74,126,247,0.8)",
+    scientificContext:
+      "The internet connected computing infrastructure into a planetary cognitive network. Mobile computing made this network personally ambient. Machine learning, trained on the accumulated data of networked civilization, began demonstrating emergent capabilities that classical AI research had failed to produce through symbolic approaches.",
+    keyBreakthroughs: [
+      "World Wide Web deployment",
+      "Search engine algorithms",
+      "Human Genome Project completion",
+      "CRISPR-Cas9 gene editing",
+      "Deep learning and neural network renaissance",
+      "Smartphone and mobile internet",
+      "Cloud computing infrastructure",
+      "AlphaFold protein structure prediction",
+      "Gravitational wave detection",
+      "Large language model emergence",
+    ],
+    keySignals: [
+      "Planetary-scale data collection creates training substrate for machine intelligence",
+      "CRISPR enables programmable biological systems",
+      "Cloud computing decouples compute from physical hardware ownership",
+      "Deep learning surpasses human performance on narrow cognitive benchmarks",
+      "Gravitational wave astronomy opens new observational channel",
+    ],
+    strategicImplications:
+      "For the first time, scientific instruments, data collection, modeling, and publication became globally networked. Science itself became a distributed, real-time, collaborative system. Simultaneously, machine learning created tools that accelerate every other domain of scientific discovery.",
+    forwardTrajectory:
+      "Networked intelligence infrastructure, biological programmability, and AI acceleration collectively define the substrate conditions for the emerging planetary technology epoch.",
+    deepDives: {
+      principles:
+        "Statistical learning theory, gradient descent optimization, transformer attention mechanisms, CRISPR molecular mechanisms, gravitational wave physics",
+      technologies:
+        "Internet protocols, smartphone hardware, GPU compute, transformer architectures, cloud infrastructure, gene sequencing platforms",
+      consequences:
+        "Scientific knowledge production accelerates nonlinearly; AI introduces automation risk across cognitive labor categories; biological programmability introduces biosecurity risk",
+      questions:
+        "What are the emergent properties of sufficiently large language models? How do we align machine intelligence with human values at scale?",
+    },
+  },
+  {
+    id: 6,
+    label: "Emerging Planetary Technologies",
+    period: "2020s–Present",
+    shortLabel: "Planetary",
+    ambientColor: "rgba(52,211,153,0.05)",
+    accentColor: "rgba(52,211,153,0.8)",
+    scientificContext:
+      "Civilization now operates multiple interacting technological frontiers simultaneously: artificial general intelligence, quantum computing, synthetic biology, space industrialization, and planetary-scale environmental engineering. The defining challenge is not capability development but governance — ensuring that planetary-scale technological power is directed by planetary-scale ethical frameworks.",
+    keyBreakthroughs: [
+      "Large language model emergence and multimodal AI",
+      "Quantum error correction advances",
+      "mRNA vaccine platforms",
+      "Commercial space industrialization",
+      "Nuclear fusion milestone (NIF ignition)",
+      "Neuromorphic computing",
+      "Whole-brain emulation research",
+      "Carbon capture technology maturation",
+      "Direct-to-cell satellite internet",
+    ],
+    keySignals: [
+      "AI systems demonstrate emergent general reasoning capabilities",
+      "Quantum advantage demonstrated for specific problem classes",
+      "Synthetic biology enables programmable organism design",
+      "Commercial space reduces launch cost by orders of magnitude",
+      "Fusion energy transitions from perpetual future to engineering problem",
+    ],
+    strategicImplications:
+      "Humanity is constructing infrastructure at planetary scale — artificial intelligence networks, biotechnology platforms, space systems, and energy grids — while existing governance frameworks remain nationally scoped. The central civilizational challenge of this epoch is the co-evolution of capability and governance at planetary scale.",
+    forwardTrajectory:
+      "The convergence of AI, quantum systems, synthetic biology, and space infrastructure will define the trajectory of civilization over the next 50–100 years. The decisions made in this decade about the governance of these systems will determine whether they amplify or destabilize civilization.",
+    deepDives: {
+      principles:
+        "Quantum error correction, transformer scaling laws, synthetic genomics, fusion plasma physics, neuromorphic computation",
+      technologies:
+        "GPU/TPU clusters, CRISPR platforms, reusable launch vehicles, mRNA platforms, quantum processors, carbon capture systems",
+      consequences:
+        "Potential for accelerating disease elimination, energy abundance, and space-based civilization; existential risk from misaligned AI and synthetic biology",
+      questions:
+        "Can we build beneficial AGI? What is the correct governance architecture for planetary-scale technologies? Is consciousness substrate-independent?",
+    },
+  },
+];
+
+// ── Reading Progress Bar ─────────────────────────────────────────────────────
+function ReadingProgressBar() {
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollTop = window.scrollY;
+      const docHeight =
+        document.documentElement.scrollHeight - window.innerHeight;
+      const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+      setProgress(Math.min(100, Math.max(0, pct)));
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  return (
+    <div
+      className="fixed top-0 left-0 right-0 z-50 h-[2px] pointer-events-none"
+      style={{ background: "rgba(4,5,14,0.5)" }}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          width: `${progress}%`,
+          height: "100%",
+          background:
+            "linear-gradient(90deg, rgba(74,126,247,0.8), rgba(212,160,23,0.8))",
+          transition: "width 0.1s linear",
+        }}
+      />
+    </div>
+  );
+}
+
+// ── Civilization Timeline Sidebar ────────────────────────────────────────────
+interface CivilizationTimelineProps {
+  epochs: EpochData[];
+  activeEpochId: number;
+  scrollProgress: number;
+  onNodeClick: (epochId: number) => void;
+}
+
+function CivilizationTimeline({
+  epochs,
+  activeEpochId,
+  scrollProgress,
+  onNodeClick,
+}: CivilizationTimelineProps) {
+  const svgRef = useRef<SVGSVGElement>(null);
+
+  return (
+    <>
+      {/* Desktop: sticky vertical sidebar */}
+      <div
+        className="hidden lg:flex flex-col items-center sticky top-[80px] self-start"
+        style={{ width: "80px", minHeight: "600px" }}
+        aria-label="Epoch timeline navigation"
+      >
+        {/* SVG spine with animated draw-in */}
+        <svg
+          ref={svgRef}
+          className="absolute left-1/2 -translate-x-1/2 top-0"
+          width="2"
+          height="100%"
+          style={{ overflow: "visible" }}
+          aria-hidden="true"
+        >
+          <line
+            x1="1"
+            y1="0"
+            x2="1"
+            y2="100%"
+            stroke="rgba(255,255,255,0.06)"
+            strokeWidth="2"
+          />
+          <line
+            x1="1"
+            y1="0"
+            x2="1"
+            y2="100%"
+            stroke="url(#timelineGrad)"
+            strokeWidth="2"
+            strokeDasharray="600"
+            strokeDashoffset={600 - scrollProgress * 6}
+            style={{ transition: "stroke-dashoffset 0.3s ease-out" }}
+          />
+          <defs>
+            <linearGradient
+              id="timelineGrad"
+              x1="0"
+              y1="0"
+              x2="0"
+              y2="1"
+              gradientUnits="objectBoundingBox"
+            >
+              <stop offset="0%" stopColor="rgba(212,160,23,0.9)" />
+              <stop offset="50%" stopColor="rgba(74,126,247,0.9)" />
+              <stop offset="100%" stopColor="rgba(52,211,153,0.9)" />
+            </linearGradient>
+          </defs>
+        </svg>
+
+        {epochs.map((epoch, i) => {
+          const isActive = epoch.id === activeEpochId;
+          const isPassed = epoch.id < activeEpochId;
+          return (
+            <button
+              key={epoch.id}
+              type="button"
+              data-ocid={`epochs.timeline.node.${i + 1}`}
+              onClick={() => onNodeClick(epoch.id)}
+              className="relative flex flex-col items-center group"
+              style={{
+                flex: 1,
+                padding: "8px 0",
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                minHeight: "90px",
+              }}
+              title={epoch.label}
+              aria-label={`Navigate to ${epoch.label}`}
+              aria-current={isActive ? "step" : undefined}
+            >
+              {/* Node dot */}
+              <div
+                style={{
+                  width: isActive ? "14px" : "8px",
+                  height: isActive ? "14px" : "8px",
+                  borderRadius: "50%",
+                  background: isActive
+                    ? epoch.accentColor
+                    : isPassed
+                      ? "rgba(74,126,247,0.5)"
+                      : "rgba(255,255,255,0.12)",
+                  border: isActive
+                    ? `2px solid ${epoch.accentColor}`
+                    : "1px solid rgba(255,255,255,0.2)",
+                  boxShadow: isActive
+                    ? `0 0 12px ${epoch.accentColor}, 0 0 24px ${epoch.accentColor.replace("0.8", "0.3")}`
+                    : isPassed
+                      ? "0 0 6px rgba(74,126,247,0.3)"
+                      : "none",
+                  transition: "all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1)",
+                  zIndex: 2,
+                  position: "relative",
+                }}
+              />
+              {/* Label on hover / active */}
+              <div
+                className="mt-1.5 text-center transition-all duration-300"
+                style={{
+                  opacity: isActive ? 1 : 0.4,
+                  transform: isActive ? "scale(1.05)" : "scale(1)",
+                }}
+              >
+                <div
+                  className="font-mono-geist"
+                  style={{
+                    fontSize: "7px",
+                    letterSpacing: "0.15em",
+                    color: isActive
+                      ? epoch.accentColor
+                      : "rgba(255,255,255,0.5)",
+                    textTransform: "uppercase",
+                    lineHeight: 1.3,
+                    maxWidth: "60px",
+                    textAlign: "center",
+                  }}
+                >
+                  {epoch.shortLabel}
+                </div>
+                <div
+                  className="font-mono-geist"
+                  style={{
+                    fontSize: "6px",
+                    color: "rgba(255,255,255,0.25)",
+                    letterSpacing: "0.1em",
+                    marginTop: "2px",
+                  }}
+                >
+                  {epoch.period.split("–")[0]}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Mobile: horizontal scrollable nodes */}
+      <div
+        className="flex lg:hidden gap-3 overflow-x-auto pb-3 mb-6"
+        style={{
+          scrollbarWidth: "none",
+          msOverflowStyle: "none",
+        }}
+      >
+        {epochs.map((epoch, i) => {
+          const isActive = epoch.id === activeEpochId;
+          return (
+            <button
+              key={epoch.id}
+              type="button"
+              data-ocid={`epochs.timeline.mobile.node.${i + 1}`}
+              onClick={() => onNodeClick(epoch.id)}
+              className="flex-shrink-0 flex flex-col items-center gap-1.5 transition-all duration-300"
+              style={{
+                background: "none",
+                border: "none",
+                cursor: "pointer",
+                padding: "8px 12px",
+                borderBottom: isActive
+                  ? `2px solid ${epoch.accentColor}`
+                  : "2px solid transparent",
+              }}
+            >
+              <div
+                style={{
+                  width: "6px",
+                  height: "6px",
+                  borderRadius: "50%",
+                  background: isActive
+                    ? epoch.accentColor
+                    : "rgba(255,255,255,0.2)",
+                  boxShadow: isActive ? `0 0 8px ${epoch.accentColor}` : "none",
+                  transition: "all 0.3s ease",
+                }}
+              />
+              <span
+                className="font-mono-geist"
+                style={{
+                  fontSize: "8px",
+                  letterSpacing: "0.12em",
+                  textTransform: "uppercase",
+                  color: isActive ? epoch.accentColor : "rgba(255,255,255,0.4)",
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {epoch.shortLabel}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </>
+  );
+}
+
+// ── Floating Epoch Signals Panel ─────────────────────────────────────────────
+interface FloatingEpochSignalsPanelProps {
+  activeEpoch: EpochData | undefined;
+}
+
+function FloatingEpochSignalsPanel({
+  activeEpoch,
+}: FloatingEpochSignalsPanelProps) {
+  const [displayedEpoch, setDisplayedEpoch] = useState<EpochData | undefined>(
+    activeEpoch,
+  );
+  const [visible, setVisible] = useState(false);
+  const [animating, setAnimating] = useState(false);
+
+  useEffect(() => {
+    if (!activeEpoch) return;
+    if (!displayedEpoch) {
+      setDisplayedEpoch(activeEpoch);
+      setVisible(true);
+      return;
+    }
+    if (activeEpoch.id !== displayedEpoch.id) {
+      setAnimating(true);
+      const timeout = setTimeout(() => {
+        setDisplayedEpoch(activeEpoch);
+        setAnimating(false);
+        setVisible(true);
+      }, 250);
+      return () => clearTimeout(timeout);
+    }
+  }, [activeEpoch, displayedEpoch]);
+
+  if (!displayedEpoch) return null;
+
+  return (
+    <div
+      data-ocid="epochs.signals.panel"
+      className="hidden lg:block fixed z-30"
+      style={{
+        right: "24px",
+        top: "50%",
+        transform: "translateY(-50%)",
+        width: "220px",
+        opacity: visible ? 1 : 0,
+        transition: "opacity 0.6s ease",
+      }}
+    >
+      <div
+        style={{
+          background: "rgba(4,5,14,0.88)",
+          border: "1px solid rgba(74,126,247,0.18)",
+          backdropFilter: "blur(20px)",
+          borderRadius: "4px",
+          overflow: "hidden",
+        }}
+      >
+        {/* Panel header */}
+        <div
+          style={{
+            padding: "10px 14px",
+            borderBottom: "1px solid rgba(74,126,247,0.12)",
+            background: "rgba(74,126,247,0.05)",
+          }}
+        >
+          <div
+            className="font-mono-geist"
+            style={{
+              fontSize: "8px",
+              letterSpacing: "0.3em",
+              color: "rgba(212,160,23,0.8)",
+              textTransform: "uppercase",
+            }}
+          >
+            ◈ EPOCH SIGNALS
+          </div>
+          <div
+            className="font-mono-geist mt-1"
+            style={{
+              fontSize: "9px",
+              color: displayedEpoch.accentColor,
+              letterSpacing: "0.12em",
+              opacity: animating ? 0 : 1,
+              transition: "opacity 0.25s ease",
+            }}
+          >
+            {displayedEpoch.shortLabel.toUpperCase()}
+          </div>
+        </div>
+
+        {/* Signals list */}
+        <div
+          style={{
+            padding: "10px 14px",
+            opacity: animating ? 0 : 1,
+            transition: "opacity 0.25s ease",
+          }}
+        >
+          {displayedEpoch.keySignals.map((signal, i) => (
+            <div
+              key={signal}
+              className="flex items-start gap-2 mb-2.5"
+              style={{
+                animation: animating
+                  ? "none"
+                  : "signalFadeIn 0.4s ease forwards",
+                animationDelay: `${i * 0.07}s`,
+                opacity: 0,
+              }}
+            >
+              <div
+                style={{
+                  width: "4px",
+                  height: "4px",
+                  borderRadius: "50%",
+                  background: displayedEpoch.accentColor,
+                  flexShrink: 0,
+                  marginTop: "4px",
+                }}
+              />
+              <span
+                className="font-mono-geist"
+                style={{
+                  fontSize: "8px",
+                  color: "rgba(255,255,255,0.55)",
+                  lineHeight: 1.5,
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {signal}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        {/* Progress indicator */}
+        <div
+          style={{
+            padding: "8px 14px",
+            borderTop: "1px solid rgba(255,255,255,0.05)",
+          }}
+        >
+          <div className="flex justify-between mb-1.5">
+            <span
+              className="font-mono-geist"
+              style={{ fontSize: "7px", color: "rgba(255,255,255,0.3)" }}
+            >
+              EPOCH {displayedEpoch.id} / 6
+            </span>
+            <span
+              className="font-mono-geist"
+              style={{ fontSize: "7px", color: "rgba(255,255,255,0.3)" }}
+            >
+              {displayedEpoch.period}
+            </span>
+          </div>
+          <div
+            style={{
+              height: "2px",
+              background: "rgba(255,255,255,0.05)",
+              borderRadius: "1px",
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${(displayedEpoch.id / 6) * 100}%`,
+                background: displayedEpoch.accentColor,
+                transition: "width 0.6s ease",
+              }}
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Expandable Deep Dive Section ─────────────────────────────────────────────
+interface DeepDiveProps {
+  label: string;
+  content: string;
+  accentColor: string;
+  index: number;
+}
+
+function DeepDiveSection({
+  label,
+  content,
+  accentColor,
+  index,
+}: DeepDiveProps) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div
+      style={{
+        borderBottom: "1px solid rgba(255,255,255,0.06)",
+        transitionDelay: `${index * 0.05}s`,
+      }}
+    >
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between py-3 px-4 transition-all duration-200"
+        style={{
+          background: open ? "rgba(255,255,255,0.03)" : "transparent",
+          border: "none",
+          cursor: "pointer",
+          textAlign: "left",
+        }}
+        aria-expanded={open}
+      >
+        <span
+          className="font-mono-geist"
+          style={{
+            fontSize: "9px",
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: open ? accentColor : "rgba(255,255,255,0.5)",
+            transition: "color 0.2s ease",
+          }}
+        >
+          {label}
+        </span>
+        <span
+          style={{
+            color: "rgba(255,255,255,0.3)",
+            fontSize: "10px",
+            transform: open ? "rotate(180deg)" : "none",
+            transition: "transform 0.2s ease",
+            display: "inline-block",
+          }}
+        >
+          ▾
+        </span>
+      </button>
+      {open && (
+        <div
+          className="px-4 pb-4"
+          style={{
+            animation: "epochFadeIn 0.3s ease forwards",
+          }}
+        >
+          <p
+            style={{
+              fontSize: "12px",
+              color: "rgba(255,255,255,0.55)",
+              fontFamily: "Sora, sans-serif",
+              lineHeight: 1.7,
+            }}
+          >
+            {content}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Single Epoch Block ───────────────────────────────────────────────────────
+interface EpochBlockProps {
+  epoch: EpochData;
+  index: number;
+  isActive: boolean;
+  onVisible: (epochId: number) => void;
+}
+
+function EpochBlock({ epoch, index, isActive, onVisible }: EpochBlockProps) {
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  // Intersection observer for active epoch tracking
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) onVisible(epoch.id);
+      },
+      { threshold: 0.3, rootMargin: "0px 0px -10% 0px" },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [epoch.id, onVisible]);
+
+  const deepDiveItems = [
+    { label: "Scientific Principles", content: epoch.deepDives.principles },
+    { label: "Enabling Technologies", content: epoch.deepDives.technologies },
+    {
+      label: "Long-Term Consequences",
+      content: epoch.deepDives.consequences,
+    },
+    {
+      label: "Unresolved Questions",
+      content: epoch.deepDives.questions,
+    },
+  ];
+
+  return (
+    <div
+      ref={sectionRef}
+      id={`epoch-${epoch.id}`}
+      data-ocid={`epochs.civilization.item.${index + 1}`}
+      style={{
+        background: isActive
+          ? epoch.ambientColor.replace("0.04", "0.06").replace("0.05", "0.07")
+          : epoch.ambientColor,
+        border: `1px solid ${isActive ? epoch.accentColor.replace("0.8", "0.2") : "rgba(255,255,255,0.06)"}`,
+        borderRadius: "4px",
+        marginBottom: "48px",
+        overflow: "hidden",
+        transition:
+          "background 0.6s ease, border-color 0.6s ease, box-shadow 0.6s ease",
+        boxShadow: isActive
+          ? `0 0 40px ${epoch.accentColor.replace("0.8", "0.06")}, 0 8px 40px rgba(0,0,0,0.4)`
+          : "0 4px 24px rgba(0,0,0,0.3)",
+      }}
+    >
+      {/* Epoch header */}
+      <div
+        style={{
+          padding: "32px 36px 24px",
+          borderBottom: `1px solid ${epoch.accentColor.replace("0.8", "0.12")}`,
+          position: "relative",
+          overflow: "hidden",
+        }}
+      >
+        {/* Scan line animation */}
+        {isActive && (
+          <div
+            className="animate-card-scan pointer-events-none absolute left-0 right-0"
+            style={{
+              height: "1px",
+              background: `linear-gradient(90deg, transparent, ${epoch.accentColor.replace("0.8", "0.4")}, transparent)`,
+              top: 0,
+            }}
+            aria-hidden="true"
+          />
+        )}
+
+        <div className="flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div
+              className="font-mono-geist mb-2"
+              style={{
+                fontSize: "9px",
+                letterSpacing: "0.35em",
+                textTransform: "uppercase",
+                color: epoch.accentColor,
+              }}
+            >
+              ◈ EPOCH {String(epoch.id).padStart(2, "0")} — {epoch.period}
+            </div>
+            <h2
+              className="font-display font-light"
+              style={{
+                fontSize: "clamp(1.6rem, 3.5vw, 2.8rem)",
+                letterSpacing: "0.08em",
+                color: "rgba(255,255,255,0.92)",
+                lineHeight: 1.1,
+              }}
+            >
+              {epoch.label}
+            </h2>
+          </div>
+          <div
+            style={{
+              width: isActive ? "12px" : "8px",
+              height: isActive ? "12px" : "8px",
+              borderRadius: "50%",
+              background: isActive
+                ? epoch.accentColor
+                : "rgba(255,255,255,0.15)",
+              boxShadow: isActive
+                ? `0 0 16px ${epoch.accentColor}, 0 0 32px ${epoch.accentColor.replace("0.8", "0.3")}`
+                : "none",
+              transition: "all 0.4s ease",
+              flexShrink: 0,
+              marginTop: "4px",
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Epoch body */}
+      <div style={{ padding: "28px 36px" }}>
+        {/* Scientific Context */}
+        <div className="mb-8">
+          <div
+            className="font-mono-geist mb-3"
+            style={{
+              fontSize: "8px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(212,160,23,0.7)",
+            }}
+          >
+            ◆ SCIENTIFIC CONTEXT
+          </div>
+          <p
+            style={{
+              fontSize: "14px",
+              color: "rgba(255,255,255,0.72)",
+              fontFamily: "Sora, sans-serif",
+              lineHeight: 1.75,
+            }}
+          >
+            {epoch.scientificContext}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Key Breakthroughs */}
+          <div>
+            <div
+              className="font-mono-geist mb-4"
+              style={{
+                fontSize: "8px",
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "rgba(74,126,247,0.8)",
+              }}
+            >
+              ◈ KEY BREAKTHROUGHS
+            </div>
+            <ul className="space-y-2">
+              {epoch.keyBreakthroughs.map((b) => (
+                <li key={b} className="flex items-start gap-2.5">
+                  <div
+                    style={{
+                      width: "4px",
+                      height: "4px",
+                      borderRadius: "50%",
+                      background: epoch.accentColor,
+                      flexShrink: 0,
+                      marginTop: "6px",
+                    }}
+                  />
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.65)",
+                      fontFamily: "Sora, sans-serif",
+                      lineHeight: 1.5,
+                    }}
+                  >
+                    {b}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Key Signals */}
+          <div>
+            <div
+              className="font-mono-geist mb-4"
+              style={{
+                fontSize: "8px",
+                letterSpacing: "0.3em",
+                textTransform: "uppercase",
+                color: "rgba(212,160,23,0.8)",
+              }}
+            >
+              ◈ KEY SIGNALS
+            </div>
+            <ul className="space-y-2">
+              {epoch.keySignals.map((s) => (
+                <li
+                  key={s}
+                  style={{
+                    padding: "8px 12px",
+                    background: "rgba(212,160,23,0.05)",
+                    border: "1px solid rgba(212,160,23,0.12)",
+                    borderRadius: "3px",
+                  }}
+                >
+                  <span
+                    className="font-mono-geist"
+                    style={{
+                      fontSize: "9px",
+                      color: "rgba(255,255,255,0.65)",
+                      letterSpacing: "0.04em",
+                    }}
+                  >
+                    {s}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+
+        {/* Strategic Implications */}
+        <div
+          className="mb-8 p-5"
+          style={{
+            background: "rgba(74,126,247,0.04)",
+            border: "1px solid rgba(74,126,247,0.12)",
+            borderLeft: `3px solid ${epoch.accentColor}`,
+            borderRadius: "3px",
+          }}
+        >
+          <div
+            className="font-mono-geist mb-3"
+            style={{
+              fontSize: "8px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(74,126,247,0.8)",
+            }}
+          >
+            ◆ STRATEGIC IMPLICATIONS
+          </div>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.7)",
+              fontFamily: "Sora, sans-serif",
+              lineHeight: 1.75,
+            }}
+          >
+            {epoch.strategicImplications}
+          </p>
+        </div>
+
+        {/* Forward Trajectory */}
+        <div
+          className="mb-8 p-5"
+          style={{
+            background: `${epoch.ambientColor.replace("0.04", "0.08").replace("0.05", "0.1")}`,
+            border: `1px solid ${epoch.accentColor.replace("0.8", "0.15")}`,
+            borderRadius: "3px",
+          }}
+        >
+          <div
+            className="font-mono-geist mb-2"
+            style={{
+              fontSize: "8px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: epoch.accentColor,
+            }}
+          >
+            ◈ FORWARD TRAJECTORY
+          </div>
+          <p
+            style={{
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.65)",
+              fontFamily: "Sora, sans-serif",
+              lineHeight: 1.7,
+              fontStyle: "italic",
+            }}
+          >
+            {epoch.forwardTrajectory}
+          </p>
+        </div>
+
+        {/* Deep Dive expandable sections */}
+        <div>
+          <div
+            className="font-mono-geist mb-3"
+            style={{
+              fontSize: "8px",
+              letterSpacing: "0.3em",
+              textTransform: "uppercase",
+              color: "rgba(255,255,255,0.3)",
+            }}
+          >
+            ◇ DEEP DIVE
+          </div>
+          <div
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              border: "1px solid rgba(255,255,255,0.07)",
+              borderRadius: "3px",
+              overflow: "hidden",
+            }}
+          >
+            {deepDiveItems.map((item, i) => (
+              <DeepDiveSection
+                key={item.label}
+                label={item.label}
+                content={item.content}
+                accentColor={epoch.accentColor}
+                index={i}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 interface EpochsPageProps {
   onBack: () => void;
 }
@@ -873,6 +1996,16 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
   const [expandedEntry, setExpandedEntry] = useState<number | null>(null);
   const revealRef = useRef<HTMLDivElement>(null);
 
+  // Civilization timeline state
+  const [activeEpochId, setActiveEpochId] = useState(1);
+  const [timelineScrollProgress, setTimelineScrollProgress] = useState(0);
+
+  // Parallax refs
+  const heroBgRef = useRef<HTMLDivElement>(null);
+  const heroTextRef = useRef<HTMLDivElement>(null);
+  const heroCanvasRef = useRef<HTMLDivElement>(null);
+  const timelineSectionRef = useRef<HTMLElement>(null);
+
   useEffect(() => {
     window.scrollTo(0, 0);
     const observer = new IntersectionObserver(
@@ -886,6 +2019,51 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
     const revealEls = document.querySelectorAll(".epochs-reveal");
     for (const el of revealEls) observer.observe(el);
     return () => observer.disconnect();
+  }, []);
+
+  // Parallax scroll + timeline progress
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrollY = window.scrollY;
+
+      // Parallax layers
+      if (heroBgRef.current) {
+        heroBgRef.current.style.transform = `translateY(${scrollY * 0.15}px)`;
+      }
+      if (heroTextRef.current) {
+        heroTextRef.current.style.transform = `translateY(${scrollY * 0.3}px)`;
+      }
+      if (heroCanvasRef.current) {
+        heroCanvasRef.current.style.transform = `translateY(${scrollY * 0.05}px)`;
+      }
+
+      // Timeline progress
+      const section = timelineSectionRef.current;
+      if (section) {
+        const rect = section.getBoundingClientRect();
+        const sectionTop = scrollY + rect.top;
+        const sectionHeight = section.offsetHeight;
+        const progress = Math.max(
+          0,
+          Math.min(100, ((scrollY - sectionTop) / sectionHeight) * 100),
+        );
+        setTimelineScrollProgress(progress);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  const handleEpochVisible = useCallback((epochId: number) => {
+    setActiveEpochId(epochId);
+  }, []);
+
+  const handleTimelineNodeClick = useCallback((epochId: number) => {
+    const el = document.getElementById(`epoch-${epochId}`);
+    if (el) {
+      el.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
   }, []);
 
   const gaiaFocusAreas = [
@@ -963,11 +2141,36 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
     setExpandedEntry(null);
   }, []);
 
+  const activeEpoch = CIVILIZATION_EPOCHS.find((e) => e.id === activeEpochId);
+
   return (
     <div
       ref={revealRef}
       style={{ background: "var(--neural-bg)", minHeight: "100vh" }}
     >
+      {/* Keyframe styles for civilization system */}
+      <style>{`
+        @keyframes signalFadeIn {
+          from { opacity: 0; transform: translateX(6px); }
+          to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes epochFadeIn {
+          from { opacity: 0; transform: translateY(6px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes epochNodePulse {
+          0% { box-shadow: 0 0 0 0 rgba(74,126,247,0.6); }
+          70% { box-shadow: 0 0 0 10px rgba(74,126,247,0); }
+          100% { box-shadow: 0 0 0 0 rgba(74,126,247,0); }
+        }
+      `}</style>
+
+      {/* Reading Progress Bar */}
+      <ReadingProgressBar />
+
+      {/* Floating Epoch Signals Panel */}
+      <FloatingEpochSignalsPanel activeEpoch={activeEpoch} />
+
       {/* Section Nav */}
       <div
         className="sticky top-[65px] z-40 px-6 py-3 flex items-center justify-between"
@@ -1016,13 +2219,28 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
             "linear-gradient(160deg, rgba(10,18,50,0.9) 0%, rgba(4,5,14,1) 60%)",
         }}
       >
-        <AnimatedBackground />
+        {/* Canvas parallax wrapper */}
         <div
-          className="neural-grid-bg absolute inset-0 opacity-30"
+          ref={heroCanvasRef}
+          className="absolute inset-0 will-change-transform"
+          aria-hidden="true"
+        >
+          <AnimatedBackground />
+        </div>
+
+        {/* Grid background parallax layer */}
+        <div
+          ref={heroBgRef}
+          className="neural-grid-bg absolute inset-0 opacity-30 will-change-transform"
+          style={{ top: "-20%", bottom: "-20%" }}
           aria-hidden="true"
         />
 
-        <div className="relative z-10 max-w-7xl mx-auto w-full pt-16 pb-20">
+        {/* Hero text with parallax */}
+        <div
+          ref={heroTextRef}
+          className="relative z-10 max-w-7xl mx-auto w-full pt-16 pb-20 will-change-transform"
+        >
           <div
             className="font-mono-geist text-xs tracking-[0.4em] uppercase mb-6 animate-fade-in-up"
             style={{ color: "rgba(212,160,23,0.7)" }}
@@ -1031,7 +2249,7 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
           </div>
 
           <h1
-            className="font-display font-light text-gradient-hero mb-6 animate-fade-in-up"
+            className="font-display font-light text-gradient-hero mb-3 animate-fade-in-up"
             style={{
               fontSize: "clamp(4rem, 12vw, 9rem)",
               letterSpacing: "0.1em",
@@ -1042,8 +2260,27 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
             EPOCHS
           </h1>
 
+          {/* Civilization Interface subtitle */}
+          <div
+            className="animate-fade-in-up mb-4"
+            style={{ animationDelay: "0.18s" }}
+          >
+            <span
+              className="font-display"
+              style={{
+                fontSize: "clamp(0.9rem, 2vw, 1.25rem)",
+                letterSpacing: "0.18em",
+                color: "rgba(255,255,255,0.5)",
+                fontFamily: "Sora, sans-serif",
+                textTransform: "uppercase",
+              }}
+            >
+              THE CIVILIZATION EXPLORATION INTERFACE
+            </span>
+          </div>
+
           <p
-            className="font-display text-2xl md:text-3xl font-light mb-6 animate-fade-in-up"
+            className="font-display text-2xl md:text-3xl font-light mb-3 animate-fade-in-up"
             style={{
               color: "rgba(255,255,255,0.65)",
               letterSpacing: "0.06em",
@@ -1054,24 +2291,79 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
             Emergent Projects ON Climate, Human &amp; Systems Research
           </p>
 
-          <div
-            className="animate-fade-in-up"
+          {/* Philosophical subtitle */}
+          <p
+            className="animate-fade-in-up mb-8"
             style={{
-              display: "inline-block",
-              padding: "10px 20px",
-              background: "rgba(74,126,247,0.08)",
-              border: "1px solid rgba(74,126,247,0.2)",
-              borderRadius: "2px",
-              animationDelay: "0.3s",
+              fontFamily: "Sora, sans-serif",
+              fontSize: "14px",
+              color: "rgba(255,255,255,0.42)",
+              maxWidth: "560px",
+              lineHeight: 1.75,
+              animationDelay: "0.28s",
             }}
           >
-            <span
-              className="font-mono-geist text-xs tracking-[0.25em] uppercase"
-              style={{ color: "rgba(138,180,255,0.8)" }}
+            Tracing the architecture of human discovery — from the first
+            principles of natural philosophy to the emergent systems of
+            planetary intelligence.
+          </p>
+
+          <div
+            className="flex flex-wrap items-center gap-4 animate-fade-in-up"
+            style={{ animationDelay: "0.35s" }}
+          >
+            <div
+              style={{
+                display: "inline-block",
+                padding: "10px 20px",
+                background: "rgba(74,126,247,0.08)",
+                border: "1px solid rgba(74,126,247,0.2)",
+                borderRadius: "2px",
+              }}
             >
-              Primary Research &amp; Innovation Organization of STEMONEF
-              Enterprises
-            </span>
+              <span
+                className="font-mono-geist text-xs tracking-[0.25em] uppercase"
+                style={{ color: "rgba(138,180,255,0.8)" }}
+              >
+                Primary Research &amp; Innovation Organization of STEMONEF
+                Enterprises
+              </span>
+            </div>
+
+            {/* CTA scroll button */}
+            <button
+              type="button"
+              data-ocid="epochs.hero.primary_button"
+              onClick={() => {
+                const el = document.getElementById("civilization-timeline");
+                if (el)
+                  el.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="font-mono-geist text-xs tracking-[0.2em] uppercase transition-all duration-300"
+              style={{
+                background: "rgba(212,160,23,0.1)",
+                border: "1px solid rgba(212,160,23,0.35)",
+                color: "rgba(212,160,23,0.9)",
+                padding: "10px 22px",
+                borderRadius: "2px",
+                cursor: "pointer",
+                letterSpacing: "0.2em",
+              }}
+              onMouseEnter={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(212,160,23,0.18)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(212,160,23,0.7)";
+              }}
+              onMouseLeave={(e) => {
+                (e.currentTarget as HTMLButtonElement).style.background =
+                  "rgba(212,160,23,0.1)";
+                (e.currentTarget as HTMLButtonElement).style.borderColor =
+                  "rgba(212,160,23,0.35)";
+              }}
+            >
+              ENTER THE TIMELINE ↓
+            </button>
           </div>
         </div>
 
@@ -1083,6 +2375,99 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
           }}
         />
       </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      {/* ── CIVILIZATION EXPLORATION INTERFACE ───────────────────────────── */}
+      {/* ══════════════════════════════════════════════════════════════════ */}
+      <section
+        ref={timelineSectionRef}
+        id="civilization-timeline"
+        className="py-20 px-6 relative"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(4,5,14,0) 0%, rgba(8,10,28,0.5) 50%, rgba(4,5,14,0) 100%)",
+        }}
+      >
+        <div className="max-w-7xl mx-auto">
+          {/* Section header */}
+          <div className="mb-12 epochs-reveal reveal">
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(212,160,23,0.7)" }}
+            >
+              ◈ CIVILIZATION EXPLORATION INTERFACE
+            </div>
+            <h2
+              className="font-display text-4xl md:text-5xl font-light text-gradient-hero mb-4"
+              style={{ letterSpacing: "0.08em" }}
+            >
+              The Architecture of Human Progress
+            </h2>
+            <p
+              style={{
+                fontFamily: "Sora, sans-serif",
+                fontSize: "14px",
+                color: "rgba(255,255,255,0.45)",
+                maxWidth: "560px",
+                lineHeight: 1.75,
+              }}
+            >
+              Six epochs of scientific and technological transformation — each
+              one building the cognitive, material, and institutional substrate
+              for the next.
+            </p>
+          </div>
+
+          {/* Mobile timeline nav */}
+          <CivilizationTimeline
+            epochs={CIVILIZATION_EPOCHS}
+            activeEpochId={activeEpochId}
+            scrollProgress={timelineScrollProgress}
+            onNodeClick={handleTimelineNodeClick}
+          />
+
+          {/* Desktop: flex layout with sticky timeline sidebar */}
+          <div className="hidden lg:flex gap-8 relative">
+            {/* Sticky timeline sidebar */}
+            <div style={{ width: "80px", flexShrink: 0 }}>
+              <CivilizationTimeline
+                epochs={CIVILIZATION_EPOCHS}
+                activeEpochId={activeEpochId}
+                scrollProgress={timelineScrollProgress}
+                onNodeClick={handleTimelineNodeClick}
+              />
+            </div>
+
+            {/* Epoch blocks column */}
+            <div className="flex-1 min-w-0" style={{ paddingRight: "240px" }}>
+              {CIVILIZATION_EPOCHS.map((epoch, i) => (
+                <EpochBlock
+                  key={epoch.id}
+                  epoch={epoch}
+                  index={i}
+                  isActive={activeEpochId === epoch.id}
+                  onVisible={handleEpochVisible}
+                />
+              ))}
+            </div>
+          </div>
+
+          {/* Mobile: epoch blocks without sidebar */}
+          <div className="lg:hidden">
+            {CIVILIZATION_EPOCHS.map((epoch, i) => (
+              <EpochBlock
+                key={epoch.id}
+                epoch={epoch}
+                index={i}
+                isActive={activeEpochId === epoch.id}
+                onVisible={handleEpochVisible}
+              />
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ══════════════════════════════════════════════════════════════════ */}
 
       {/* ── Mission ──────────────────────────────────────────────────────── */}
       <section className="py-20 px-6">
