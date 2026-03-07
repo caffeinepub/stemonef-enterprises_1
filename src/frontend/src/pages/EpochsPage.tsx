@@ -1989,6 +1989,1879 @@ function CollabCard({
   );
 }
 
+// ── Stage 3: Interactive Civilization Timeline Engine ─────────────────────────
+// Discovery lineages: shows causal chains like Electricity → Electronics → AI
+interface DiscoveryNode {
+  id: string;
+  label: string;
+  year: string;
+  domain: string;
+  domainColor: string;
+  description: string;
+  epochId: number;
+}
+interface DiscoveryLineage {
+  id: string;
+  title: string;
+  color: string;
+  nodes: string[]; // node ids in order
+}
+
+const DISCOVERY_NODES: DiscoveryNode[] = [
+  {
+    id: "geometry",
+    label: "Euclidean Geometry",
+    year: "300 BC",
+    domain: "Mathematics",
+    domainColor: "#d4a017",
+    description:
+      "Deductive proof system — the first formal language of exact reasoning.",
+    epochId: 1,
+  },
+  {
+    id: "gravity",
+    label: "Law of Gravitation",
+    year: "1687",
+    domain: "Physics",
+    domainColor: "#d4a017",
+    description:
+      "Newton's universal gravitation unified terrestrial and celestial mechanics.",
+    epochId: 1,
+  },
+  {
+    id: "calculus",
+    label: "Calculus",
+    year: "1666",
+    domain: "Mathematics",
+    domainColor: "#d4a017",
+    description:
+      "Infinitesimal calculus gave science a language for continuous change.",
+    epochId: 1,
+  },
+  {
+    id: "steam",
+    label: "Steam Engine",
+    year: "1769",
+    domain: "Engineering",
+    domainColor: "#94a3b8",
+    description:
+      "Watt's condensing engine converted thermodynamic theory into productive power.",
+    epochId: 2,
+  },
+  {
+    id: "thermo",
+    label: "Thermodynamics",
+    year: "1824",
+    domain: "Physics",
+    domainColor: "#94a3b8",
+    description:
+      "Carnot's efficiency theorem established limits on all heat engines.",
+    epochId: 2,
+  },
+  {
+    id: "evolution",
+    label: "Theory of Evolution",
+    year: "1859",
+    domain: "Biology",
+    domainColor: "#94a3b8",
+    description:
+      "Darwin's natural selection unified all of biology under a single explanatory framework.",
+    epochId: 2,
+  },
+  {
+    id: "electromag",
+    label: "Electromagnetism",
+    year: "1865",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    description:
+      "Maxwell's equations unified electricity, magnetism, and light as one phenomenon.",
+    epochId: 3,
+  },
+  {
+    id: "electricity",
+    label: "Electric Power Grid",
+    year: "1882",
+    domain: "Engineering",
+    domainColor: "#4a7ef7",
+    description:
+      "Edison and Tesla's systems converted electromagnetic theory into civilization-wide energy infrastructure.",
+    epochId: 3,
+  },
+  {
+    id: "quantum",
+    label: "Quantum Mechanics",
+    year: "1925",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    description:
+      "Heisenberg and Schrödinger's formalism explained atomic structure — foundation of all modern electronics.",
+    epochId: 3,
+  },
+  {
+    id: "transistor",
+    label: "Transistor",
+    year: "1947",
+    domain: "Engineering",
+    domainColor: "#34d399",
+    description:
+      "Bell Labs' semiconductor switch replaced vacuum tubes — the fundamental unit of all digital computation.",
+    epochId: 4,
+  },
+  {
+    id: "dna",
+    label: "DNA Double Helix",
+    year: "1953",
+    domain: "Biology",
+    domainColor: "#34d399",
+    description:
+      "Watson and Crick's structure revealed information storage in biological systems.",
+    epochId: 4,
+  },
+  {
+    id: "computing",
+    label: "Stored-Program Computer",
+    year: "1945",
+    domain: "Computation",
+    domainColor: "#34d399",
+    description:
+      "Von Neumann architecture — a universal machine that runs any algorithm.",
+    epochId: 4,
+  },
+  {
+    id: "internet",
+    label: "Internet Protocol",
+    year: "1974",
+    domain: "Networks",
+    domainColor: "#a78bfa",
+    description:
+      "TCP/IP created a universal language for networked machines — the substrate of the information economy.",
+    epochId: 5,
+  },
+  {
+    id: "genome",
+    label: "Human Genome Project",
+    year: "2003",
+    domain: "Biology",
+    domainColor: "#a78bfa",
+    description:
+      "First complete map of human genetic information — launched precision medicine.",
+    epochId: 5,
+  },
+  {
+    id: "smartphone",
+    label: "Mobile Computing",
+    year: "2007",
+    domain: "Computation",
+    domainColor: "#a78bfa",
+    description:
+      "Smartphone integration of GPS, sensors, and internet put global knowledge infrastructure in every pocket.",
+    epochId: 5,
+  },
+  {
+    id: "transformer",
+    label: "Transformer Architecture",
+    year: "2017",
+    domain: "AI",
+    domainColor: "#f97316",
+    description:
+      "Attention-mechanism neural networks enabled large-language models and general-purpose AI reasoning.",
+    epochId: 6,
+  },
+  {
+    id: "crispr",
+    label: "CRISPR-Cas9",
+    year: "2012",
+    domain: "Biology",
+    domainColor: "#f97316",
+    description:
+      "Programmable gene editing — precise, cheap, and broadly applicable to any organism.",
+    epochId: 6,
+  },
+  {
+    id: "quantum2",
+    label: "Quantum Supremacy",
+    year: "2019",
+    domain: "Computation",
+    domainColor: "#f97316",
+    description:
+      "Google's 53-qubit processor solved problems intractable for classical computers.",
+    epochId: 6,
+  },
+];
+
+const DISCOVERY_LINEAGES: DiscoveryLineage[] = [
+  {
+    id: "physics-to-ai",
+    title: "Physics → Computation → AI",
+    color: "#4a7ef7",
+    nodes: [
+      "gravity",
+      "calculus",
+      "electromag",
+      "quantum",
+      "transistor",
+      "computing",
+      "internet",
+      "transformer",
+    ],
+  },
+  {
+    id: "bio-to-gene",
+    title: "Evolution → Genetics → Genomics",
+    color: "#34d399",
+    nodes: ["evolution", "dna", "genome", "crispr"],
+  },
+  {
+    id: "energy-chain",
+    title: "Thermodynamics → Electric Age → Digital",
+    color: "#d4a017",
+    nodes: ["thermo", "steam", "electricity", "transistor", "smartphone"],
+  },
+];
+
+function CivilizationTimelineEngine() {
+  const [activeLineage, setActiveLineage] = useState<string>("physics-to-ai");
+  const [hoveredNode, setHoveredNode] = useState<string | null>(null);
+  const [selectedNode, setSelectedNode] = useState<string | null>(null);
+  const [entered, setEntered] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  // Intersection observer for entrance animation
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setEntered(true);
+      },
+      { threshold: 0.15 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  // Canvas: animated connection lines
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const lineage = DISCOVERY_LINEAGES.find((l) => l.id === activeLineage);
+    if (!lineage) return;
+
+    let animFrame: number;
+    let phase = 0;
+
+    const draw = () => {
+      const W = canvas.offsetWidth;
+      const H = canvas.offsetHeight;
+      canvas.width = W;
+      canvas.height = H;
+      ctx.clearRect(0, 0, W, H);
+
+      const nodeIds = lineage.nodes;
+      const count = nodeIds.length;
+      if (count < 2) {
+        animFrame = requestAnimationFrame(draw);
+        return;
+      }
+
+      // Layout: nodes spaced horizontally across canvas
+      const padding = 60;
+      const spacing = (W - padding * 2) / (count - 1);
+      const y = H / 2;
+
+      // Draw connection lines with dash animation
+      phase = (phase + 0.5) % 30;
+      for (let i = 0; i < count - 1; i++) {
+        const x1 = padding + i * spacing;
+        const x2 = padding + (i + 1) * spacing;
+        const n1 = nodeIds[i];
+        const n2 = nodeIds[i + 1];
+        const isHovered = hoveredNode === n1 || hoveredNode === n2;
+
+        ctx.save();
+        ctx.beginPath();
+        ctx.moveTo(x1, y);
+        ctx.lineTo(x2, y);
+        ctx.setLineDash([6, 8]);
+        ctx.lineDashOffset = -phase;
+        ctx.strokeStyle = isHovered ? lineage.color : `${lineage.color}55`;
+        ctx.lineWidth = isHovered ? 2 : 1;
+        ctx.shadowColor = lineage.color;
+        ctx.shadowBlur = isHovered ? 8 : 2;
+        ctx.stroke();
+        ctx.restore();
+
+        // Arrow at midpoint
+        const mx = (x1 + x2) / 2;
+        ctx.save();
+        ctx.fillStyle = isHovered ? lineage.color : `${lineage.color}66`;
+        ctx.font = "10px monospace";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("→", mx, y - 10);
+        ctx.restore();
+      }
+
+      animFrame = requestAnimationFrame(draw);
+    };
+
+    draw();
+    return () => cancelAnimationFrame(animFrame);
+  }, [activeLineage, hoveredNode]);
+
+  const activeLineageData = DISCOVERY_LINEAGES.find(
+    (l) => l.id === activeLineage,
+  )!;
+  const lineageNodeIds = new Set(activeLineageData.nodes);
+
+  const selectedNodeData = selectedNode
+    ? DISCOVERY_NODES.find((n) => n.id === selectedNode)
+    : null;
+
+  // Group nodes by epoch for the visual layout
+  const epochGroups = [1, 2, 3, 4, 5, 6].map((epId) => ({
+    epochId: epId,
+    epoch: CIVILIZATION_EPOCHS.find((e) => e.id === epId)!,
+    nodes: DISCOVERY_NODES.filter((n) => n.epochId === epId),
+  }));
+
+  return (
+    <section
+      ref={sectionRef}
+      className="py-24 px-6 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(4,5,14,0) 0%, rgba(6,8,20,0.8) 50%, rgba(4,5,14,0) 100%)",
+      }}
+      aria-label="Interactive Civilization Timeline Engine"
+    >
+      {/* Background field */}
+      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+        {(
+          [
+            "p0",
+            "p1",
+            "p2",
+            "p3",
+            "p4",
+            "p5",
+            "p6",
+            "p7",
+            "p8",
+            "p9",
+            "p10",
+            "p11",
+            "p12",
+            "p13",
+            "p14",
+            "p15",
+            "p16",
+            "p17",
+            "p18",
+            "p19",
+            "p20",
+            "p21",
+            "p22",
+            "p23",
+          ] as const
+        ).map((pid, i) => (
+          <div
+            key={pid}
+            className="absolute rounded-full"
+            style={{
+              width: `${(i % 2) + 1}px`,
+              height: `${(i % 2) + 1}px`,
+              left: `${(i / 24) * 100}%`,
+              top: `${20 + Math.sin(i * 0.7) * 40}%`,
+              background:
+                i % 3 === 0 ? "#d4a017" : i % 3 === 1 ? "#4a7ef7" : "#34d399",
+              opacity: 0.25,
+              animation: `pulse ${2 + (i % 3)}s ease-in-out infinite`,
+              animationDelay: `${i * 0.2}s`,
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="max-w-7xl mx-auto relative">
+        {/* Section header */}
+        <div
+          className="mb-12"
+          style={{
+            opacity: entered ? 1 : 0,
+            transform: entered ? "translateY(0)" : "translateY(24px)",
+            transition: "opacity 0.8s ease, transform 0.8s ease",
+          }}
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+            style={{ color: "rgba(212,160,23,0.7)" }}
+          >
+            ◈ STAGE 3 — INTERACTIVE CIVILIZATION TIMELINE ENGINE
+          </div>
+          <h2
+            className="font-display text-3xl md:text-4xl font-light mb-4"
+            style={{ color: "rgba(255,255,255,0.92)", letterSpacing: "0.06em" }}
+          >
+            The Architecture of Scientific Progress
+          </h2>
+          <p
+            style={{
+              fontFamily: "Sora, sans-serif",
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.4)",
+              maxWidth: "520px",
+              lineHeight: 1.8,
+            }}
+          >
+            Navigate the causal chains of discovery. Select a knowledge lineage
+            to trace how each breakthrough enabled the next — from natural
+            philosophy to artificial intelligence.
+          </p>
+        </div>
+
+        {/* Lineage selector */}
+        <div
+          className="flex flex-wrap gap-3 mb-8"
+          style={{
+            opacity: entered ? 1 : 0,
+            transition: "opacity 0.8s ease 0.2s",
+          }}
+        >
+          {DISCOVERY_LINEAGES.map((lin) => (
+            <button
+              key={lin.id}
+              type="button"
+              data-ocid={`epochs.timeline3.lineage.${lin.id}`}
+              onClick={() => {
+                setActiveLineage(lin.id);
+                setSelectedNode(null);
+              }}
+              className="transition-all duration-300"
+              style={{
+                padding: "8px 16px",
+                borderRadius: "2px",
+                border: `1px solid ${activeLineage === lin.id ? lin.color : "rgba(255,255,255,0.1)"}`,
+                background:
+                  activeLineage === lin.id
+                    ? `${lin.color}18`
+                    : "rgba(255,255,255,0.03)",
+                color:
+                  activeLineage === lin.id
+                    ? lin.color
+                    : "rgba(255,255,255,0.45)",
+                fontFamily: "Sora, sans-serif",
+                fontSize: "11px",
+                letterSpacing: "0.06em",
+                cursor: "pointer",
+                boxShadow:
+                  activeLineage === lin.id ? `0 0 16px ${lin.color}33` : "none",
+              }}
+            >
+              {lin.title}
+            </button>
+          ))}
+        </div>
+
+        {/* Main timeline engine */}
+        <div
+          className="relative"
+          style={{
+            opacity: entered ? 1 : 0,
+            transform: entered ? "translateY(0)" : "translateY(32px)",
+            transition: "opacity 0.9s ease 0.3s, transform 0.9s ease 0.3s",
+          }}
+        >
+          {/* Canvas for animated connection lines */}
+          <canvas
+            ref={canvasRef}
+            className="absolute inset-0 pointer-events-none"
+            style={{ width: "100%", height: "100%", zIndex: 1 }}
+          />
+
+          {/* Epoch columns */}
+          <div
+            className="grid gap-3 relative"
+            style={{
+              gridTemplateColumns: "repeat(6, 1fr)",
+              minHeight: "340px",
+              zIndex: 2,
+            }}
+          >
+            {epochGroups.map(({ epochId, epoch, nodes }) => (
+              <div
+                key={epochId}
+                className="flex flex-col gap-2"
+                style={{
+                  borderLeft: `1px solid ${epoch.accentColor.replace("0.8", "0.12")}`,
+                  paddingLeft: "10px",
+                }}
+              >
+                {/* Epoch label */}
+                <div
+                  className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-1"
+                  style={{ color: epoch.accentColor.replace("0.8", "0.6") }}
+                >
+                  {epoch.shortLabel}
+                  <div
+                    style={{
+                      color: "rgba(255,255,255,0.2)",
+                      fontSize: "7px",
+                      marginTop: "2px",
+                      letterSpacing: "0.1em",
+                    }}
+                  >
+                    {epoch.period}
+                  </div>
+                </div>
+
+                {/* Discovery nodes */}
+                {nodes.map((node) => {
+                  const isInLineage = lineageNodeIds.has(node.id);
+                  const isHovered = hoveredNode === node.id;
+                  const isSelected = selectedNode === node.id;
+
+                  return (
+                    <button
+                      key={node.id}
+                      type="button"
+                      data-ocid={`epochs.timeline3.node.${node.id}`}
+                      onClick={() =>
+                        setSelectedNode(isSelected ? null : node.id)
+                      }
+                      onMouseEnter={() => setHoveredNode(node.id)}
+                      onMouseLeave={() => setHoveredNode(null)}
+                      className="text-left transition-all duration-300"
+                      style={{
+                        background: isSelected
+                          ? `${node.domainColor}22`
+                          : isHovered
+                            ? `${node.domainColor}14`
+                            : isInLineage
+                              ? "rgba(255,255,255,0.04)"
+                              : "rgba(255,255,255,0.02)",
+                        border: isSelected
+                          ? `1px solid ${node.domainColor}`
+                          : isHovered
+                            ? `1px solid ${node.domainColor}88`
+                            : isInLineage
+                              ? `1px solid ${node.domainColor}33`
+                              : "1px solid rgba(255,255,255,0.06)",
+                        borderRadius: "2px",
+                        padding: "8px",
+                        cursor: "pointer",
+                        boxShadow:
+                          isSelected || isHovered
+                            ? `0 0 12px ${node.domainColor}33`
+                            : "none",
+                        opacity: isInLineage ? 1 : 0.45,
+                        transform: isHovered ? "translateX(2px)" : "none",
+                      }}
+                    >
+                      {/* Domain dot + label */}
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <div
+                          style={{
+                            width: "5px",
+                            height: "5px",
+                            borderRadius: "50%",
+                            background: node.domainColor,
+                            boxShadow:
+                              isHovered || isSelected
+                                ? `0 0 6px ${node.domainColor}`
+                                : "none",
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          className="font-mono-geist"
+                          style={{
+                            fontSize: "7px",
+                            color: node.domainColor,
+                            letterSpacing: "0.15em",
+                            textTransform: "uppercase",
+                          }}
+                        >
+                          {node.domain}
+                        </span>
+                      </div>
+
+                      <div
+                        style={{
+                          fontFamily: "Sora, sans-serif",
+                          fontSize: "9px",
+                          color:
+                            isSelected || isHovered
+                              ? "rgba(255,255,255,0.9)"
+                              : "rgba(255,255,255,0.65)",
+                          lineHeight: 1.4,
+                          fontWeight: 500,
+                        }}
+                      >
+                        {node.label}
+                      </div>
+                      <div
+                        className="font-mono-geist"
+                        style={{
+                          fontSize: "7px",
+                          color: "rgba(255,255,255,0.25)",
+                          marginTop: "2px",
+                        }}
+                      >
+                        {node.year}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+
+          {/* Mobile: horizontal scrollable version */}
+          <div className="block lg:hidden mt-4 overflow-x-auto">
+            <div style={{ minWidth: "800px" }} className="pb-2">
+              {/* (mirrors desktop grid at smaller size — already handled by grid) */}
+            </div>
+          </div>
+        </div>
+
+        {/* Selected node detail panel */}
+        {selectedNodeData && (
+          <div
+            className="mt-8 p-6 rounded-sm relative overflow-hidden"
+            style={{
+              background: `linear-gradient(135deg, ${selectedNodeData.domainColor}10, rgba(4,5,14,0.8))`,
+              border: `1px solid ${selectedNodeData.domainColor}44`,
+              boxShadow: `0 0 32px ${selectedNodeData.domainColor}18`,
+              animation: "fadeInUp 0.35s ease",
+            }}
+            data-ocid="epochs.timeline3.node.detail.panel"
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-[1px] pointer-events-none"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${selectedNodeData.domainColor}66, transparent)`,
+              }}
+              aria-hidden="true"
+            />
+
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    className="px-2 py-1 font-mono-geist text-[8px] tracking-[0.2em] uppercase"
+                    style={{
+                      background: `${selectedNodeData.domainColor}20`,
+                      border: `1px solid ${selectedNodeData.domainColor}44`,
+                      color: selectedNodeData.domainColor,
+                      borderRadius: "2px",
+                    }}
+                  >
+                    {selectedNodeData.domain}
+                  </div>
+                  <span
+                    className="font-mono-geist text-[9px]"
+                    style={{ color: "rgba(255,255,255,0.3)" }}
+                  >
+                    {selectedNodeData.year}
+                  </span>
+                  <span
+                    className="font-mono-geist text-[9px]"
+                    style={{ color: "rgba(255,255,255,0.2)" }}
+                  >
+                    · Epoch {selectedNodeData.epochId}
+                  </span>
+                </div>
+
+                <h3
+                  className="font-display text-xl font-light mb-3"
+                  style={{
+                    color: "rgba(255,255,255,0.9)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {selectedNodeData.label}
+                </h3>
+
+                <p
+                  style={{
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "13px",
+                    color: "rgba(255,255,255,0.65)",
+                    lineHeight: 1.8,
+                    maxWidth: "640px",
+                  }}
+                >
+                  {selectedNodeData.description}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                data-ocid="epochs.timeline3.node.detail.close_button"
+                onClick={() => setSelectedNode(null)}
+                style={{
+                  background: "none",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.4)",
+                  padding: "6px 14px",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  fontFamily: "Sora, sans-serif",
+                  fontSize: "11px",
+                  letterSpacing: "0.06em",
+                  flexShrink: 0,
+                }}
+              >
+                CLOSE ×
+              </button>
+            </div>
+
+            {/* Lineages that contain this node */}
+            {(() => {
+              const containing = DISCOVERY_LINEAGES.filter((l) =>
+                l.nodes.includes(selectedNodeData.id),
+              );
+              if (!containing.length) return null;
+              return (
+                <div
+                  className="mt-4 pt-4"
+                  style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+                >
+                  <div
+                    className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-2"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                  >
+                    PART OF LINEAGE
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {containing.map((lin) => (
+                      <button
+                        key={lin.id}
+                        type="button"
+                        data-ocid={`epochs.timeline3.node.lineage.${lin.id}`}
+                        onClick={() => setActiveLineage(lin.id)}
+                        style={{
+                          padding: "4px 10px",
+                          background: `${lin.color}18`,
+                          border: `1px solid ${lin.color}44`,
+                          color: lin.color,
+                          borderRadius: "2px",
+                          fontFamily: "Sora, sans-serif",
+                          fontSize: "10px",
+                          cursor: "pointer",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {lin.title}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* Lineage legend / flow summary */}
+        <div
+          className="mt-10 p-5 rounded-sm"
+          style={{
+            background: "rgba(255,255,255,0.02)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            opacity: entered ? 1 : 0,
+            transition: "opacity 0.8s ease 0.6s",
+          }}
+        >
+          <div
+            className="font-mono-geist text-[9px] tracking-[0.3em] uppercase mb-4"
+            style={{ color: "rgba(255,255,255,0.25)" }}
+          >
+            ACTIVE LINEAGE — {activeLineageData.title}
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            {activeLineageData.nodes.map((nodeId, i) => {
+              const node = DISCOVERY_NODES.find((n) => n.id === nodeId);
+              if (!node) return null;
+              const isLast = i === activeLineageData.nodes.length - 1;
+              return (
+                <div key={nodeId} className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    data-ocid={`epochs.timeline3.legend.${nodeId}`}
+                    onClick={() => setSelectedNode(nodeId)}
+                    onMouseEnter={() => setHoveredNode(nodeId)}
+                    onMouseLeave={() => setHoveredNode(null)}
+                    className="transition-all duration-200"
+                    style={{
+                      padding: "4px 10px",
+                      background:
+                        hoveredNode === nodeId || selectedNode === nodeId
+                          ? `${node.domainColor}22`
+                          : "rgba(255,255,255,0.04)",
+                      border: `1px solid ${hoveredNode === nodeId || selectedNode === nodeId ? node.domainColor : "rgba(255,255,255,0.1)"}`,
+                      borderRadius: "2px",
+                      color:
+                        hoveredNode === nodeId || selectedNode === nodeId
+                          ? node.domainColor
+                          : "rgba(255,255,255,0.6)",
+                      fontFamily: "Sora, sans-serif",
+                      fontSize: "10px",
+                      cursor: "pointer",
+                      letterSpacing: "0.04em",
+                      whiteSpace: "nowrap",
+                    }}
+                  >
+                    {node.label}
+                  </button>
+                  {!isLast && (
+                    <span
+                      className="font-mono-geist text-[10px]"
+                      style={{ color: activeLineageData.color, opacity: 0.7 }}
+                    >
+                      →
+                    </span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// ── Stage 4: Scientific Constellation Map ────────────────────────────────────
+interface ConstellationNodeDef {
+  id: string;
+  label: string;
+  shortLabel: string;
+  domain: string;
+  domainColor: string;
+  epochId: number;
+  cx: number;
+  cy: number;
+  size: number;
+  description: string;
+  connections: string[];
+}
+
+const CONSTELLATION_NODES: ConstellationNodeDef[] = [
+  {
+    id: "cn-gravity",
+    label: "Newtonian Gravity",
+    shortLabel: "Gravity",
+    domain: "Physics",
+    domainColor: "#d4a017",
+    epochId: 1,
+    cx: 18,
+    cy: 18,
+    size: 3,
+    description:
+      "Universal gravitation — unified terrestrial and celestial mechanics under one law.",
+    connections: ["cn-calculus", "cn-electromag", "cn-relativity"],
+  },
+  {
+    id: "cn-calculus",
+    label: "Calculus",
+    shortLabel: "Calculus",
+    domain: "Mathematics",
+    domainColor: "#d4a017",
+    epochId: 1,
+    cx: 12,
+    cy: 32,
+    size: 2,
+    description:
+      "Infinitesimal calculus — the mathematical language of change and motion.",
+    connections: ["cn-gravity", "cn-thermo", "cn-quantum"],
+  },
+  {
+    id: "cn-electromag",
+    label: "Electromagnetism",
+    shortLabel: "EM Theory",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    epochId: 3,
+    cx: 28,
+    cy: 22,
+    size: 3,
+    description:
+      "Maxwell unified electricity, magnetism, and light as manifestations of one field.",
+    connections: [
+      "cn-gravity",
+      "cn-quantum",
+      "cn-transistor",
+      "cn-electricity",
+    ],
+  },
+  {
+    id: "cn-relativity",
+    label: "Relativity",
+    shortLabel: "Relativity",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    epochId: 3,
+    cx: 22,
+    cy: 38,
+    size: 2,
+    description:
+      "Einstein's special and general relativity redefined space, time, and gravity.",
+    connections: ["cn-gravity", "cn-quantum", "cn-gps"],
+  },
+  {
+    id: "cn-quantum",
+    label: "Quantum Mechanics",
+    shortLabel: "Quantum",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    epochId: 3,
+    cx: 35,
+    cy: 30,
+    size: 3,
+    description:
+      "The probabilistic framework governing atomic and subatomic phenomena — foundation of all modern electronics.",
+    connections: ["cn-electromag", "cn-transistor", "cn-laser", "cn-quantum2"],
+  },
+  {
+    id: "cn-steam",
+    label: "Steam Engine",
+    shortLabel: "Steam",
+    domain: "Engineering",
+    domainColor: "#94a3b8",
+    epochId: 2,
+    cx: 14,
+    cy: 52,
+    size: 2,
+    description:
+      "Watt's steam engine converted thermodynamic theory into productive mechanical power.",
+    connections: ["cn-thermo", "cn-electricity"],
+  },
+  {
+    id: "cn-thermo",
+    label: "Thermodynamics",
+    shortLabel: "Thermo",
+    domain: "Physics",
+    domainColor: "#94a3b8",
+    epochId: 2,
+    cx: 22,
+    cy: 55,
+    size: 2,
+    description:
+      "Laws governing energy conversion — fundamental to all heat engines and refrigeration.",
+    connections: ["cn-steam", "cn-calculus", "cn-electricity"],
+  },
+  {
+    id: "cn-electricity",
+    label: "Electric Grid",
+    shortLabel: "Electric",
+    domain: "Engineering",
+    domainColor: "#4a7ef7",
+    epochId: 3,
+    cx: 30,
+    cy: 48,
+    size: 2,
+    description:
+      "Edison and Tesla's power distribution networks created civilizational energy infrastructure.",
+    connections: ["cn-electromag", "cn-steam", "cn-transistor"],
+  },
+  {
+    id: "cn-transistor",
+    label: "Transistor",
+    shortLabel: "Transistor",
+    domain: "Engineering",
+    domainColor: "#34d399",
+    epochId: 4,
+    cx: 45,
+    cy: 32,
+    size: 3,
+    description:
+      "Bell Labs' semiconductor switch — the fundamental logic unit of all digital computation.",
+    connections: [
+      "cn-quantum",
+      "cn-electricity",
+      "cn-computing",
+      "cn-integrated",
+    ],
+  },
+  {
+    id: "cn-integrated",
+    label: "Integrated Circuit",
+    shortLabel: "IC Chip",
+    domain: "Engineering",
+    domainColor: "#34d399",
+    epochId: 4,
+    cx: 52,
+    cy: 22,
+    size: 2,
+    description:
+      "Kilby and Noyce's IC miniaturized thousands of transistors onto a single silicon substrate.",
+    connections: ["cn-transistor", "cn-computing", "cn-internet"],
+  },
+  {
+    id: "cn-computing",
+    label: "Stored-Program Computer",
+    shortLabel: "Computing",
+    domain: "Computation",
+    domainColor: "#34d399",
+    epochId: 4,
+    cx: 55,
+    cy: 42,
+    size: 3,
+    description:
+      "Von Neumann architecture — a universal machine that executes any algorithm.",
+    connections: ["cn-transistor", "cn-integrated", "cn-internet", "cn-ai"],
+  },
+  {
+    id: "cn-internet",
+    label: "Internet Protocol",
+    shortLabel: "Internet",
+    domain: "Networks",
+    domainColor: "#a78bfa",
+    epochId: 5,
+    cx: 65,
+    cy: 30,
+    size: 3,
+    description:
+      "TCP/IP created a universal protocol for networked machines — the information economy's substrate.",
+    connections: ["cn-computing", "cn-integrated", "cn-ai", "cn-smartphone"],
+  },
+  {
+    id: "cn-ai",
+    label: "Neural Networks / AI",
+    shortLabel: "AI",
+    domain: "AI",
+    domainColor: "#f97316",
+    epochId: 6,
+    cx: 75,
+    cy: 42,
+    size: 3,
+    description:
+      "Deep learning and transformer architectures — AI systems that generalize across domains.",
+    connections: [
+      "cn-computing",
+      "cn-internet",
+      "cn-quantum2",
+      "cn-transformer",
+    ],
+  },
+  {
+    id: "cn-transformer",
+    label: "Transformer Architecture",
+    shortLabel: "Transformer",
+    domain: "AI",
+    domainColor: "#f97316",
+    epochId: 6,
+    cx: 82,
+    cy: 32,
+    size: 2,
+    description:
+      "Attention-based neural architecture enabling large language models and general AI reasoning.",
+    connections: ["cn-ai", "cn-internet"],
+  },
+  {
+    id: "cn-evolution",
+    label: "Theory of Evolution",
+    shortLabel: "Evolution",
+    domain: "Biology",
+    domainColor: "#94a3b8",
+    epochId: 2,
+    cx: 25,
+    cy: 72,
+    size: 2,
+    description:
+      "Natural selection — the unifying explanatory framework for all of biology.",
+    connections: ["cn-dna", "cn-genetics"],
+  },
+  {
+    id: "cn-dna",
+    label: "DNA Double Helix",
+    shortLabel: "DNA",
+    domain: "Biology",
+    domainColor: "#34d399",
+    epochId: 4,
+    cx: 42,
+    cy: 68,
+    size: 3,
+    description:
+      "Watson and Crick's discovery — information storage architecture of all life.",
+    connections: ["cn-evolution", "cn-genetics", "cn-genome", "cn-crispr"],
+  },
+  {
+    id: "cn-genetics",
+    label: "Mendelian Genetics",
+    shortLabel: "Genetics",
+    domain: "Biology",
+    domainColor: "#34d399",
+    epochId: 2,
+    cx: 35,
+    cy: 78,
+    size: 2,
+    description:
+      "Mendel's laws of inheritance — the mathematical basis of genetic trait transmission.",
+    connections: ["cn-evolution", "cn-dna"],
+  },
+  {
+    id: "cn-genome",
+    label: "Human Genome",
+    shortLabel: "Genome",
+    domain: "Biology",
+    domainColor: "#a78bfa",
+    epochId: 5,
+    cx: 55,
+    cy: 72,
+    size: 2,
+    description:
+      "First complete map of human DNA — launched precision medicine and genomic research.",
+    connections: ["cn-dna", "cn-crispr", "cn-computing"],
+  },
+  {
+    id: "cn-crispr",
+    label: "CRISPR-Cas9",
+    shortLabel: "CRISPR",
+    domain: "Biology",
+    domainColor: "#f97316",
+    epochId: 6,
+    cx: 68,
+    cy: 68,
+    size: 3,
+    description:
+      "Programmable gene editing — precise, cheap, applicable to any organism.",
+    connections: ["cn-dna", "cn-genome"],
+  },
+  {
+    id: "cn-laser",
+    label: "Laser Technology",
+    shortLabel: "Laser",
+    domain: "Physics",
+    domainColor: "#4a7ef7",
+    epochId: 4,
+    cx: 42,
+    cy: 48,
+    size: 1,
+    description:
+      "Coherent light amplification — enabling fiber optics, surgery, manufacturing, and sensing.",
+    connections: ["cn-quantum", "cn-internet"],
+  },
+  {
+    id: "cn-gps",
+    label: "GPS Navigation",
+    shortLabel: "GPS",
+    domain: "Engineering",
+    domainColor: "#94a3b8",
+    epochId: 5,
+    cx: 62,
+    cy: 52,
+    size: 1,
+    description:
+      "Relativistic corrections applied to satellite timing — precision location for civilization.",
+    connections: ["cn-relativity", "cn-smartphone", "cn-internet"],
+  },
+  {
+    id: "cn-smartphone",
+    label: "Smartphone",
+    shortLabel: "Smartphone",
+    domain: "Computation",
+    domainColor: "#a78bfa",
+    epochId: 5,
+    cx: 72,
+    cy: 58,
+    size: 2,
+    description:
+      "Convergent device integrating computing, internet, GPS, and camera — knowledge at scale.",
+    connections: ["cn-internet", "cn-gps", "cn-ai"],
+  },
+  {
+    id: "cn-quantum2",
+    label: "Quantum Computing",
+    shortLabel: "Quantum Comp",
+    domain: "Computation",
+    domainColor: "#f97316",
+    epochId: 6,
+    cx: 85,
+    cy: 52,
+    size: 2,
+    description:
+      "Quantum processors exploit superposition and entanglement for problem classes beyond classical compute.",
+    connections: ["cn-quantum", "cn-ai"],
+  },
+];
+
+const DOMAIN_FILTERS_LIST = [
+  "All",
+  "Physics",
+  "Mathematics",
+  "Engineering",
+  "Computation",
+  "Biology",
+  "Networks",
+  "AI",
+] as const;
+type DomainFilterType = (typeof DOMAIN_FILTERS_LIST)[number];
+
+function ScientificConstellationMap() {
+  const [activeEpochFilter, setActiveEpochFilter] = useState<number | null>(
+    null,
+  );
+  const [activeDomain, setActiveDomain] = useState<DomainFilterType>("All");
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [entered, setEntered] = useState(false);
+  const sectionRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sectionRef.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setEntered(true);
+      },
+      { threshold: 0.1 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  const visibleNodes = CONSTELLATION_NODES.filter((n) => {
+    if (activeEpochFilter !== null && n.epochId !== activeEpochFilter)
+      return false;
+    if (activeDomain !== "All" && n.domain !== activeDomain) return false;
+    return true;
+  });
+  const visibleIds = new Set(visibleNodes.map((n) => n.id));
+
+  const selectedNodeData = selectedNodeId
+    ? CONSTELLATION_NODES.find((n) => n.id === selectedNodeId)
+    : null;
+  const hoveredNodeData = hoveredNodeId
+    ? CONSTELLATION_NODES.find((n) => n.id === hoveredNodeId)
+    : null;
+
+  const highlightConnections = new Set<string>();
+  const activeId = hoveredNodeId || selectedNodeId;
+  if (activeId) {
+    const nd = CONSTELLATION_NODES.find((n) => n.id === activeId);
+    if (nd) {
+      for (const cid of nd.connections) {
+        highlightConnections.add(cid);
+      }
+    }
+    highlightConnections.add(activeId);
+  }
+
+  const nodeRadius = (size: number) => 4 + size * 3;
+
+  return (
+    <section
+      ref={sectionRef}
+      className="py-24 px-6 relative overflow-hidden"
+      style={{
+        background:
+          "linear-gradient(180deg, rgba(4,5,14,0) 0%, rgba(4,6,18,0.9) 50%, rgba(4,5,14,0) 100%)",
+      }}
+      aria-label="Scientific Constellation Map"
+    >
+      <div className="max-w-7xl mx-auto relative">
+        {/* Header */}
+        <div
+          className="mb-10"
+          style={{
+            opacity: entered ? 1 : 0,
+            transform: entered ? "translateY(0)" : "translateY(24px)",
+            transition: "opacity 0.8s ease, transform 0.8s ease",
+          }}
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+            style={{ color: "rgba(212,160,23,0.7)" }}
+          >
+            ◈ STAGE 4 — SCIENTIFIC CONSTELLATION MAP
+          </div>
+          <h2
+            className="font-display text-3xl md:text-4xl font-light mb-4"
+            style={{ color: "rgba(255,255,255,0.92)", letterSpacing: "0.06em" }}
+          >
+            Knowledge Constellations Across Time
+          </h2>
+          <p
+            style={{
+              fontFamily: "Sora, sans-serif",
+              fontSize: "13px",
+              color: "rgba(255,255,255,0.4)",
+              maxWidth: "520px",
+              lineHeight: 1.8,
+            }}
+          >
+            Each node is a discovery. Each line is a dependency. Hover to
+            illuminate connected discoveries. Click to read the detail. Filter
+            by epoch or domain to reveal specific knowledge networks.
+          </p>
+        </div>
+
+        {/* Epoch + domain filters */}
+        <div
+          className="flex flex-wrap gap-y-3 gap-x-2 mb-8"
+          style={{
+            opacity: entered ? 1 : 0,
+            transition: "opacity 0.8s ease 0.2s",
+          }}
+        >
+          <div className="flex flex-wrap gap-1.5 mr-4">
+            {([null, 1, 2, 3, 4, 5, 6] as const).map((epId) => {
+              const label =
+                epId === null
+                  ? "All Epochs"
+                  : (CIVILIZATION_EPOCHS.find((e) => e.id === epId)
+                      ?.shortLabel ?? `Epoch ${epId}`);
+              const isActive = activeEpochFilter === epId;
+              const rawColor =
+                epId === null
+                  ? "#ffffff"
+                  : (CIVILIZATION_EPOCHS.find((e) => e.id === epId)
+                      ?.accentColor ?? "#fff");
+              const color = rawColor.replace("0.8", "1");
+              return (
+                <button
+                  key={epId === null ? "ep-all" : `ep-${epId}`}
+                  type="button"
+                  data-ocid={`epochs.constellation.epoch_filter.${epId === null ? "all" : epId}`}
+                  onClick={() => setActiveEpochFilter(epId)}
+                  style={{
+                    padding: "5px 11px",
+                    borderRadius: "2px",
+                    border: `1px solid ${isActive ? color : "rgba(255,255,255,0.1)"}`,
+                    background: isActive
+                      ? `${color}18`
+                      : "rgba(255,255,255,0.03)",
+                    color: isActive ? color : "rgba(255,255,255,0.4)",
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "10px",
+                    letterSpacing: "0.06em",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {label}
+                </button>
+              );
+            })}
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {DOMAIN_FILTERS_LIST.map((domain) => {
+              const isActive = activeDomain === domain;
+              const nodeInDomain = CONSTELLATION_NODES.find(
+                (n) => n.domain === domain,
+              );
+              const color =
+                domain === "All"
+                  ? "#ffffff"
+                  : (nodeInDomain?.domainColor ?? "#fff");
+              return (
+                <button
+                  key={`dom-${domain}`}
+                  type="button"
+                  data-ocid={`epochs.constellation.domain_filter.${domain.toLowerCase()}`}
+                  onClick={() => setActiveDomain(domain)}
+                  style={{
+                    padding: "5px 11px",
+                    borderRadius: "2px",
+                    border: `1px solid ${isActive ? color : "rgba(255,255,255,0.08)"}`,
+                    background: isActive
+                      ? `${color}15`
+                      : "rgba(255,255,255,0.02)",
+                    color: isActive ? color : "rgba(255,255,255,0.35)",
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "10px",
+                    letterSpacing: "0.05em",
+                    cursor: "pointer",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {domain}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* SVG Constellation */}
+        <div
+          className="relative rounded-sm overflow-hidden"
+          style={{
+            background: "rgba(4,5,14,0.6)",
+            border: "1px solid rgba(255,255,255,0.06)",
+            opacity: entered ? 1 : 0,
+            transition: "opacity 0.9s ease 0.35s",
+          }}
+        >
+          <svg
+            viewBox="0 0 100 90"
+            className="w-full"
+            style={{ height: "clamp(300px, 50vw, 540px)" }}
+            aria-label="Scientific knowledge constellation visualization"
+            role="img"
+          >
+            <title>Scientific Knowledge Constellation</title>
+            <defs>
+              <radialGradient id="constBg" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stopColor="rgba(74,126,247,0.1)" />
+                <stop offset="100%" stopColor="rgba(4,5,14,0)" />
+              </radialGradient>
+              {CONSTELLATION_NODES.map((n) => (
+                <radialGradient
+                  key={`cng-${n.id}`}
+                  id={`cng-${n.id}`}
+                  cx="50%"
+                  cy="50%"
+                  r="50%"
+                >
+                  <stop
+                    offset="0%"
+                    stopColor={n.domainColor}
+                    stopOpacity="0.9"
+                  />
+                  <stop
+                    offset="100%"
+                    stopColor={n.domainColor}
+                    stopOpacity="0.2"
+                  />
+                </radialGradient>
+              ))}
+              <filter id="cn-glow">
+                <feGaussianBlur stdDeviation="0.8" result="blur" />
+                <feMerge>
+                  <feMergeNode in="blur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+
+            <rect x="0" y="0" width="100" height="90" fill="url(#constBg)" />
+
+            {/* Star field */}
+            {[
+              { x: 5, y: 8 },
+              { x: 15, y: 3 },
+              { x: 30, y: 6 },
+              { x: 50, y: 4 },
+              { x: 70, y: 7 },
+              { x: 85, y: 5 },
+              { x: 95, y: 10 },
+              { x: 3, y: 45 },
+              { x: 8, y: 70 },
+              { x: 18, y: 85 },
+              { x: 45, y: 88 },
+              { x: 65, y: 82 },
+              { x: 80, y: 87 },
+              { x: 93, y: 75 },
+              { x: 50, y: 50 },
+              { x: 20, y: 60 },
+              { x: 75, y: 25 },
+              { x: 90, y: 40 },
+              { x: 10, y: 25 },
+              { x: 40, y: 15 },
+            ].map((star) => (
+              <circle
+                key={`s${star.x}-${star.y}`}
+                cx={star.x}
+                cy={star.y}
+                r="0.12"
+                fill="rgba(255,255,255,0.25)"
+              />
+            ))}
+
+            {/* Connection lines */}
+            {CONSTELLATION_NODES.flatMap((node) =>
+              node.connections
+                .filter((cid) => cid > node.id)
+                .map((cid) => {
+                  const target = CONSTELLATION_NODES.find((n) => n.id === cid);
+                  if (!target) return null;
+                  const bothVisible =
+                    visibleIds.has(node.id) && visibleIds.has(cid);
+                  const isHighlighted =
+                    highlightConnections.has(node.id) &&
+                    highlightConnections.has(cid);
+                  return (
+                    <line
+                      key={`cl-${node.id}-${cid}`}
+                      x1={node.cx}
+                      y1={node.cy}
+                      x2={target.cx}
+                      y2={target.cy}
+                      stroke={
+                        isHighlighted
+                          ? node.domainColor
+                          : "rgba(255,255,255,0.07)"
+                      }
+                      strokeWidth={isHighlighted ? 0.35 : 0.12}
+                      opacity={
+                        bothVisible ? (isHighlighted ? 0.9 : 0.45) : 0.04
+                      }
+                      strokeDasharray={isHighlighted ? "none" : "0.8 1.5"}
+                      filter={isHighlighted ? "url(#cn-glow)" : undefined}
+                      style={{ transition: "all 0.3s ease" }}
+                    />
+                  );
+                }),
+            )}
+
+            {/* Nodes */}
+            {CONSTELLATION_NODES.map((node) => {
+              const isVisible = visibleIds.has(node.id);
+              const isHov = hoveredNodeId === node.id;
+              const isSel = selectedNodeId === node.id;
+              const isConn =
+                highlightConnections.has(node.id) && !isHov && !isSel;
+              const r = nodeRadius(node.size);
+              return (
+                <g
+                  key={`cn-g-${node.id}`}
+                  data-ocid={`epochs.constellation.node.${node.id.replace("cn-", "")}`}
+                  style={{
+                    cursor: "pointer",
+                    opacity: isVisible ? 1 : 0.08,
+                    transition: "opacity 0.4s ease",
+                  }}
+                  onMouseEnter={() => setHoveredNodeId(node.id)}
+                  onMouseLeave={() => setHoveredNodeId(null)}
+                  onClick={() =>
+                    setSelectedNodeId(
+                      selectedNodeId === node.id ? null : node.id,
+                    )
+                  }
+                  tabIndex={0}
+                  aria-label={node.label}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ")
+                      setSelectedNodeId(
+                        selectedNodeId === node.id ? null : node.id,
+                      );
+                  }}
+                >
+                  {(isHov || isSel) && (
+                    <circle
+                      cx={node.cx}
+                      cy={node.cy}
+                      r={r / 2 + 3}
+                      fill="none"
+                      stroke={node.domainColor}
+                      strokeWidth="0.25"
+                      opacity="0.35"
+                      style={{ animation: "pulse 1.8s ease-in-out infinite" }}
+                    />
+                  )}
+                  {isConn && (
+                    <circle
+                      cx={node.cx}
+                      cy={node.cy}
+                      r={r / 2 + 1.5}
+                      fill="none"
+                      stroke={node.domainColor}
+                      strokeWidth="0.18"
+                      opacity="0.3"
+                    />
+                  )}
+                  <circle
+                    cx={node.cx}
+                    cy={node.cy}
+                    r={r / 2}
+                    fill={`url(#cng-${node.id})`}
+                    stroke={
+                      isHov || isSel
+                        ? node.domainColor
+                        : `${node.domainColor}44`
+                    }
+                    strokeWidth={isHov || isSel ? 0.35 : 0.18}
+                    filter={
+                      isHov || isSel || isConn ? "url(#cn-glow)" : undefined
+                    }
+                    style={{ transition: "all 0.25s ease" }}
+                  />
+                  {(isHov || isSel || node.size === 3) && (
+                    <text
+                      x={node.cx}
+                      y={node.cy + r / 2 + 2.5}
+                      textAnchor="middle"
+                      fill={
+                        isHov || isSel
+                          ? "rgba(255,255,255,0.9)"
+                          : "rgba(255,255,255,0.45)"
+                      }
+                      fontSize="2"
+                      fontFamily="monospace"
+                      style={{ pointerEvents: "none" }}
+                    >
+                      {node.shortLabel}
+                    </text>
+                  )}
+                </g>
+              );
+            })}
+          </svg>
+
+          {/* Hover tooltip */}
+          {hoveredNodeData && !selectedNodeId && (
+            <div
+              className="absolute bottom-4 left-4 pointer-events-none"
+              style={{
+                background: "rgba(4,5,14,0.94)",
+                border: `1px solid ${hoveredNodeData.domainColor}44`,
+                borderRadius: "2px",
+                padding: "10px 14px",
+                maxWidth: "260px",
+                boxShadow: `0 0 20px ${hoveredNodeData.domainColor}22`,
+              }}
+            >
+              <div className="flex items-center gap-2 mb-1">
+                <div
+                  style={{
+                    width: "5px",
+                    height: "5px",
+                    borderRadius: "50%",
+                    background: hoveredNodeData.domainColor,
+                    flexShrink: 0,
+                  }}
+                />
+                <span
+                  className="font-mono-geist"
+                  style={{
+                    fontSize: "7px",
+                    color: hoveredNodeData.domainColor,
+                    letterSpacing: "0.2em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {hoveredNodeData.domain} · Epoch {hoveredNodeData.epochId}
+                </span>
+              </div>
+              <div
+                style={{
+                  fontFamily: "Sora, sans-serif",
+                  fontSize: "11px",
+                  color: "rgba(255,255,255,0.85)",
+                  fontWeight: 500,
+                  marginBottom: "4px",
+                }}
+              >
+                {hoveredNodeData.label}
+              </div>
+              <div
+                style={{
+                  fontFamily: "Sora, sans-serif",
+                  fontSize: "10px",
+                  color: "rgba(255,255,255,0.45)",
+                  lineHeight: 1.6,
+                }}
+              >
+                {hoveredNodeData.description}
+              </div>
+              <div
+                className="mt-2 font-mono-geist"
+                style={{ fontSize: "8px", color: "rgba(255,255,255,0.22)" }}
+              >
+                {hoveredNodeData.connections.length} connection
+                {hoveredNodeData.connections.length !== 1 ? "s" : ""} — click to
+                explore
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Selected node detail */}
+        {selectedNodeData && (
+          <div
+            className="mt-6 p-6 rounded-sm relative overflow-hidden"
+            data-ocid="epochs.constellation.detail.panel"
+            style={{
+              background: `linear-gradient(135deg, ${selectedNodeData.domainColor}10, rgba(4,5,14,0.95))`,
+              border: `1px solid ${selectedNodeData.domainColor}40`,
+              boxShadow: `0 0 40px ${selectedNodeData.domainColor}14`,
+              animation: "fadeInUp 0.3s ease",
+            }}
+          >
+            <div
+              className="absolute top-0 left-0 right-0 h-[1px]"
+              style={{
+                background: `linear-gradient(90deg, transparent, ${selectedNodeData.domainColor}55, transparent)`,
+              }}
+            />
+            <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
+              <div>
+                <div className="flex items-center gap-3 mb-3">
+                  <div
+                    style={{
+                      width: "6px",
+                      height: "6px",
+                      borderRadius: "50%",
+                      background: selectedNodeData.domainColor,
+                      boxShadow: `0 0 8px ${selectedNodeData.domainColor}`,
+                    }}
+                  />
+                  <span
+                    className="font-mono-geist text-[8px] tracking-[0.2em] uppercase"
+                    style={{ color: selectedNodeData.domainColor }}
+                  >
+                    {selectedNodeData.domain}
+                  </span>
+                  <span
+                    className="font-mono-geist text-[9px]"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                  >
+                    Epoch {selectedNodeData.epochId} —{" "}
+                    {
+                      CIVILIZATION_EPOCHS.find(
+                        (e) => e.id === selectedNodeData.epochId,
+                      )?.period
+                    }
+                  </span>
+                </div>
+                <h3
+                  className="font-display text-xl font-light mb-2"
+                  style={{
+                    color: "rgba(255,255,255,0.92)",
+                    letterSpacing: "0.05em",
+                  }}
+                >
+                  {selectedNodeData.label}
+                </h3>
+                <p
+                  style={{
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "13px",
+                    color: "rgba(255,255,255,0.6)",
+                    lineHeight: 1.8,
+                    maxWidth: "600px",
+                  }}
+                >
+                  {selectedNodeData.description}
+                </p>
+              </div>
+              <button
+                type="button"
+                data-ocid="epochs.constellation.detail.close_button"
+                onClick={() => setSelectedNodeId(null)}
+                style={{
+                  background: "none",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "rgba(255,255,255,0.4)",
+                  padding: "6px 14px",
+                  borderRadius: "2px",
+                  cursor: "pointer",
+                  fontFamily: "Sora, sans-serif",
+                  fontSize: "11px",
+                  letterSpacing: "0.06em",
+                  flexShrink: 0,
+                }}
+              >
+                CLOSE ×
+              </button>
+            </div>
+            {selectedNodeData.connections.length > 0 && (
+              <div
+                className="pt-4"
+                style={{ borderTop: "1px solid rgba(255,255,255,0.06)" }}
+              >
+                <div
+                  className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-3"
+                  style={{ color: "rgba(255,255,255,0.25)" }}
+                >
+                  CONNECTED DISCOVERIES
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {selectedNodeData.connections.map((cid) => {
+                    const cn = CONSTELLATION_NODES.find((n) => n.id === cid);
+                    if (!cn) return null;
+                    return (
+                      <button
+                        key={`detail-conn-${cid}`}
+                        type="button"
+                        data-ocid={`epochs.constellation.detail.connection.${cid.replace("cn-", "")}`}
+                        onClick={() => setSelectedNodeId(cid)}
+                        style={{
+                          padding: "5px 12px",
+                          background: `${cn.domainColor}15`,
+                          border: `1px solid ${cn.domainColor}40`,
+                          color: cn.domainColor,
+                          borderRadius: "2px",
+                          fontFamily: "Sora, sans-serif",
+                          fontSize: "10px",
+                          cursor: "pointer",
+                          letterSpacing: "0.04em",
+                        }}
+                      >
+                        {cn.shortLabel}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Domain legend */}
+        <div
+          className="mt-8 flex flex-wrap gap-4"
+          style={{
+            opacity: entered ? 1 : 0,
+            transition: "opacity 0.8s ease 0.5s",
+          }}
+        >
+          {(
+            [
+              "Physics",
+              "Mathematics",
+              "Engineering",
+              "Computation",
+              "Biology",
+              "Networks",
+              "AI",
+            ] as const
+          ).map((domain) => {
+            const nodeInDomain = CONSTELLATION_NODES.find(
+              (n) => n.domain === domain,
+            );
+            const color = nodeInDomain?.domainColor ?? "#fff";
+            const count = CONSTELLATION_NODES.filter(
+              (n) => n.domain === domain,
+            ).length;
+            return (
+              <div key={`legend-${domain}`} className="flex items-center gap-2">
+                <div
+                  style={{
+                    width: "6px",
+                    height: "6px",
+                    borderRadius: "50%",
+                    background: color,
+                    boxShadow: `0 0 4px ${color}`,
+                  }}
+                />
+                <span
+                  className="font-mono-geist"
+                  style={{
+                    fontSize: "9px",
+                    color: "rgba(255,255,255,0.4)",
+                    letterSpacing: "0.12em",
+                    textTransform: "uppercase",
+                  }}
+                >
+                  {domain} ({count})
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ── Main Page Component ───────────────────────────────────────────────────────
 export default function EpochsPage({ onBack }: EpochsPageProps) {
   const [hoveredGaia, setHoveredGaia] = useState<number | null>(null);
@@ -2468,6 +4341,12 @@ export default function EpochsPage({ onBack }: EpochsPageProps) {
       </section>
 
       {/* ══════════════════════════════════════════════════════════════════ */}
+
+      {/* ── Stage 3: Interactive Civilization Timeline Engine ─────────────── */}
+      <CivilizationTimelineEngine />
+
+      {/* ── Stage 4: Scientific Constellation Map ─────────────────────────── */}
+      <ScientificConstellationMap />
 
       {/* ── Mission ──────────────────────────────────────────────────────── */}
       <section className="py-20 px-6">
