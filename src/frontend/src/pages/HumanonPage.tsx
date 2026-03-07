@@ -7,9 +7,8 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import type { HumanonMentor, HumanonProject } from "../backend.d";
+import type { HumanonProject } from "../backend.d";
 import {
-  useGetHumanonMentors,
   useGetHumanonProjects,
   useGetHumanonStats,
   useSubmitCollaborationRequest,
@@ -142,80 +141,6 @@ const INDUSTRY_STEPS = [
     color: "#34d399",
   },
 ];
-
-const METRICS_LABELS = [
-  { key: "participantsEnrolled", label: "Participants Enrolled", color: TEAL },
-  { key: "projectsCompleted", label: "Research Projects", color: BLUE },
-  { key: "industryPartners", label: "Industry Partners", color: GOLD },
-  { key: "careerPlacements", label: "Career Placements", color: "#a78bfa" },
-  { key: "countriesRepresented", label: "Countries", color: "#34d399" },
-] as const;
-
-const METRIC_BARS = [
-  { label: "Career Placement Rate", value: 87, color: GOLD },
-  { label: "Research Output", value: 72, color: BLUE },
-  { label: "Partner Satisfaction", value: 94, color: TEAL },
-  { label: "Skill Development", value: 91, color: "#a78bfa" },
-  { label: "Network Expansion", value: 78, color: "#34d399" },
-];
-
-// ─── Helper: animated metric bar ─────────────────────────────────────────────
-function MetricBar({
-  label,
-  value,
-  color,
-  index,
-}: {
-  label: string;
-  value: number;
-  color: string;
-  index: number;
-}) {
-  const [animated, setAnimated] = useState(false);
-  const ref = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setTimeout(() => setAnimated(true), index * 120);
-        }
-      },
-      { threshold: 0.5 },
-    );
-    if (ref.current) observer.observe(ref.current);
-    return () => observer.disconnect();
-  }, [index]);
-
-  return (
-    <div ref={ref} className="space-y-2">
-      <div className="flex items-center justify-between">
-        <span
-          className="font-mono-geist text-[10px] tracking-[0.1em] uppercase"
-          style={{ color: "rgba(255,255,255,0.6)" }}
-        >
-          {label}
-        </span>
-        <span className="font-mono-geist text-sm font-bold" style={{ color }}>
-          {value}%
-        </span>
-      </div>
-      <div
-        className="h-1.5 rounded-full overflow-hidden"
-        style={{ background: "rgba(255,255,255,0.06)" }}
-      >
-        <div
-          className="h-full rounded-full transition-all duration-1000 ease-out"
-          style={{
-            width: animated ? `${value}%` : "0%",
-            background: `linear-gradient(90deg, ${color}88, ${color})`,
-            boxShadow: `0 0 8px ${color}44`,
-          }}
-        />
-      </div>
-    </div>
-  );
-}
 
 // ─── Helper: count-up number ─────────────────────────────────────────────────
 function CountUp({ target, color }: { target: number; color: string }) {
@@ -800,75 +725,7 @@ function ProjectCardSkeleton() {
   );
 }
 
-function MentorCardSkeleton() {
-  return (
-    <div
-      className="rounded-sm p-5"
-      style={{
-        background: "rgba(255,255,255,0.03)",
-        border: "1px solid rgba(255,255,255,0.07)",
-        borderLeft: "2px solid rgba(34,211,176,0.2)",
-      }}
-    >
-      <Skeleton className="h-5 w-2/3 mb-2" />
-      <Skeleton className="h-3 w-1/3 mb-3" />
-      <Skeleton className="h-3 w-1/2" />
-    </div>
-  );
-}
-
 // ─── Seed data for when backend returns empty ─────────────────────────────────
-const SEED_MENTORS: HumanonMentor[] = [
-  {
-    id: 1n,
-    name: "Dr. Amara Osei-Bonsu",
-    domain: "Climate Systems",
-    organization: "EPOCHS Research",
-    role: "Senior Research Lead",
-    profileUrl: "",
-  },
-  {
-    id: 2n,
-    name: "Priya Nair",
-    domain: "Ethical AI",
-    organization: "STEAMI Intelligence",
-    role: "AI Ethics Researcher",
-    profileUrl: "",
-  },
-  {
-    id: 3n,
-    name: "James Whitfield",
-    domain: "Deep Technology",
-    organization: "NOVA Ventures",
-    role: "Systems Architect",
-    profileUrl: "",
-  },
-  {
-    id: 4n,
-    name: "Dr. Chen Wei",
-    domain: "Medical Systems",
-    organization: "EPOCHS LAB NEIA",
-    role: "Biomedical Researcher",
-    profileUrl: "",
-  },
-  {
-    id: 5n,
-    name: "Sofia Rodrigues",
-    domain: "Environmental Intelligence",
-    organization: "TERRA Systems",
-    role: "Environmental Analyst",
-    profileUrl: "",
-  },
-  {
-    id: 6n,
-    name: "Marcus Ibe",
-    domain: "Research Development",
-    organization: "HUMANON Network",
-    role: "Program Director",
-    profileUrl: "",
-  },
-];
-
 const SEED_PROJECTS: HumanonProject[] = [
   {
     id: 1n,
@@ -920,6 +777,1073 @@ const SEED_PROJECTS: HumanonProject[] = [
   },
 ];
 
+// ─── Impact Section ──────────────────────────────────────────────────────────
+const JOURNEY_STAGES = [
+  {
+    phase: "ENROLLMENT",
+    label: "A Person Arrives",
+    sub: "With curiosity, a background, and a domain interest",
+    color: TEAL,
+    icon: "◎",
+    story:
+      "Every HUMANON journey begins with an individual — a student, a professional, or a career transitioner — who brings their own lens to a real unsolved problem. They apply. They are matched. They begin.",
+    metric: "Matched within 21 days",
+    domains: ["Climate", "AI Ethics", "Health", "Technology", "Policy"],
+  },
+  {
+    phase: "ORIENTATION",
+    label: "The System Activates",
+    sub: "Cohort placement, project briefing, team formation",
+    color: BLUE,
+    icon: "◈",
+    story:
+      "Within the first week, each participant is placed into a cohort, briefed on their research project, and introduced to their team and practitioner guide. The research context becomes clear. The first deliverable is defined.",
+    metric: "First deliverable within 2 weeks",
+    domains: ["Team Formation", "Project Scoping", "Practitioner Matching"],
+  },
+  {
+    phase: "RESEARCH CYCLE",
+    label: "Knowledge is Built",
+    sub: "Structured cycles, guided output, professional review",
+    color: GOLD,
+    icon: "◇",
+    story:
+      "Participants work in 4–6 week research cycles. Each cycle ends with a documented output reviewed by a practitioner. The research is real — the data, the analysis, the uncertainty. Nothing is simulated.",
+    metric: "1–3 outputs per cycle",
+    domains: [
+      "Literature Review",
+      "Data Collection",
+      "Analysis",
+      "Prototype",
+      "Policy Brief",
+    ],
+  },
+  {
+    phase: "SKILL DEVELOPMENT",
+    label: "Capability Expands",
+    sub: "Methodology, tools, scientific communication, ethics",
+    color: "#a78bfa",
+    icon: "◆",
+    story:
+      "Alongside project work, participants engage with structured learning modules — not passive courses, but applied skill tracks that directly support the research work in progress. Methodology, tools, communication, and ethics.",
+    metric: "4 core skill domains",
+    domains: [
+      "Research Methods",
+      "Data Tools",
+      "Scientific Writing",
+      "Research Ethics",
+    ],
+  },
+  {
+    phase: "PUBLICATION",
+    label: "The Work is Documented",
+    sub: "Editorial review, archival, co-authorship credits",
+    color: "#34d399",
+    icon: "◉",
+    story:
+      "Research outputs undergo HUMANON's editorial review process and, when validated, are submitted to STEMONEF's INTELLIARCHIVE™ knowledge system. Participants receive co-authorship credits on the work they produced.",
+    metric: "Submitted to INTELLIARCHIVE™",
+    domains: [
+      "Editorial Review",
+      "INTELLIARCHIVE™",
+      "Co-Authorship",
+      "Open Access",
+    ],
+  },
+  {
+    phase: "IMPACT",
+    label: "The World Changes — Slightly",
+    sub: "Career placement, institutional adoption, network access",
+    color: "#fb923c",
+    icon: "◐",
+    story:
+      "Program completion unlocks a verified research credential, access to the HUMANON alumni network, and direct introductions to partner organizations. The work produced may be adopted by institutions, cited in policy, or extended by future cohorts.",
+    metric: "Verified credential issued",
+    domains: [
+      "Alumni Network",
+      "Partner Access",
+      "Policy Adoption",
+      "Field Deployment",
+    ],
+  },
+];
+
+const DOMAIN_MAP_DATA = [
+  {
+    name: "Climate Systems",
+    pillar: "TERRA / EPOCHS",
+    color: "#34d399",
+    participants: 28,
+    projects: 6,
+    angle: 0,
+  },
+  {
+    name: "Ethical AI",
+    pillar: "STEAMI",
+    color: "#a78bfa",
+    participants: 22,
+    projects: 5,
+    angle: 60,
+  },
+  {
+    name: "Global Health",
+    pillar: "EPOCHS",
+    color: "#f87171",
+    participants: 18,
+    projects: 4,
+    angle: 120,
+  },
+  {
+    name: "Technology Systems",
+    pillar: "NOVA",
+    color: BLUE,
+    participants: 15,
+    projects: 3,
+    angle: 180,
+  },
+  {
+    name: "Policy & Governance",
+    pillar: "ELPIS / STEAMI",
+    color: GOLD,
+    participants: 12,
+    projects: 3,
+    angle: 240,
+  },
+  {
+    name: "Environmental Science",
+    pillar: "TERRA",
+    color: TEAL,
+    participants: 10,
+    projects: 2,
+    angle: 300,
+  },
+];
+
+function ImpactSection({
+  stats,
+}: {
+  stats:
+    | {
+        participantsEnrolled: bigint;
+        projectsCompleted: bigint;
+        industryPartners: bigint;
+        careerPlacements: bigint;
+        countriesRepresented: bigint;
+      }
+    | null
+    | undefined;
+}) {
+  const [activeStage, setActiveStage] = useState(0);
+  const [activeDomain, setActiveDomain] = useState<number | null>(null);
+  const [journeyUnlocked, setJourneyUnlocked] = useState(false);
+  const sectionRef = useRef<HTMLElement>(null);
+  const timelineRef = useRef<HTMLDivElement>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-cycle through journey stages
+  useEffect(() => {
+    if (!journeyUnlocked) return;
+    timerRef.current = setInterval(() => {
+      setActiveStage((p) => (p + 1) % JOURNEY_STAGES.length);
+    }, 3500);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [journeyUnlocked]);
+
+  // Unlock when section enters viewport
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) setJourneyUnlocked(true);
+      },
+      { threshold: 0.2 },
+    );
+    if (sectionRef.current) observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
+
+  const activeS = JOURNEY_STAGES[activeStage];
+
+  const impactNums = [
+    {
+      label: "Participants Enrolled",
+      value: stats ? Number(stats.participantsEnrolled) : 30,
+      color: TEAL,
+      suffix: "+",
+    },
+    {
+      label: "Research Projects",
+      value: stats ? Number(stats.projectsCompleted) : 8,
+      color: BLUE,
+      suffix: "",
+    },
+    {
+      label: "Industry Partners",
+      value: stats ? Number(stats.industryPartners) : 4,
+      color: GOLD,
+      suffix: "",
+    },
+    {
+      label: "Career Placements",
+      value: stats ? Number(stats.careerPlacements) : 22,
+      color: "#a78bfa",
+      suffix: "+",
+    },
+    {
+      label: "Countries",
+      value: stats ? Number(stats.countriesRepresented) : 6,
+      color: "#34d399",
+      suffix: "",
+    },
+  ];
+
+  return (
+    <section
+      id="humanon-metrics"
+      ref={sectionRef}
+      className="py-24 px-6 relative overflow-hidden"
+    >
+      {/* Cinematic background glow */}
+      <div
+        className="absolute inset-0 pointer-events-none"
+        style={{
+          background: `radial-gradient(ellipse 100% 80% at 50% 50%, ${activeS.color}06 0%, transparent 65%)`,
+          transition: "background 1.2s ease",
+        }}
+      />
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* ── Section Header ── */}
+        <div className="mb-16 humanon-reveal reveal">
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
+            style={{ color: `${GOLD}b3` }}
+          >
+            ◆ MEASURED IMPACT
+          </div>
+          <h2
+            className="font-display text-4xl md:text-5xl font-light mb-4"
+            style={{
+              letterSpacing: "0.06em",
+              background: `linear-gradient(135deg, ${TEAL}, #ffffff 60%)`,
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
+            }}
+          >
+            The Journey from Enrollment to Impact
+          </h2>
+          <p
+            className="text-sm max-w-xl"
+            style={{
+              color: "rgba(255,255,255,0.4)",
+              fontFamily: "Sora, sans-serif",
+            }}
+          >
+            Every HUMANON participant travels a defined arc — from first
+            application to verified research contribution and beyond. This is
+            that arc, animated.
+          </p>
+        </div>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* PART A — Cinematic Journey Timeline        */}
+        {/* ══════════════════════════════════════════ */}
+        <div
+          className="humanon-reveal reveal mb-20"
+          style={{ transitionDelay: "0.1s" }}
+        >
+          {/* Progress bar */}
+          <div
+            className="flex items-center gap-1 mb-8 overflow-x-auto pb-2"
+            ref={timelineRef}
+          >
+            {JOURNEY_STAGES.map((s, i) => (
+              <button
+                key={s.phase}
+                type="button"
+                onClick={() => {
+                  setActiveStage(i);
+                  if (timerRef.current) clearInterval(timerRef.current);
+                }}
+                className="flex-1 flex flex-col items-center gap-1.5 min-w-[80px] transition-all duration-300"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "4px 2px",
+                }}
+              >
+                {/* Step dot */}
+                <div
+                  style={{
+                    width: 28,
+                    height: 28,
+                    borderRadius: "50%",
+                    background:
+                      activeStage === i
+                        ? `${s.color}20`
+                        : "rgba(255,255,255,0.03)",
+                    border: `2px solid ${activeStage === i ? s.color : "rgba(255,255,255,0.12)"}`,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transition: "all 0.4s ease",
+                    boxShadow:
+                      activeStage === i ? `0 0 16px ${s.color}44` : "none",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: 10,
+                      color:
+                        activeStage === i ? s.color : "rgba(255,255,255,0.25)",
+                    }}
+                  >
+                    {s.icon}
+                  </span>
+                </div>
+                {/* Connector */}
+                <div
+                  style={{
+                    width: "100%",
+                    height: 2,
+                    background:
+                      i < activeStage
+                        ? `linear-gradient(90deg, ${JOURNEY_STAGES[i].color}88, ${JOURNEY_STAGES[i + 1]?.color ?? TEAL}44)`
+                        : i === activeStage
+                          ? `linear-gradient(90deg, ${s.color}66, transparent)`
+                          : "rgba(255,255,255,0.06)",
+                    transition: "background 0.6s ease",
+                  }}
+                />
+                <span
+                  className="font-mono-geist text-[8px] tracking-[0.1em] uppercase text-center"
+                  style={{
+                    color:
+                      activeStage === i ? s.color : "rgba(255,255,255,0.25)",
+                    transition: "color 0.3s ease",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {s.phase}
+                </span>
+              </button>
+            ))}
+          </div>
+
+          {/* Active stage narrative card */}
+          <div
+            className="rounded-sm overflow-hidden transition-all duration-700"
+            style={{
+              background: "rgba(255,255,255,0.02)",
+              border: `1px solid ${activeS.color}25`,
+              boxShadow: `0 0 60px ${activeS.color}08`,
+            }}
+          >
+            {/* Top color bar */}
+            <div
+              style={{
+                height: 3,
+                background: `linear-gradient(90deg, ${activeS.color}, ${activeS.color}44, transparent)`,
+                transition: "background 0.8s ease",
+              }}
+            />
+
+            <div className="grid md:grid-cols-2 gap-0">
+              {/* Left — story */}
+              <div className="p-8 md:p-10">
+                <div className="flex items-center gap-3 mb-5">
+                  <span
+                    style={{
+                      fontSize: 28,
+                      color: activeS.color,
+                      lineHeight: 1,
+                      transition: "color 0.5s ease",
+                    }}
+                  >
+                    {activeS.icon}
+                  </span>
+                  <div>
+                    <div
+                      className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                      style={{ color: `${activeS.color}88` }}
+                    >
+                      {activeS.phase}
+                    </div>
+                    <div
+                      className="font-display text-2xl font-light"
+                      style={{
+                        color: "rgba(255,255,255,0.9)",
+                        letterSpacing: "0.02em",
+                      }}
+                    >
+                      {activeS.label}
+                    </div>
+                  </div>
+                </div>
+
+                <p
+                  className="text-sm leading-relaxed mb-6"
+                  style={{
+                    color: "rgba(255,255,255,0.5)",
+                    fontFamily: "Sora, sans-serif",
+                    borderLeft: `2px solid ${activeS.color}33`,
+                    paddingLeft: 16,
+                  }}
+                >
+                  {activeS.sub}
+                </p>
+
+                <p
+                  className="text-sm leading-loose mb-6"
+                  style={{
+                    color: "rgba(255,255,255,0.65)",
+                    fontFamily: "Sora, sans-serif",
+                  }}
+                >
+                  {activeS.story}
+                </p>
+
+                {/* Metric chip */}
+                <div
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-sm"
+                  style={{
+                    background: `${activeS.color}10`,
+                    border: `1px solid ${activeS.color}33`,
+                  }}
+                >
+                  <div
+                    style={{
+                      width: 6,
+                      height: 6,
+                      borderRadius: "50%",
+                      background: activeS.color,
+                      boxShadow: `0 0 8px ${activeS.color}`,
+                    }}
+                  />
+                  <span
+                    className="font-mono-geist text-[10px] tracking-[0.15em] uppercase"
+                    style={{ color: activeS.color }}
+                  >
+                    {activeS.metric}
+                  </span>
+                </div>
+              </div>
+
+              {/* Right — domain tags + animated flow node */}
+              <div
+                className="p-8 md:p-10 flex flex-col justify-between"
+                style={{ borderLeft: "1px solid rgba(255,255,255,0.05)" }}
+              >
+                <div>
+                  <div
+                    className="font-mono-geist text-[9px] tracking-[0.25em] uppercase mb-4"
+                    style={{ color: "rgba(255,255,255,0.2)" }}
+                  >
+                    DOMAINS ACTIVE AT THIS STAGE
+                  </div>
+                  <div className="flex flex-wrap gap-2 mb-8">
+                    {activeS.domains.map((d, di) => (
+                      <span
+                        key={d}
+                        className="inline-block font-mono-geist text-[9px] tracking-[0.12em] uppercase px-3 py-1 rounded-sm"
+                        style={{
+                          background: `${activeS.color}${di === 0 ? "18" : "0a"}`,
+                          color:
+                            di === 0 ? activeS.color : `${activeS.color}88`,
+                          border: `1px solid ${activeS.color}${di === 0 ? "44" : "18"}`,
+                          animation: `fadeInStagger ${0.2 + di * 0.08}s ease both`,
+                        }}
+                      >
+                        {d}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Animated SVG node — stage position on arc */}
+                <div
+                  className="flex items-center justify-center"
+                  style={{ minHeight: 120 }}
+                >
+                  <svg
+                    viewBox="0 0 200 100"
+                    width="200"
+                    height="100"
+                    role="img"
+                    aria-label="Participant journey arc visualization"
+                  >
+                    {/* Arc path */}
+                    <path
+                      d="M 10 80 Q 100 10 190 80"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.06)"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M 10 80 Q 100 10 190 80"
+                      fill="none"
+                      stroke={`${activeS.color}22`}
+                      strokeWidth="1"
+                      strokeDasharray="4 6"
+                    />
+                    {/* Stage dots along arc */}
+                    {JOURNEY_STAGES.map((s, i) => {
+                      const t = i / (JOURNEY_STAGES.length - 1);
+                      const bx = 10 + (190 - 10) * t;
+                      const by = 80 - Math.sin(Math.PI * t) * 70;
+                      const isActive = i === activeStage;
+                      return (
+                        <g key={s.phase}>
+                          {isActive && (
+                            <circle
+                              cx={bx}
+                              cy={by}
+                              r="12"
+                              fill={`${s.color}15`}
+                              stroke={`${s.color}44`}
+                              strokeWidth="1"
+                            />
+                          )}
+                          <circle
+                            cx={bx}
+                            cy={by}
+                            r={isActive ? 6 : 3}
+                            fill={
+                              i <= activeStage
+                                ? s.color
+                                : "rgba(255,255,255,0.12)"
+                            }
+                            style={{
+                              filter: isActive
+                                ? `drop-shadow(0 0 6px ${s.color})`
+                                : "none",
+                              transition: "all 0.5s ease",
+                            }}
+                          />
+                          {isActive && (
+                            <text
+                              x={bx}
+                              y={by - 14}
+                              textAnchor="middle"
+                              fontSize="5"
+                              fill={s.color}
+                              fontFamily="Geist Mono, monospace"
+                              letterSpacing="0.5"
+                            >
+                              {s.phase}
+                            </text>
+                          )}
+                        </g>
+                      );
+                    })}
+                    {/* "YOU ARE HERE" for active stage */}
+                    <text
+                      x="100"
+                      y="97"
+                      textAnchor="middle"
+                      fontSize="5"
+                      fill="rgba(255,255,255,0.2)"
+                      fontFamily="Geist Mono, monospace"
+                      letterSpacing="1"
+                    >
+                      PARTICIPANT JOURNEY ARC
+                    </text>
+                  </svg>
+                </div>
+
+                {/* Stage navigation */}
+                <div className="flex items-center justify-between mt-4">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveStage((p) => Math.max(0, p - 1));
+                      if (timerRef.current) clearInterval(timerRef.current);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.3)",
+                      padding: "6px 14px",
+                      cursor: "pointer",
+                      fontFamily: "Geist Mono, monospace",
+                      fontSize: 10,
+                      borderRadius: 2,
+                      letterSpacing: "0.1em",
+                    }}
+                    disabled={activeStage === 0}
+                  >
+                    ← PREV
+                  </button>
+                  <span
+                    className="font-mono-geist text-[9px]"
+                    style={{ color: "rgba(255,255,255,0.2)" }}
+                  >
+                    {activeStage + 1} / {JOURNEY_STAGES.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveStage((p) =>
+                        Math.min(JOURNEY_STAGES.length - 1, p + 1),
+                      );
+                      if (timerRef.current) clearInterval(timerRef.current);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.3)",
+                      padding: "6px 14px",
+                      cursor: "pointer",
+                      fontFamily: "Geist Mono, monospace",
+                      fontSize: 10,
+                      borderRadius: 2,
+                      letterSpacing: "0.1em",
+                    }}
+                    disabled={activeStage === JOURNEY_STAGES.length - 1}
+                  >
+                    NEXT →
+                  </button>
+                  <span
+                    className="font-mono-geist text-[9px]"
+                    style={{ color: "rgba(255,255,255,0.2)" }}
+                  >
+                    {activeStage + 1} / {JOURNEY_STAGES.length}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveStage((p) =>
+                        Math.min(JOURNEY_STAGES.length - 1, p + 1),
+                      );
+                      if (timerRef.current) clearInterval(timerRef.current);
+                    }}
+                    style={{
+                      background: "none",
+                      border: "1px solid rgba(255,255,255,0.1)",
+                      color: "rgba(255,255,255,0.3)",
+                      padding: "6px 14px",
+                      cursor: "pointer",
+                      fontFamily: "Geist Mono, monospace",
+                      fontSize: 10,
+                      borderRadius: 2,
+                      letterSpacing: "0.1em",
+                    }}
+                    disabled={activeStage === JOURNEY_STAGES.length - 1}
+                  >
+                    NEXT →
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* PART B — Interactive Domain Map           */}
+        {/* ══════════════════════════════════════════ */}
+        <div
+          className="humanon-reveal reveal mb-20"
+          style={{ transitionDelay: "0.2s" }}
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-6"
+            style={{ color: `${BLUE}b3` }}
+          >
+            ◈ RESEARCH DOMAIN MAP
+          </div>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* SVG Domain Orbit */}
+            <div className="flex justify-center">
+              <svg
+                viewBox="0 0 300 300"
+                width="300"
+                height="300"
+                style={{ maxWidth: "100%" }}
+                role="img"
+                aria-label="HUMANON research domain network map"
+              >
+                {/* Outer orbit */}
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="120"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.04)"
+                  strokeWidth="1"
+                  strokeDasharray="3 5"
+                />
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="80"
+                  fill="none"
+                  stroke="rgba(255,255,255,0.04)"
+                  strokeWidth="0.5"
+                  strokeDasharray="2 4"
+                />
+                {/* Center HUMANON node */}
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="30"
+                  fill="rgba(34,211,176,0.06)"
+                  stroke="rgba(34,211,176,0.25)"
+                  strokeWidth="1"
+                />
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="22"
+                  fill="rgba(34,211,176,0.04)"
+                  stroke="rgba(34,211,176,0.12)"
+                  strokeWidth="0.5"
+                />
+                <text
+                  x="150"
+                  y="148"
+                  textAnchor="middle"
+                  fontSize="6"
+                  fill={TEAL}
+                  fontFamily="Geist Mono, monospace"
+                  letterSpacing="1"
+                >
+                  HUMANON
+                </text>
+                <text
+                  x="150"
+                  y="158"
+                  textAnchor="middle"
+                  fontSize="5"
+                  fill="rgba(255,255,255,0.3)"
+                  fontFamily="Geist Mono, monospace"
+                >
+                  RESEARCH
+                </text>
+                {/* Domain nodes */}
+                {DOMAIN_MAP_DATA.map((domain, i) => {
+                  const rad = ((domain.angle - 90) * Math.PI) / 180;
+                  const r = 120;
+                  const x = 150 + r * Math.cos(rad);
+                  const y = 150 + r * Math.sin(rad);
+                  const isActive = activeDomain === i;
+                  const size = Math.max(
+                    12,
+                    Math.min(22, domain.participants * 0.6),
+                  );
+                  return (
+                    <g
+                      key={domain.name}
+                      style={{ cursor: "pointer" }}
+                      onMouseEnter={() => setActiveDomain(i)}
+                      onMouseLeave={() => setActiveDomain(null)}
+                    >
+                      {/* Line from center */}
+                      <line
+                        x1="150"
+                        y1="150"
+                        x2={x}
+                        y2={y}
+                        stroke={
+                          isActive ? `${domain.color}55` : `${domain.color}15`
+                        }
+                        strokeWidth={isActive ? "1" : "0.5"}
+                        strokeDasharray="3 4"
+                        style={{ transition: "stroke 0.3s ease" }}
+                      />
+                      {/* Domain node */}
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={size + 4}
+                        fill={`${domain.color}${isActive ? "18" : "08"}`}
+                        stroke={`${domain.color}${isActive ? "66" : "22"}`}
+                        strokeWidth="1"
+                        style={{
+                          transition: "all 0.3s ease",
+                          filter: isActive
+                            ? `drop-shadow(0 0 8px ${domain.color}55)`
+                            : "none",
+                        }}
+                      />
+                      <circle
+                        cx={x}
+                        cy={y}
+                        r={size}
+                        fill={`${domain.color}${isActive ? "20" : "10"}`}
+                        stroke={`${domain.color}${isActive ? "44" : "18"}`}
+                        strokeWidth="0.5"
+                      />
+                      {/* Participant count */}
+                      <text
+                        x={x}
+                        y={y + 1}
+                        textAnchor="middle"
+                        fontSize="8"
+                        fill={isActive ? domain.color : `${domain.color}88`}
+                        fontFamily="Geist Mono, monospace"
+                        fontWeight="bold"
+                      >
+                        {domain.participants}
+                      </text>
+                      {/* Label below */}
+                      <text
+                        x={x}
+                        y={y + size + 12}
+                        textAnchor="middle"
+                        fontSize="5"
+                        fill={isActive ? domain.color : "rgba(255,255,255,0.3)"}
+                        fontFamily="Geist Mono, monospace"
+                        letterSpacing="0.5"
+                        style={{ transition: "fill 0.3s ease" }}
+                      >
+                        {domain.name.split(" ")[0]}
+                      </text>
+                    </g>
+                  );
+                })}
+                {/* Pulse from center */}
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="36"
+                  fill="none"
+                  stroke={`${TEAL}18`}
+                  strokeWidth="1"
+                  style={{ animation: "pulse 3s ease-in-out infinite" }}
+                />
+                <circle
+                  cx="150"
+                  cy="150"
+                  r="44"
+                  fill="none"
+                  stroke={`${TEAL}0a`}
+                  strokeWidth="0.5"
+                  style={{ animation: "pulse 3s ease-in-out infinite 1s" }}
+                />
+              </svg>
+            </div>
+
+            {/* Domain detail panel */}
+            <div className="space-y-3">
+              <div
+                className="font-mono-geist text-[9px] tracking-[0.25em] uppercase mb-4"
+                style={{ color: "rgba(255,255,255,0.2)" }}
+              >
+                {activeDomain !== null
+                  ? "DOMAIN DETAIL"
+                  : "HOVER A DOMAIN NODE TO EXPLORE"}
+              </div>
+              {activeDomain !== null ? (
+                <div
+                  className="rounded-sm p-6 animate-fade-in-up"
+                  style={{
+                    background: `${DOMAIN_MAP_DATA[activeDomain].color}08`,
+                    border: `1px solid ${DOMAIN_MAP_DATA[activeDomain].color}25`,
+                  }}
+                >
+                  <div
+                    style={{
+                      height: 2,
+                      background: `linear-gradient(90deg, ${DOMAIN_MAP_DATA[activeDomain].color}, transparent)`,
+                      marginBottom: 20,
+                    }}
+                  />
+                  <div
+                    className="font-display text-2xl font-light mb-1"
+                    style={{ color: "rgba(255,255,255,0.9)" }}
+                  >
+                    {DOMAIN_MAP_DATA[activeDomain].name}
+                  </div>
+                  <div
+                    className="font-mono-geist text-[9px] tracking-[0.2em] uppercase mb-4"
+                    style={{
+                      color: `${DOMAIN_MAP_DATA[activeDomain].color}99`,
+                    }}
+                  >
+                    PRIMARY PILLAR: {DOMAIN_MAP_DATA[activeDomain].pillar}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div
+                      className="p-3 rounded-sm"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <div
+                        className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-1"
+                        style={{ color: "rgba(255,255,255,0.25)" }}
+                      >
+                        PARTICIPANTS
+                      </div>
+                      <div
+                        className="font-display text-2xl font-light"
+                        style={{ color: DOMAIN_MAP_DATA[activeDomain].color }}
+                      >
+                        {DOMAIN_MAP_DATA[activeDomain].participants}
+                      </div>
+                    </div>
+                    <div
+                      className="p-3 rounded-sm"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <div
+                        className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-1"
+                        style={{ color: "rgba(255,255,255,0.25)" }}
+                      >
+                        PROJECTS
+                      </div>
+                      <div
+                        className="font-display text-2xl font-light"
+                        style={{ color: DOMAIN_MAP_DATA[activeDomain].color }}
+                      >
+                        {DOMAIN_MAP_DATA[activeDomain].projects}
+                      </div>
+                    </div>
+                  </div>
+                  <div
+                    className="font-mono-geist text-[9px] tracking-[0.15em] uppercase px-3 py-1.5 rounded-sm inline-block"
+                    style={{
+                      background: `${DOMAIN_MAP_DATA[activeDomain].color}12`,
+                      color: `${DOMAIN_MAP_DATA[activeDomain].color}cc`,
+                      border: `1px solid ${DOMAIN_MAP_DATA[activeDomain].color}2a`,
+                    }}
+                  >
+                    PROGRAM STATUS: DEVELOPMENT PHASE
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2">
+                  {DOMAIN_MAP_DATA.map((d, i) => (
+                    <button
+                      key={d.name}
+                      type="button"
+                      className="text-left px-4 py-3 rounded-sm transition-all duration-200"
+                      style={{
+                        background: "rgba(255,255,255,0.02)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={() => setActiveDomain(i)}
+                      onMouseLeave={() => setActiveDomain(null)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <div
+                            style={{
+                              width: 6,
+                              height: 6,
+                              borderRadius: "50%",
+                              background: d.color,
+                              flexShrink: 0,
+                            }}
+                          />
+                          <span
+                            className="font-mono-geist text-[10px] tracking-[0.1em] uppercase"
+                            style={{ color: "rgba(255,255,255,0.6)" }}
+                          >
+                            {d.name}
+                          </span>
+                        </div>
+                        <span
+                          className="font-display text-lg font-light"
+                          style={{ color: d.color }}
+                        >
+                          {d.participants}
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ══════════════════════════════════════════ */}
+        {/* PART C — Count-up impact stats             */}
+        {/* ══════════════════════════════════════════ */}
+        <div
+          className="humanon-reveal reveal"
+          style={{ transitionDelay: "0.3s" }}
+        >
+          <div
+            className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-6"
+            style={{ color: `${TEAL}b3` }}
+          >
+            ◇ PROGRAM INDICATORS
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-8">
+            {impactNums.map((n) => (
+              <div
+                key={n.label}
+                className="rounded-sm p-5 text-center transition-all duration-300"
+                style={{
+                  background: "rgba(255,255,255,0.02)",
+                  border: "1px solid rgba(255,255,255,0.07)",
+                  borderTop: `2px solid ${n.color}44`,
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderTopColor = n.color;
+                  el.style.boxShadow = `0 0 24px ${n.color}12`;
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLDivElement;
+                  el.style.borderTopColor = `${n.color}44`;
+                  el.style.boxShadow = "none";
+                }}
+              >
+                <CountUp target={n.value} color={n.color} />
+                <div
+                  className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mt-2"
+                  style={{ color: "rgba(255,255,255,0.3)" }}
+                >
+                  {n.label}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Narrative closing statement */}
+          <div
+            className="rounded-sm p-6 md:p-8"
+            style={{
+              background: "rgba(34,211,176,0.03)",
+              border: "1px solid rgba(34,211,176,0.1)",
+              borderLeft: `3px solid ${TEAL}55`,
+            }}
+          >
+            <p
+              className="font-display text-lg md:text-xl font-light leading-relaxed"
+              style={{
+                color: "rgba(255,255,255,0.7)",
+                letterSpacing: "0.02em",
+              }}
+            >
+              "Impact is not a single moment. It is a sequence — from the first
+              question a participant asks, through every research cycle, to the
+              day their work is cited by someone they will never meet."
+            </p>
+            <div
+              className="mt-4 font-mono-geist text-[9px] tracking-[0.2em] uppercase"
+              style={{ color: `${TEAL}66` }}
+            >
+              — HUMANON PROGRAM PHILOSOPHY
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 interface HumanonPageProps {
   onBack: () => void;
@@ -945,12 +1869,10 @@ export default function HumanonPage({ onBack }: HumanonPageProps) {
   const [joinVariant, setJoinVariant] = useState<JoinVariant | null>(null);
 
   // Backend data
-  const { data: mentors, isLoading: mentorsLoading } = useGetHumanonMentors();
   const { data: projects, isLoading: projectsLoading } =
     useGetHumanonProjects();
   const { data: stats } = useGetHumanonStats();
 
-  const displayMentors = mentors && mentors.length > 0 ? mentors : SEED_MENTORS;
   const displayProjects =
     projects && projects.length > 0 ? projects : SEED_PROJECTS;
 
@@ -1890,119 +2812,640 @@ export default function HumanonPage({ onBack }: HumanonPageProps) {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════ */}
-      {/* SECTION 7 — MENTOR NETWORK         */}
-      {/* ═══════════════════════════════════ */}
-      <section id="humanon-mentors" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-14 humanon-reveal reveal">
+      {/* ═══════════════════════════════════════════════════════ */}
+      {/* SECTION 7 — PRACTITIONER NETWORK (COMING SOON)       */}
+      {/* ═══════════════════════════════════════════════════════ */}
+      <section
+        id="humanon-mentors"
+        className="py-24 px-6 relative overflow-hidden"
+      >
+        {/* Background radial glow */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background:
+              "radial-gradient(ellipse 80% 60% at 50% 50%, rgba(34,211,176,0.03) 0%, transparent 70%)",
+          }}
+        />
+
+        <div className="max-w-6xl mx-auto relative z-10">
+          {/* ── Section header ── */}
+          <div className="mb-16 humanon-reveal reveal">
             <div
               className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
               style={{ color: `${GOLD}b3` }}
             >
-              ◇ MENTOR NETWORK
+              ◇ PRACTITIONER NETWORK
             </div>
-            <h2
-              className="font-display text-4xl md:text-5xl font-light mb-3"
-              style={{
-                letterSpacing: "0.06em",
-                color: "rgba(255,255,255,0.9)",
-              }}
-            >
-              Guided by Practitioners
-            </h2>
-            <p
-              className="text-sm"
-              style={{
-                color: "rgba(255,255,255,0.45)",
-                fontFamily: "Sora, sans-serif",
-                maxWidth: "500px",
-              }}
-            >
-              Every HUMANON participant is matched with an active professional
-              or researcher — not a retired academic.
-            </p>
+            <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4">
+              <h2
+                className="font-display text-4xl md:text-5xl font-light"
+                style={{
+                  letterSpacing: "0.06em",
+                  color: "rgba(255,255,255,0.9)",
+                }}
+              >
+                Guided by Practitioners
+              </h2>
+              {/* Coming Soon badge */}
+              <span
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-sm self-start"
+                style={{
+                  background: "rgba(212,160,23,0.08)",
+                  border: "1px solid rgba(212,160,23,0.35)",
+                  fontFamily: "Geist Mono, monospace",
+                  fontSize: "9px",
+                  letterSpacing: "0.3em",
+                  textTransform: "uppercase",
+                  color: GOLD,
+                }}
+              >
+                <span
+                  style={{
+                    display: "inline-block",
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: GOLD,
+                    animation: "pulse 2s ease-in-out infinite",
+                  }}
+                />
+                NETWORK LAUNCHING SOON
+              </span>
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {mentorsLoading
-              ? ["m1", "m2", "m3", "m4", "m5", "m6"].map((k) => (
-                  <MentorCardSkeleton key={k} />
-                ))
-              : displayMentors.map((mentor, i) => (
+          {/* ── Network Vision Hero ── */}
+          <div
+            className="humanon-reveal reveal mb-12"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            <div
+              className="rounded-sm overflow-hidden relative"
+              style={{
+                background: "rgba(34,211,176,0.03)",
+                border: "1px solid rgba(34,211,176,0.12)",
+              }}
+            >
+              {/* Animated top bar */}
+              <div
+                style={{
+                  height: 2,
+                  background: `linear-gradient(90deg, transparent, ${TEAL}, ${GOLD}, transparent)`,
+                  animation: "scanSweep 3s linear infinite",
+                }}
+              />
+
+              <div className="grid md:grid-cols-2 gap-0">
+                {/* Left — manifesto text */}
+                <div className="p-8 md:p-12 flex flex-col justify-center">
                   <div
-                    key={String(mentor.id)}
-                    className="humanon-reveal reveal rounded-sm p-5 transition-all duration-300"
+                    className="font-mono-geist text-[9px] tracking-[0.3em] uppercase mb-4"
+                    style={{ color: `${TEAL}88` }}
+                  >
+                    DESIGN PRINCIPLE
+                  </div>
+                  <p
+                    className="font-display text-2xl md:text-3xl font-light leading-snug mb-6"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      border: "1px solid rgba(255,255,255,0.07)",
-                      borderLeft: `2px solid ${TEAL}`,
-                      transitionDelay: `${i * 0.06}s`,
-                    }}
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget as HTMLDivElement;
-                      el.style.transform = "translateY(-4px)";
-                      el.style.borderLeftColor = `${TEAL}cc`;
-                      el.style.boxShadow =
-                        "0 8px 32px rgba(0,0,0,0.3), 0 0 20px rgba(34,211,176,0.06)";
-                    }}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLDivElement;
-                      el.style.transform = "none";
-                      el.style.borderLeftColor = TEAL;
-                      el.style.boxShadow = "none";
+                      color: "rgba(255,255,255,0.88)",
+                      letterSpacing: "0.02em",
                     }}
                   >
-                    <div
-                      className="font-display text-lg font-light mb-2"
+                    "Every HUMANON participant will be guided by someone who is
+                    <span style={{ color: TEAL }}> still in the field</span> —
+                    not someone who left it."
+                  </p>
+                  <p
+                    className="text-sm leading-relaxed"
+                    style={{
+                      color: "rgba(255,255,255,0.45)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    The HUMANON Practitioner Network is being carefully
+                    assembled — domain by domain, region by region. We are
+                    selecting practitioners whose current work is directly
+                    relevant to the research tracks participants will engage in.
+                  </p>
+                  <div className="mt-8 flex flex-col gap-3">
+                    {[
+                      {
+                        label: "Research Scientists",
+                        desc: "Active in academic or institutional research",
+                        color: TEAL,
+                      },
+                      {
+                        label: "Industry Technologists",
+                        desc: "Working at the frontier of applied science",
+                        color: BLUE,
+                      },
+                      {
+                        label: "Policy Architects",
+                        desc: "Shaping governance in real time",
+                        color: GOLD,
+                      },
+                      {
+                        label: "Field Practitioners",
+                        desc: "Deploying solutions in live environments",
+                        color: "#a78bfa",
+                      },
+                    ].map((item) => (
+                      <div key={item.label} className="flex items-center gap-3">
+                        <div
+                          style={{
+                            width: 6,
+                            height: 6,
+                            borderRadius: "50%",
+                            background: item.color,
+                            flexShrink: 0,
+                            boxShadow: `0 0 8px ${item.color}88`,
+                          }}
+                        />
+                        <div>
+                          <span
+                            className="font-mono-geist text-[10px] tracking-[0.12em] uppercase"
+                            style={{ color: item.color }}
+                          >
+                            {item.label}
+                          </span>
+                          <span
+                            className="ml-2 text-xs"
+                            style={{
+                              color: "rgba(255,255,255,0.35)",
+                              fontFamily: "Sora, sans-serif",
+                            }}
+                          >
+                            {item.desc}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Right — network visualization SVG */}
+                <div
+                  className="hidden md:flex items-center justify-center p-8 relative"
+                  style={{ minHeight: 320 }}
+                >
+                  <svg
+                    width="280"
+                    height="280"
+                    viewBox="0 0 280 280"
+                    role="img"
+                    aria-label="HUMANON practitioner network visualization"
+                  >
+                    {/* Outer orbit ring */}
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="110"
+                      fill="none"
+                      stroke="rgba(34,211,176,0.08)"
+                      strokeWidth="1"
+                      strokeDasharray="4 6"
+                    />
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="75"
+                      fill="none"
+                      stroke="rgba(74,126,247,0.08)"
+                      strokeWidth="1"
+                      strokeDasharray="3 5"
+                    />
+                    {/* Center node */}
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="24"
+                      fill="rgba(34,211,176,0.06)"
+                      stroke="rgba(34,211,176,0.35)"
+                      strokeWidth="1"
+                    />
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="18"
+                      fill="rgba(34,211,176,0.04)"
+                      stroke="rgba(34,211,176,0.2)"
+                      strokeWidth="0.5"
+                    />
+                    <text
+                      x="140"
+                      y="136"
+                      textAnchor="middle"
+                      fontSize="7"
+                      fill={TEAL}
+                      fontFamily="Geist Mono, monospace"
+                      letterSpacing="1"
+                    >
+                      HUMANON
+                    </text>
+                    <text
+                      x="140"
+                      y="146"
+                      textAnchor="middle"
+                      fontSize="5"
+                      fill="rgba(255,255,255,0.4)"
+                      fontFamily="Geist Mono, monospace"
+                    >
+                      PARTICIPANT
+                    </text>
+                    {/* Practitioner nodes — outer orbit */}
+                    {[
+                      {
+                        angle: 0,
+                        label: "Research",
+                        sub: "Scientist",
+                        color: TEAL,
+                        r: 110,
+                      },
+                      {
+                        angle: 72,
+                        label: "Industry",
+                        sub: "Tech",
+                        color: BLUE,
+                        r: 110,
+                      },
+                      {
+                        angle: 144,
+                        label: "Policy",
+                        sub: "Architect",
+                        color: GOLD,
+                        r: 110,
+                      },
+                      {
+                        angle: 216,
+                        label: "Field",
+                        sub: "Practitioner",
+                        color: "#a78bfa",
+                        r: 110,
+                      },
+                      {
+                        angle: 288,
+                        label: "Domain",
+                        sub: "Expert",
+                        color: "#34d399",
+                        r: 110,
+                      },
+                    ].map((node) => {
+                      const rad = ((node.angle - 90) * Math.PI) / 180;
+                      const x = 140 + node.r * Math.cos(rad);
+                      const y = 140 + node.r * Math.sin(rad);
+                      const mx = 140 + 75 * Math.cos(rad);
+                      const my = 140 + 75 * Math.sin(rad);
+                      return (
+                        <g key={node.label}>
+                          {/* Connection line */}
+                          <line
+                            x1="140"
+                            y1="140"
+                            x2={x}
+                            y2={y}
+                            stroke={`${node.color}20`}
+                            strokeWidth="0.5"
+                            strokeDasharray="3 4"
+                          />
+                          {/* Mid relay dot */}
+                          <circle
+                            cx={mx}
+                            cy={my}
+                            r="2"
+                            fill={`${node.color}55`}
+                          />
+                          {/* Outer node */}
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="14"
+                            fill={`${node.color}10`}
+                            stroke={`${node.color}44`}
+                            strokeWidth="1"
+                          />
+                          <circle
+                            cx={x}
+                            cy={y}
+                            r="10"
+                            fill={`${node.color}08`}
+                            stroke={`${node.color}22`}
+                            strokeWidth="0.5"
+                          />
+                          <text
+                            x={x}
+                            y={y - 1}
+                            textAnchor="middle"
+                            fontSize="5.5"
+                            fill={node.color}
+                            fontFamily="Geist Mono, monospace"
+                          >
+                            {node.label}
+                          </text>
+                          <text
+                            x={x}
+                            y={y + 6}
+                            textAnchor="middle"
+                            fontSize="4.5"
+                            fill="rgba(255,255,255,0.3)"
+                            fontFamily="Geist Mono, monospace"
+                          >
+                            {node.sub}
+                          </text>
+                        </g>
+                      );
+                    })}
+                    {/* Pulse rings */}
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="30"
+                      fill="none"
+                      stroke={`${TEAL}22`}
+                      strokeWidth="1"
+                      style={{ animation: "pulse 3s ease-in-out infinite" }}
+                    />
+                    <circle
+                      cx="140"
+                      cy="140"
+                      r="38"
+                      fill="none"
+                      stroke={`${TEAL}12`}
+                      strokeWidth="0.5"
                       style={{
-                        color: "rgba(255,255,255,0.88)",
-                        letterSpacing: "0.02em",
+                        animation: "pulse 3s ease-in-out infinite 0.5s",
+                      }}
+                    />
+                  </svg>
+                  {/* "Coming Soon" watermark overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: 20,
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        fontFamily: "Geist Mono, monospace",
+                        fontSize: 9,
+                        letterSpacing: "0.3em",
+                        textTransform: "uppercase",
+                        color: `${GOLD}77`,
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      {mentor.name}
+                      ◆ PRACTITIONERS BEING SELECTED
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* ── How the Program Works — 6-step explainer ── */}
+          <div
+            className="humanon-reveal reveal mb-10"
+            style={{ transitionDelay: "0.15s" }}
+          >
+            <div
+              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-6"
+              style={{ color: `${BLUE}b3` }}
+            >
+              ◈ HOW THE PROGRAM WORKS
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[
+                {
+                  step: "01",
+                  phase: "Application & Matching",
+                  icon: "⟐",
+                  color: TEAL,
+                  detail:
+                    "You apply through the HUMANON portal, indicating your background, interests, and preferred research domains. Within 3 weeks, a human-curated matching process connects you to an active project and an appropriate practitioner guide.",
+                  tags: [
+                    "3-week matching",
+                    "Domain alignment",
+                    "Cohort placement",
+                  ],
+                },
+                {
+                  step: "02",
+                  phase: "Orientation & Briefing",
+                  icon: "◎",
+                  color: BLUE,
+                  detail:
+                    "A structured onboarding week introduces you to your research team, your practitioner, the project scope, and your first deliverable. Every participant begins with the same baseline understanding of the research context.",
+                  tags: [
+                    "Team introduction",
+                    "Project briefing",
+                    "Deliverable mapping",
+                  ],
+                },
+                {
+                  step: "03",
+                  phase: "Guided Research Cycle",
+                  icon: "◈",
+                  color: GOLD,
+                  detail:
+                    "You conduct structured research in cycles of 4–6 weeks, each ending with a documented output: a data set, literature review, analysis module, or prototype. Your practitioner reviews your work and provides professional feedback.",
+                  tags: [
+                    "4–6 week cycles",
+                    "Practitioner review",
+                    "Documented outputs",
+                  ],
+                },
+                {
+                  step: "04",
+                  phase: "Skill & Knowledge Development",
+                  icon: "◇",
+                  color: "#a78bfa",
+                  detail:
+                    "Alongside project work, participants access structured learning tracks mapped to their research domain — covering methodology, analytical tools, scientific communication, and ethical research practice.",
+                  tags: [
+                    "Learning modules",
+                    "Methodology training",
+                    "Research ethics",
+                  ],
+                },
+                {
+                  step: "05",
+                  phase: "Output & Publication",
+                  icon: "◆",
+                  color: "#34d399",
+                  detail:
+                    "Each research cycle produces a formal output — a paper, dataset, framework, or policy brief — reviewed by HUMANON's editorial process and potentially published under STEMONEF's INTELLIARCHIVE™ knowledge system.",
+                  tags: [
+                    "Formal review",
+                    "INTELLIARCHIVE™",
+                    "Co-authorship credit",
+                  ],
+                },
+                {
+                  step: "06",
+                  phase: "Placement & Network Exit",
+                  icon: "◉",
+                  color: "#fb923c",
+                  detail:
+                    "Upon program completion, participants receive a verified research credential, access to the HUMANON alumni network, and direct introductions to partner organizations and institutions aligned with their domain of work.",
+                  tags: [
+                    "Research credential",
+                    "Alumni access",
+                    "Partner introductions",
+                  ],
+                },
+              ].map((item, i) => (
+                <div
+                  key={item.step}
+                  className="humanon-reveal reveal rounded-sm p-6 transition-all duration-300 group"
+                  style={{
+                    background: "rgba(255,255,255,0.02)",
+                    border: "1px solid rgba(255,255,255,0.07)",
+                    borderTop: `2px solid ${item.color}55`,
+                    transitionDelay: `${i * 0.07}s`,
+                  }}
+                  onMouseEnter={(e) => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.background = `rgba(${item.color === TEAL ? "34,211,176" : item.color === BLUE ? "74,126,247" : item.color === GOLD ? "212,160,23" : "167,139,250"},0.04)`;
+                    el.style.borderTopColor = item.color;
+                    el.style.transform = "translateY(-3px)";
+                    el.style.boxShadow = "0 8px 32px rgba(0,0,0,0.3)";
+                  }}
+                  onMouseLeave={(e) => {
+                    const el = e.currentTarget as HTMLDivElement;
+                    el.style.background = "rgba(255,255,255,0.02)";
+                    el.style.borderTopColor = `${item.color}55`;
+                    el.style.transform = "none";
+                    el.style.boxShadow = "none";
+                  }}
+                >
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <span
+                        className="font-mono-geist text-[10px] tracking-[0.15em]"
+                        style={{ color: `${item.color}66` }}
+                      >
+                        STEP {item.step}
+                      </span>
                     </div>
                     <span
-                      className="inline-block font-mono-geist text-[9px] tracking-[0.2em] uppercase px-2 py-0.5 rounded-sm mb-3"
                       style={{
-                        background: `${TEAL}18`,
-                        color: TEAL,
-                        border: `1px solid ${TEAL}33`,
+                        fontSize: 18,
+                        color: `${item.color}55`,
+                        lineHeight: 1,
                       }}
                     >
-                      {mentor.domain}
+                      {item.icon}
                     </span>
-                    <div
-                      className="font-mono-geist text-[10px] mb-1"
-                      style={{
-                        color: "rgba(255,255,255,0.35)",
-                        letterSpacing: "0.08em",
-                      }}
-                    >
-                      {mentor.organization}
-                    </div>
-                    <div
-                      className="text-xs"
-                      style={{
-                        color: "rgba(255,255,255,0.5)",
-                        fontFamily: "Sora, sans-serif",
-                      }}
-                    >
-                      {mentor.role}
-                    </div>
-                    {mentor.profileUrl && (
-                      <a
-                        href={mentor.profileUrl}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-block mt-3 font-mono-geist text-[9px] tracking-[0.15em] uppercase"
-                        style={{ color: `${TEAL}80`, textDecoration: "none" }}
-                      >
-                        → Profile
-                      </a>
-                    )}
                   </div>
-                ))}
+                  <div
+                    className="font-display text-lg font-light mb-3"
+                    style={{
+                      color: "rgba(255,255,255,0.85)",
+                      letterSpacing: "0.02em",
+                    }}
+                  >
+                    {item.phase}
+                  </div>
+                  <p
+                    className="text-xs leading-relaxed mb-4"
+                    style={{
+                      color: "rgba(255,255,255,0.48)",
+                      fontFamily: "Sora, sans-serif",
+                    }}
+                  >
+                    {item.detail}
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {item.tags.map((tag) => (
+                      <span
+                        key={tag}
+                        className="inline-block font-mono-geist text-[8px] tracking-[0.15em] uppercase px-2 py-0.5 rounded-sm"
+                        style={{
+                          background: `${item.color}10`,
+                          color: `${item.color}aa`,
+                          border: `1px solid ${item.color}22`,
+                        }}
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* ── Practitioner Expression of Interest Banner ── */}
+          <div
+            className="humanon-reveal reveal"
+            style={{ transitionDelay: "0.2s" }}
+          >
+            <div
+              className="rounded-sm p-6 md:p-8 flex flex-col md:flex-row items-start md:items-center gap-6"
+              style={{
+                background: "rgba(212,160,23,0.04)",
+                border: "1px solid rgba(212,160,23,0.15)",
+                borderLeft: `3px solid ${GOLD}`,
+              }}
+            >
+              <div className="flex-1">
+                <div
+                  className="font-mono-geist text-[9px] tracking-[0.3em] uppercase mb-2"
+                  style={{ color: `${GOLD}88` }}
+                >
+                  ARE YOU A PRACTITIONER?
+                </div>
+                <div
+                  className="font-display text-xl font-light mb-2"
+                  style={{ color: "rgba(255,255,255,0.88)" }}
+                >
+                  Join the Founding Practitioner Cohort
+                </div>
+                <p
+                  className="text-sm"
+                  style={{
+                    color: "rgba(255,255,255,0.45)",
+                    fontFamily: "Sora, sans-serif",
+                  }}
+                >
+                  We are currently selecting practitioners across Climate, AI,
+                  Health, Policy, and Technology domains. Founding practitioners
+                  shape how the network is structured — a rare opportunity to
+                  guide the next generation of researchers from inception.
+                </p>
+              </div>
+              <button
+                type="button"
+                data-ocid="humanon.practitioner.register_button"
+                onClick={() => setJoinVariant("mentor")}
+                style={{
+                  padding: "12px 28px",
+                  background: "rgba(212,160,23,0.1)",
+                  border: "1px solid rgba(212,160,23,0.4)",
+                  color: GOLD,
+                  fontFamily: "Geist Mono, monospace",
+                  letterSpacing: "0.15em",
+                  fontSize: "10px",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
+                  borderRadius: "2px",
+                  transition: "all 0.2s ease",
+                  flexShrink: 0,
+                  whiteSpace: "nowrap",
+                }}
+                onMouseEnter={(e) => {
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.background = "rgba(212,160,23,0.18)";
+                  el.style.boxShadow = "0 0 24px rgba(212,160,23,0.2)";
+                }}
+                onMouseLeave={(e) => {
+                  const el = e.currentTarget as HTMLButtonElement;
+                  el.style.background = "rgba(212,160,23,0.1)";
+                  el.style.boxShadow = "none";
+                }}
+              >
+                Express Interest →
+              </button>
+            </div>
           </div>
         </div>
       </section>
@@ -2180,82 +3623,10 @@ export default function HumanonPage({ onBack }: HumanonPageProps) {
         </div>
       </section>
 
-      {/* ═══════════════════════════════════ */}
-      {/* SECTION 9 — SUCCESS METRICS        */}
-      {/* ═══════════════════════════════════ */}
-      <section id="humanon-metrics" className="py-24 px-6">
-        <div className="max-w-6xl mx-auto">
-          <div className="mb-14 humanon-reveal reveal">
-            <div
-              className="font-mono-geist text-[10px] tracking-[0.4em] uppercase mb-3"
-              style={{ color: `${GOLD}b3` }}
-            >
-              ◆ SUCCESS METRICS
-            </div>
-            <h2
-              className="font-display text-4xl md:text-5xl font-light"
-              style={{
-                letterSpacing: "0.06em",
-                color: "rgba(255,255,255,0.9)",
-              }}
-            >
-              Measured Impact
-            </h2>
-          </div>
-
-          {/* Counter grid */}
-          <div
-            className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-12 humanon-reveal reveal"
-            style={{ transitionDelay: "0.1s" }}
-          >
-            {METRICS_LABELS.map((m, i) => {
-              const statsMap: Record<string, bigint> = stats
-                ? {
-                    participantsEnrolled: stats.participantsEnrolled,
-                    projectsCompleted: stats.projectsCompleted,
-                    industryPartners: stats.industryPartners,
-                    careerPlacements: stats.careerPlacements,
-                    countriesRepresented: stats.countriesRepresented,
-                  }
-                : {};
-              const rawVal = stats
-                ? Number(statsMap[m.key] ?? 0n)
-                : [30, 8, 4, 22, 6][i];
-              return (
-                <div
-                  key={m.key}
-                  className="glass-strong rounded-sm p-5 text-center"
-                  style={{ transitionDelay: `${i * 0.08}s` }}
-                >
-                  <CountUp target={rawVal} color={m.color} />
-                  <div
-                    className="font-mono-geist text-[9px] tracking-[0.2em] uppercase mt-3"
-                    style={{ color: "rgba(255,255,255,0.35)" }}
-                  >
-                    {m.label}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* Metric bars */}
-          <div
-            className="glass-strong p-8 rounded-sm humanon-reveal reveal space-y-7"
-            style={{ transitionDelay: "0.2s" }}
-          >
-            {METRIC_BARS.map((m, i) => (
-              <MetricBar
-                key={m.label}
-                label={m.label}
-                value={m.value}
-                color={m.color}
-                index={i}
-              />
-            ))}
-          </div>
-        </div>
-      </section>
+      {/* ═══════════════════════════════════════════════════════════ */}
+      {/* SECTION 9 — MEASURED IMPACT (CINEMATIC NARRATIVE)        */}
+      {/* ═══════════════════════════════════════════════════════════ */}
+      <ImpactSection stats={stats} />
 
       {/* ═══════════════════════════════════ */}
       {/* SECTION 10 — JOIN HUMANON          */}
@@ -2603,25 +3974,61 @@ export default function HumanonPage({ onBack }: HumanonPageProps) {
                   </p>
                 </div>
 
-                {selectedProject.mentorsInvolved && (
-                  <div>
-                    <div
-                      className="font-mono-geist text-[9px] tracking-[0.25em] uppercase mb-2"
-                      style={{ color: `${GOLD}99` }}
-                    >
-                      Mentors Involved
-                    </div>
-                    <p
-                      className="text-sm"
-                      style={{
-                        color: "rgba(255,255,255,0.5)",
-                        fontFamily: "Sora, sans-serif",
-                      }}
-                    >
-                      {selectedProject.mentorsInvolved}
-                    </p>
+                {/* Research Impact Classification — replaces "Mentors Involved" */}
+                <div>
+                  <div
+                    className="font-mono-geist text-[9px] tracking-[0.25em] uppercase mb-3"
+                    style={{ color: `${GOLD}99` }}
+                  >
+                    Research Impact Classification
                   </div>
-                )}
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      {
+                        label: "Output Type",
+                        value: "Applied Research",
+                        color: TEAL,
+                      },
+                      {
+                        label: "Knowledge Stage",
+                        value: "Peer-Reviewed",
+                        color: BLUE,
+                      },
+                      {
+                        label: "Impact Layer",
+                        value: "Institutional Adoption",
+                        color: GOLD,
+                      },
+                      {
+                        label: "Archival Status",
+                        value: "Submitted to INTELLIARCHIVE™",
+                        color: "#a78bfa",
+                      },
+                    ].map((item) => (
+                      <div
+                        key={item.label}
+                        className="p-3 rounded-sm"
+                        style={{
+                          background: `${item.color}08`,
+                          border: `1px solid ${item.color}22`,
+                        }}
+                      >
+                        <div
+                          className="font-mono-geist text-[8px] tracking-[0.2em] uppercase mb-1"
+                          style={{ color: `${item.color}88` }}
+                        >
+                          {item.label}
+                        </div>
+                        <div
+                          className="font-mono-geist text-[10px]"
+                          style={{ color: item.color }}
+                        >
+                          {item.value}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end mt-6">

@@ -1627,11 +1627,864 @@ function formatFeedDate(ts: bigint): string {
   return "—";
 }
 
+// ─── Editorial Pieces ─────────────────────────────────────────────────────────
+type EditorialPiece = {
+  id: string;
+  title: string;
+  eyebrow: string;
+  domain: string;
+  accentColor: string;
+  readTime: string;
+  heroSymbol: string;
+  summary: string;
+  lead: string;
+  sections: { heading: string; body: string }[];
+  keySignals: string[];
+  implications: string[];
+  tags: string[];
+  cardAnim:
+    | "pulse"
+    | "scan"
+    | "cascade"
+    | "waveform"
+    | "orbit"
+    | "grid"
+    | "flow"
+    | "ripple"
+    | "fractal"
+    | "heatmap";
+};
+
+const EDITORIAL_PIECES: EditorialPiece[] = [
+  {
+    id: "ep-001",
+    title: "The Governance Gap: Why AI Regulation Is Racing to Catch a Shadow",
+    eyebrow: "AI GOVERNANCE INTELLIGENCE",
+    domain: "AI Governance",
+    accentColor: "#4a7ef7",
+    readTime: "5 min read",
+    heroSymbol: "⬡",
+    summary:
+      "Regulatory frameworks across 140+ nations are fragmenting as AI capability outpaces institutional response. STEAMI maps the emerging fault lines between technical acceleration and governance architecture.",
+    lead: "In the span of 36 months, artificial intelligence has transitioned from a research curiosity to a critical infrastructure component embedded in healthcare decisions, judicial processes, financial systems, and military planning. Yet the governance architecture designed to manage this transition remains fractured, underfunded, and fundamentally misaligned with the speed of deployment.",
+    sections: [
+      {
+        heading: "The Regulatory Fragmentation Problem",
+        body: "Across the European Union, United States, China, and emerging economies, AI governance approaches diverge dramatically. The EU's AI Act classifies systems by risk tier, imposing compliance obligations before deployment. The US relies on sector-specific guidance and voluntary frameworks. China mandates algorithmic transparency for recommendation systems while operating a centralized oversight model. This fragmentation creates what governance scholars call 'regulatory arbitrage' — the systematic exploitation of jurisdictional gaps by deployers seeking the least constrained operating environment. STEAMI analysis of 47 national AI policy documents reveals that fewer than 12 percent include binding enforcement mechanisms with allocated budgets.",
+      },
+      {
+        heading: "Institutional Capacity and the Expertise Deficit",
+        body: "Even where regulations exist, enforcement capacity is largely absent. Most national regulatory agencies lack technical staff capable of auditing large language models, computer vision systems, or reinforcement learning architectures. The United Kingdom's AI Safety Institute, widely regarded as a leading institutional effort, operates with a staff smaller than the engineering team of a mid-tier AI startup. This asymmetry between regulated entities and regulators is not incidental — it reflects structural underinvestment in public-sector technical capacity accumulated over decades of privatisation ideology. Without deliberate state investment in technical governance expertise, regulation becomes a document rather than a function.",
+      },
+      {
+        heading: "The Emerging International Architecture",
+        body: "Despite fragmentation, certain multilateral initiatives are gaining traction. The Hiroshima AI Process initiated by the G7, the Bletchley Declaration on frontier AI safety, and emerging UN advisory work represent the first tentative architecture of international AI governance. STEAMI assessment indicates these frameworks remain consultative rather than binding, and largely exclude the Global South from meaningful participation. The diplomatic challenge is acute: binding international AI governance requires the same states competing most fiercely in AI development to voluntarily constrain their own strategic advantage. Historical analogies to nuclear non-proliferation suggest this is possible but took decades and multiple catastrophic near-misses to achieve.",
+      },
+    ],
+    keySignals: [
+      "Only 12% of national AI policies include binding enforcement mechanisms",
+      "Regulatory expertise gap between agencies and frontier AI labs widening annually",
+      "G7 Hiroshima Process: consultative but no binding commitments yet",
+      "AI governance arbitrage accelerating cross-border deployment strategies",
+      "UN Secretary-General's Advisory Body on AI: 39 recommendations, 0 binding mechanisms",
+    ],
+    implications: [
+      "Institutions deploying AI in high-stakes domains face compound liability exposure as governance catches up",
+      "Technical standards bodies (ISO, IEEE, NIST) gaining de facto governance power in absence of binding law",
+      "Nations with strong regulatory frameworks risk disadvantage unless international coordination improves",
+    ],
+    tags: [
+      "AI Policy",
+      "Regulation",
+      "Global Governance",
+      "Institutional Capacity",
+    ],
+    cardAnim: "pulse",
+  },
+  {
+    id: "ep-002",
+    title:
+      "Planetary Boundaries Under Pressure: The Science of Earth System Limits",
+    eyebrow: "CLIMATE SYSTEMS ANALYSIS",
+    domain: "Climate Systems",
+    accentColor: "#22c55e",
+    readTime: "5 min read",
+    heroSymbol: "◉",
+    summary:
+      "Six of nine planetary boundaries have now been transgressed. STEAMI synthesises the latest Earth system science to map what cascading threshold crossings mean for civilisational stability over the next 30 years.",
+    lead: "The planetary boundaries framework, developed by Earth system scientists including Johan Rockström and Will Steffen, identifies nine biophysical systems whose stability underpins human civilisation. As of the most recent assessment published in Science Advances, six of these boundaries have been crossed: climate change, biosphere integrity, land-system change, freshwater change, biogeochemical flows, and novel entities including synthetic chemicals and plastics.",
+    sections: [
+      {
+        heading: "What Transgression Actually Means",
+        body: "A common misunderstanding treats planetary boundary transgression as binary — safe or unsafe. The science is more nuanced and more alarming. Each boundary defines a 'safe operating space' beyond which the risk of abrupt, nonlinear, or irreversible Earth system change increases substantially. Transgression does not guarantee catastrophe at a fixed threshold; it increases the probability of tipping point activation, which in complex systems is characterised by discontinuous rather than gradual change. The analogy from engineering is structural overload: a bridge can carry load beyond its design rating for a period before failure, but the probability of catastrophic collapse increases nonlinearly with load beyond the design limit.",
+      },
+      {
+        heading: "The Interconnection Problem: When Boundaries Cascade",
+        body: "The most significant finding of recent Earth system science is not any individual boundary transgression but the interactions between them. Climate change accelerates land degradation, which impairs freshwater systems, which reduces agricultural productivity, which drives land conversion, which further degrades biosphere integrity. These feedback loops can amplify local shocks into regional and global disruptions far exceeding what any single boundary assessment suggests. STEAMI modelling of compound boundary interaction scenarios indicates that current trajectory — with multiple boundaries transgressed simultaneously — creates qualitatively different risk than historical analogues where boundaries were crossed individually and sequentially.",
+      },
+      {
+        heading: "Implications for Long-Horizon Institutional Planning",
+        body: "For institutions with 10- to 50-year planning horizons, planetary boundary science presents a fundamental challenge: standard risk frameworks assume stationarity — the future resembling the past with quantifiable variance. Earth system evidence increasingly suggests non-stationarity: we are operating in a novel state with no historical precedent at current greenhouse gas concentrations, biodiversity loss rates, and chemical pollution loads. STEMONEF's TERRA and EPOCHS programs are designed precisely around this challenge — developing research and intelligence frameworks capable of operating productively under deep uncertainty rather than false precision.",
+      },
+    ],
+    keySignals: [
+      "6 of 9 planetary boundaries now transgressed (2023 Science Advances assessment)",
+      "Biosphere integrity boundary transgression most severe — 10x above safe threshold",
+      "Novel entities boundary includes 350,000+ manufactured chemicals with largely unknown systemic effects",
+      "Freshwater boundary crossed 2023 — first time since framework developed",
+      "Cascading boundary interactions create non-linear risk amplification",
+    ],
+    implications: [
+      "Infrastructure designed for 20th-century climate conditions faces systematic obsolescence",
+      "Agricultural systems dependent on stable precipitation and temperature regimes face compound stress",
+      "Insurance and financial risk models built on historical data become unreliable under non-stationary conditions",
+    ],
+    tags: [
+      "Planetary Science",
+      "Climate Risk",
+      "Earth Systems",
+      "Tipping Points",
+    ],
+    cardAnim: "orbit",
+  },
+  {
+    id: "ep-003",
+    title:
+      "The Global Health Intelligence Deficit: What We Don't Know Is Killing Us",
+    eyebrow: "GLOBAL HEALTH INTELLIGENCE",
+    domain: "Global Health",
+    accentColor: "#ec4899",
+    readTime: "5 min read",
+    heroSymbol: "⬟",
+    summary:
+      "Pandemic preparedness, antimicrobial resistance, and mental health represent three converging crises where information asymmetry — not just resource scarcity — is the binding constraint on effective response.",
+    lead: "The COVID-19 pandemic exposed a paradox at the heart of global health: in a world of unprecedented connectivity and data generation, the most consequential health decisions were made with dramatic uncertainty. Epidemiological surveillance in many regions remained dependent on infrastructure designed in the 1950s. Genomic sequencing capacity was concentrated in fewer than 30 countries. And the institutional architecture for translating available evidence into coordinated policy action proved fragile under real-world stress.",
+    sections: [
+      {
+        heading: "Surveillance Gaps and the Unknown Burden of Disease",
+        body: "Global health intelligence — the systematic collection, analysis, and communication of information about health threats — is profoundly uneven in geographic coverage and methodological quality. The Institute for Health Metrics and Evaluation estimates that fewer than 40% of global deaths are registered with cause-of-death information. In sub-Saharan Africa, this figure falls below 20%. Without mortality data, excess mortality surveillance — the primary tool for detecting novel disease emergence — is essentially non-functional. The practical implication is that a pandemic originating in regions with weak surveillance infrastructure can circulate for months before detection, as the early COVID-19 timeline demonstrated. Investment in civil registration and vital statistics systems is arguably the highest-return intervention in global health security.",
+      },
+      {
+        heading:
+          "Antimicrobial Resistance: The Silent Pandemic Already Underway",
+        body: "While public attention focused on COVID-19, antimicrobial resistance (AMR) continued its steady advance. The Lancet published estimates attributing 1.27 million deaths directly to AMR in 2019, with 4.95 million deaths associated with bacterial AMR. Projections for 2050 range from 10 to 40 million annual deaths under high-resistance scenarios. AMR is a classic collective action problem: individual incentives to use antibiotics are strong; incentives to invest in stewardship, new antibiotic development, or AMR surveillance are weak. The pipeline for new antibiotics has been largely empty for 40 years, as pharmaceutical economics systematically undervalue treatments designed to be used rarely and for short durations.",
+      },
+      {
+        heading: "Mental Health: The Neglected Dimension of Global Burden",
+        body: "Mental health disorders account for approximately 14% of global disability-adjusted life years lost, yet receive less than 2% of national health budgets in most low- and middle-income countries. The treatment gap — the proportion of people with diagnosable conditions who receive no treatment — exceeds 75% in most of the world. STEAMI intelligence synthesis identifies mental health as a critical area where the gap between problem magnitude and institutional response is growing rather than closing, particularly following the documented global deterioration in mental health indicators following the COVID-19 pandemic. This represents both a humanitarian challenge and an economic one: untreated mental health conditions represent one of the largest sources of lost productivity globally.",
+      },
+    ],
+    keySignals: [
+      "Under 40% of global deaths have registered cause-of-death information",
+      "AMR directly responsible for 1.27M deaths annually — projected to reach 10M+ by 2050",
+      "Mental health treatment gap: 75%+ in most LMICs",
+      "COVID-19 caused measurable global mental health deterioration — recovery incomplete",
+      "Health security index: only 13 countries score above 70/100 on pandemic preparedness",
+    ],
+    implications: [
+      "Global health security requires surveillance infrastructure investment in data-poor regions",
+      "AMR demands new public-private models for antibiotic development that don't rely purely on market incentives",
+      "Mental health integration into primary healthcare is highest-leverage scalable intervention",
+    ],
+    tags: [
+      "Pandemic Preparedness",
+      "AMR",
+      "Mental Health",
+      "Health Surveillance",
+    ],
+    cardAnim: "waveform",
+  },
+  {
+    id: "ep-004",
+    title: "Synthetic Biology and the Coming Age of Programmable Life",
+    eyebrow: "EMERGING TECHNOLOGY INTELLIGENCE",
+    domain: "Emerging Technology",
+    accentColor: "#a78bfa",
+    readTime: "5 min read",
+    heroSymbol: "◈",
+    summary:
+      "The convergence of CRISPR gene editing, automated DNA synthesis, and AI-driven protein design is creating a new technological paradigm. STEAMI maps the transformative potential and the profound governance challenges of programmable biology.",
+    lead: "Synthetic biology — the engineering of biological systems for new functions — has transitioned from a laboratory curiosity to an industrial platform in less than a decade. The convergence of three enabling technologies has driven this transition: CRISPR-Cas9 gene editing tools that can modify genomes with unprecedented precision, automated DNA synthesis that can produce arbitrary genetic sequences at rapidly falling cost, and artificial intelligence-powered protein structure prediction (exemplified by AlphaFold) that bridges genetic sequence and functional molecular structure.",
+    sections: [
+      {
+        heading: "The Platform Nature of Synthetic Biology",
+        body: "Unlike most previous technological revolutions, synthetic biology is a platform technology — meaning its applications span virtually every sector of the economy. In medicine: engineered microorganisms producing insulin, cancer-fighting T-cells reprogrammed to target specific tumours, gene therapies correcting inherited disorders. In agriculture: crops edited for drought resistance, pest resistance, or enhanced nutritional profiles. In materials: spider silk proteins produced by bacteria for ultra-strong lightweight materials, biodegradable plastics synthesised from engineered yeast. In energy: microorganisms engineered to produce hydrogen or hydrocarbon fuels from sunlight and CO2. The breadth of application domains means synthetic biology's economic and social impact is likely to be comparable to the digital revolution, unfolding over a similar 30-to-50-year timeframe.",
+      },
+      {
+        heading: "The Biosecurity Dimension",
+        body: "The same capabilities that enable beneficial applications also lower the barriers to the creation of biological weapons or accidental creation of dangerous organisms. The dual-use dilemma in synthetic biology is more acute than in most technologies because the tools are increasingly accessible, the expertise required is dispersing globally, and biological systems can self-replicate in ways digital systems cannot. A synthetic pathogen, once released, cannot be recalled like software. STEAMI analysis of international biosecurity governance identifies a fundamental tension between the drive to democratise access to biotechnology tools for beneficial purposes and the need to prevent their misuse. Current governance approaches, developed primarily around state-level bioweapons programs, are poorly adapted to the emerging landscape of distributed, low-cost biological engineering capabilities.",
+      },
+      {
+        heading: "The Ethical Architecture of Engineered Life",
+        body: "Beyond biosecurity, synthetic biology raises profound ethical questions that extend into environmental philosophy, theology, and political theory. The prospect of creating novel organisms with no evolutionary history raises questions about the moral status of engineered life. The potential for germline gene editing — inheritable genetic modifications passed to future generations — raises intergenerational justice concerns. Environmental release of engineered organisms (for example, gene drives designed to eliminate disease-carrying mosquito populations) raises sovereignty questions about who has the right to make permanent modifications to shared ecosystems. These are not merely academic questions; they will increasingly present as concrete policy decisions requiring governance frameworks that do not yet exist.",
+      },
+    ],
+    keySignals: [
+      "DNA synthesis cost has fallen 100,000x in 20 years — approaching commodity pricing",
+      "AlphaFold has predicted structures for 200M+ proteins — transforming drug discovery",
+      "Synthetic biology market projected to reach $30B+ by 2030",
+      "Biosecurity governance lags capability by an estimated 10-15 years",
+      "First gene-edited humans: He Jiankui case — governance failure at individual, institutional, and national level",
+    ],
+    implications: [
+      "Healthcare systems will be transformed by programmable cell therapies and personalised genetic medicine",
+      "Agricultural systems face both opportunity (resilience) and risk (ecological release) from synthetic biology",
+      "International biosecurity governance requires urgent modernisation to address non-state actors and dual-use research",
+    ],
+    tags: ["CRISPR", "Biotech", "Biosecurity", "Gene Editing"],
+    cardAnim: "cascade",
+  },
+  {
+    id: "ep-005",
+    title:
+      "Education Systems at the Breaking Point: Reimagining Learning for a Complex World",
+    eyebrow: "TALENT & KNOWLEDGE SYSTEMS",
+    domain: "Education Intelligence",
+    accentColor: "#f59e0b",
+    readTime: "5 min read",
+    heroSymbol: "△",
+    summary:
+      "The global education system was designed for industrial-era requirements. As AI automates cognitive labour and climate change reshapes economies, STEAMI examines the structural misalignment between how we educate and what the world now demands.",
+    lead: "The architecture of mass education — age-graded cohorts, subject-siloed curricula, standardised assessment, credential-based gatekeeping — was largely designed between 1850 and 1950 to meet the labour requirements of industrial economies. It was optimised to produce literate, numerate workers capable of following instructions, tolerating repetitive tasks, and functioning within hierarchical organisations. The world that system was designed for has been transforming rapidly for decades. The pace of that transformation is now accelerating.",
+    sections: [
+      {
+        heading: "The Automation Adjacency Problem",
+        body: "Labour economists have spent the past decade mapping which occupational tasks are most susceptible to automation. The consistent finding is that routinised cognitive and physical tasks — precisely those targeted by industrial education systems — are highest-risk. What AI systems are currently least capable of replicating is a specific combination of skills: complex social interaction, creative synthesis across domains, ethical reasoning under uncertainty, and physical manipulation in unstructured environments. The educational implication is clear: systems that optimise for reliable information retrieval, rule-following, and standardised procedural competence are preparing students for the jobs most likely to be automated. Yet curriculum reform is extraordinarily slow — subject areas, pedagogical traditions, and assessment systems are deeply institutionalised and resistant to change.",
+      },
+      {
+        heading: "The Access Dimension: Education as an Equity Mechanism",
+        body: "Global primary school enrolment has reached historically high levels — a genuine achievement of development policy. Yet enrolment statistics mask profound quality differentials. Learning-adjusted years of schooling — a metric that combines enrolment duration with actual learning outcomes — varies from over 10 years in Singapore and Finland to under 4 years in parts of sub-Saharan Africa and South Asia. This means children in different parts of the world are completing the same nominal years of schooling while acquiring dramatically different cognitive capabilities. The quality gap is arguably more important than the enrolment gap, and far less well-addressed by current development programming. HUMANON's talent incubation philosophy directly addresses this by focusing on learning quality and real-world application rather than credential accumulation.",
+      },
+      {
+        heading: "What a Redesigned System Could Look Like",
+        body: "A growing body of educational research, from neuroscience, behavioural economics, and educational technology, is converging on an alternative vision of effective learning. It is characterised by: mastery-based progression rather than age-graded cohorts; project-based and inquiry-driven learning that develops synthesis and application skills; personalised learning trajectories supported by adaptive technology; mentored engagement with real problems rather than simulated exercises; and portfolio-based assessment rather than standardised testing. None of these ideas are new — progressive education has advocated many of them for a century. What is new is the combination of technological infrastructure to deliver them at scale and increasing economic urgency as the credential system decouples from labour market value.",
+      },
+    ],
+    keySignals: [
+      "Learning-adjusted years of schooling gap: 10+ years (Finland) vs <4 years (parts of SSA)",
+      "AI tutoring systems showing 2-sigma learning improvement in controlled trials",
+      "Credential inflation: degree requirements rising for jobs that previously required none",
+      "Teacher shortage projected to reach 69 million globally by 2030 (UNESCO)",
+      "Skills half-life decreasing: estimated 5-year average before technical skills require significant update",
+    ],
+    implications: [
+      "Credential-based gatekeeping in hiring is increasingly counterproductive as credentials decouple from competence",
+      "Educational technology can narrow quality gaps but requires pedagogy-first rather than technology-first implementation",
+      "Lifelong learning infrastructure becomes critical as skills obsolescence accelerates",
+    ],
+    tags: [
+      "Education Reform",
+      "Talent Systems",
+      "Future of Work",
+      "Learning Design",
+    ],
+    cardAnim: "grid",
+  },
+  {
+    id: "ep-006",
+    title: "Digital Infrastructure and the New Geopolitics of Data",
+    eyebrow: "TECHNOLOGY SYSTEMS INTELLIGENCE",
+    domain: "Technology Geopolitics",
+    accentColor: "#06b6d4",
+    readTime: "5 min read",
+    heroSymbol: "◫",
+    summary:
+      "Undersea cables, cloud server locations, semiconductor supply chains, and platform data flows have become the contested terrain of 21st-century geopolitics. STEAMI maps the emerging landscape of digital infrastructure as strategic resource.",
+    lead: "The internet was designed with a vision of borderless, decentralised information flow. The physical infrastructure that carries it — undersea cables, data centres, satellite constellations, semiconductor fabrication facilities — is anything but borderless. It is concentrated, contested, and increasingly weaponised as a tool of geopolitical competition. Understanding the geography of digital infrastructure is no longer optional for institutions planning across a 10-year horizon.",
+    sections: [
+      {
+        heading: "The Chokepoint Architecture of Global Data",
+        body: "Approximately 97% of global internet traffic crosses undersea cables — roughly 400 cables totalling over 1.3 million kilometres. These cables are not evenly distributed. Traffic between North America, Europe, and East Asia passes through a small number of critical transit points: the Strait of Malacca, the Red Sea, the Strait of Gibraltar, the English Channel. Cable cuts — whether by fishing trawlers, earthquakes, or deliberate sabotage — have demonstrably disrupted internet connectivity for entire regions. Recent incidents in the Red Sea have highlighted the fragility of this infrastructure and the limited options for rapid repair. Satellite constellations (Starlink, Project Kuiper) offer some redundancy but cannot yet replicate the bandwidth of fibre for bulk data transfer.",
+      },
+      {
+        heading: "Semiconductor Sovereignty and the Chip Wars",
+        body: "The semiconductor industry has produced the most extreme geographic concentration of any critical technology. Leading-edge chip fabrication — currently defined by process nodes below 7nm — is essentially monopolised by TSMC in Taiwan, with Samsung in South Korea as the only other producer. The United States, once dominant in semiconductor manufacturing, retains leadership only in chip design (Intel, Qualcomm, Nvidia, AMD) and equipment (ASML's EUV lithography machines, made exclusively in the Netherlands). This concentration creates profound strategic vulnerabilities. The US CHIPS Act, EU Chips Act, and Chinese semiconductor investment programs represent an unprecedented attempt to reshore or diversify semiconductor production — with timelines of 5-10 years at minimum and uncertain prospects of success.",
+      },
+      {
+        heading: "Data Localisation and the Splinternet",
+        body: "Alongside physical infrastructure, the governance of data flows is becoming a major geopolitical fault line. The concept of 'data localisation' — requirements that data about a country's citizens be stored and processed within its jurisdiction — has spread from a handful of authoritarian states to become mainstream policy in Europe (GDPR), India (Personal Data Protection Bill), and many other jurisdictions. The result is a progressive 'splinternet' — a fragmentation of the formerly unified global internet into partially separate national or regional architectures. For multinational institutions, this creates compliance complexity, limits on cross-border data analysis, and potential fragmentation of digital services. For smaller states, it raises questions about whether genuine digital sovereignty is achievable given concentration of cloud infrastructure in US and Chinese hands.",
+      },
+    ],
+    keySignals: [
+      "97% of global internet traffic traverses ~400 undersea cables — high chokepoint risk",
+      "TSMC produces 90%+ of leading-edge chips — single point of failure for global AI hardware",
+      "CHIPS Act: $52B US investment, targeting 20% domestic advanced chip production by 2030",
+      "Data localisation laws now active in 100+ jurisdictions — fragmenting global data flows",
+      "Starlink: 5,000+ satellites — first credible redundancy to undersea cable infrastructure",
+    ],
+    implications: [
+      "Digital infrastructure geography is now a board-level risk issue for any institution with global operations",
+      "Semiconductor supply chain diversification will take a decade — window of strategic vulnerability remains",
+      "Splinternet trend favours platforms with strong local infrastructure over global aggregators",
+    ],
+    tags: [
+      "Digital Infrastructure",
+      "Semiconductors",
+      "Data Geopolitics",
+      "Undersea Cables",
+    ],
+    cardAnim: "flow",
+  },
+  {
+    id: "ep-007",
+    title:
+      "The Inequality Equation: Why Wealth Concentration Threatens Systemic Stability",
+    eyebrow: "EQUITY SYSTEMS INTELLIGENCE",
+    domain: "Economic Equity",
+    accentColor: "#f97316",
+    readTime: "5 min read",
+    heroSymbol: "◭",
+    summary:
+      "Global wealth inequality has reached historic extremes. STEAMI examines the economic, political, and social mechanisms through which concentrated wealth undermines the institutional foundations of stable, innovative societies.",
+    lead: "The world's billionaires have more than doubled their collective wealth since 2020. Oxfam's 2024 inequality report documented that the richest 1% now own more wealth than the bottom 95% of humanity combined. These are not merely statistical observations — extreme wealth concentration has measurable effects on political institutions, economic dynamism, social cohesion, and inter-generational mobility that create systemic risks extending far beyond any simple moral objection to inequality.",
+    sections: [
+      {
+        heading: "The Political Economy of Extreme Concentration",
+        body: "A body of empirical political science research has documented the mechanisms through which extreme wealth concentration translates into political power that perpetuates and amplifies that concentration. Campaign finance systems in many democracies allow wealthy individuals and corporations to substantially shape electoral outcomes and legislative priorities. Regulatory capture — the phenomenon of regulated industries gaining effective control over their regulators — is well-documented in finance, energy, pharmaceuticals, and technology. The revolving door between industry and regulatory agencies creates structural incentives for regulatory accommodation rather than enforcement. These mechanisms compound over time: policies that reduce wealth concentration become harder to enact precisely as wealth concentration increases the political resources available to resist them.",
+      },
+      {
+        heading: "Innovation and the Dynamism Paradox",
+        body: "A common argument holds that wealth concentration is acceptable — even beneficial — because high returns attract capital into innovation. The empirical evidence on this relationship is substantially more nuanced. Economic historians studying Gilded Age America, pre-war Europe, and contemporary data find an inverted U-shaped relationship between inequality and innovation. Moderate inequality creates incentives for effort and risk-taking. Extreme inequality creates barriers: it concentrates capital in asset appreciation and rent-seeking rather than productive investment; it reduces demand through middle-class compression; it raises barriers to entry for would-be innovators without access to inherited capital; and it concentrates political power in ways that protect incumbents from disruptive competition. The STEAMI EQUIS intelligence stream specifically tracks these dynamics as they relate to science and technology system health.",
+      },
+      {
+        heading: "Intergenerational Mobility and the Opportunity Architecture",
+        body: "Perhaps the most consequential effect of extreme inequality is its impact on intergenerational mobility — the ability of individuals to achieve economic outcomes independent of the circumstances of their birth. Research across OECD countries consistently finds that higher inequality is associated with lower intergenerational mobility (the 'Great Gatsby Curve'). The mechanisms are multiple: unequal access to quality education, nutrition, healthcare, and social networks; reduced public investment in the goods that enable mobility as tax bases erode and political priorities shift; and direct transfer of economic advantage through inheritance and social capital. A society with low mobility wastes human capital systematically — the talents of people born into constrained circumstances are underdeveloped and underdeployed.",
+      },
+    ],
+    keySignals: [
+      "Top 1% own more wealth than bottom 95% combined (2024)",
+      "Billionaire wealth doubled 2020-2024 while poverty reduction stalled",
+      "Great Gatsby Curve: correlation r=0.6 between inequality and intergenerational immobility across OECD",
+      "Tax-to-GDP ratios in wealthy nations trending down while corporate concentration increases",
+      "Global wealth tax proposals gaining traction at G20 level — implementation uncertain",
+    ],
+    implications: [
+      "Institutions operating in high-inequality contexts face political instability risk as legitimacy of economic arrangements is contested",
+      "Talent development programs require explicit equity architecture to access full human capital depth of societies",
+      "Philanthrocapitalism expanding into areas of traditional public policy — with accountability gaps",
+    ],
+    tags: [
+      "Wealth Inequality",
+      "Political Economy",
+      "Social Mobility",
+      "Systemic Risk",
+    ],
+    cardAnim: "ripple",
+  },
+  {
+    id: "ep-008",
+    title: "Water Security in the 21st Century: The Invisible Resource Crisis",
+    eyebrow: "ENVIRONMENTAL SYSTEMS INTELLIGENCE",
+    domain: "Environmental Security",
+    accentColor: "#0ea5e9",
+    readTime: "5 min read",
+    heroSymbol: "◌",
+    summary:
+      "Two billion people lack access to safely managed drinking water. Groundwater aquifers are depleting globally. Climate change is altering precipitation patterns in ways that compound existing water stress. STEAMI maps the converging dimensions of the global water security crisis.",
+    lead: "Water is the fundamental substrate of human civilisation. Every major historical civilisation emerged in and organised around reliable water sources. Every major historical civilisation that collapsed left evidence of water stress among its terminal conditions. The contemporary global water system — comprising groundwater aquifers, glaciers, rivers, reservoirs, and precipitation patterns — is under simultaneous pressure from population growth, agricultural intensification, industrial demand, and climate-driven hydrological change in ways that have no historical precedent.",
+    sections: [
+      {
+        heading: "The Groundwater Depletion Crisis",
+        body: "Approximately 2 billion people depend primarily on groundwater for drinking water. Agriculture — which accounts for 70% of global freshwater withdrawals — depends on groundwater for approximately 40% of its supply. Many of the world's most productive agricultural regions are sustained by 'fossil' aquifers — geological formations accumulated over thousands to millions of years that are being extracted at rates hundreds to thousands of times faster than natural recharge. The Ogallala Aquifer, which underlies America's Great Plains and sustains a significant fraction of US grain production, is declining at rates that threaten agricultural viability within 50 years in some areas. Similar dynamics apply to aquifers in India's Punjab (which produces 25% of Indian wheat), Pakistan, China's North Plain, and Iran. Unlike surface water depletion, which is visible, groundwater depletion is largely invisible until wells fail.",
+      },
+      {
+        heading: "Climate Change and Hydrological Disruption",
+        body: "Climate change is not simply making the world warmer — it is fundamentally altering the distribution of water in space and time. The atmospheric physics is straightforward: a warmer atmosphere holds more water vapour (roughly 7% more per degree of warming), leading to more intense precipitation events when rain or snow does fall, but also more intense and prolonged droughts in the intervening periods. The result is described by hydrologists as 'wet places getting wetter, dry places getting drier' with important caveats about regional variation and seasonal timing. Glaciers — which provide regulated water flow to rivers across Asia, South America, and Europe — are retreating globally. Himalayan glaciers feed rivers used by 800 million people; their accelerating retreat will initially increase river flow (from enhanced melt) before triggering severe reduction as glacier mass decreases.",
+      },
+      {
+        heading: "Water, Conflict, and Geopolitics",
+        body: "The connection between water stress and conflict is empirically well-established at the local level and increasingly relevant at the interstate level. Of the 276 major international river basins, 158 lack any cooperative governance framework. The Nile basin — shared among 11 countries — is under acute tension as Ethiopia's Grand Renaissance Dam alters downstream flows to Egypt and Sudan. The Mekong River, shared among China, Myanmar, Laos, Thailand, Cambodia, and Vietnam, is subject to Chinese upstream dam operations that significantly affect downstream water availability and fisheries. The Indus Waters Treaty between India and Pakistan — a landmark 1960 agreement — is under increasing strain as climate change alters flows. Water stress does not deterministically cause conflict, but it consistently appears as a contributing factor in environments where other conflict drivers are present.",
+      },
+    ],
+    keySignals: [
+      "2B people lack safely managed drinking water (WHO/UNICEF 2023)",
+      "Ogallala Aquifer: some zones have <25 years of irrigation-viable depth remaining",
+      "700M+ people live in water-scarce conditions; projected 5.7B by 2050",
+      "Himalayan glacier melt accelerating — peak water flow expected 2050s for major rivers",
+      "Water-related conflicts documented in 45+ countries 2010-2023",
+    ],
+    implications: [
+      "Agricultural systems dependent on non-renewable groundwater face existential transition requirements",
+      "Water infrastructure investment requirements in developing world far exceed current financing flows",
+      "Climate adaptation planning must integrate water security as a primary rather than secondary variable",
+    ],
+    tags: [
+      "Water Security",
+      "Groundwater",
+      "Hydrological Risk",
+      "Resource Geopolitics",
+    ],
+    cardAnim: "fractal",
+  },
+  {
+    id: "ep-009",
+    title:
+      "The Disinformation Ecosystem: Intelligence, Narrative, and the Epistemological Crisis",
+    eyebrow: "INFORMATION ENVIRONMENT INTELLIGENCE",
+    domain: "Information Systems",
+    accentColor: "#e879f9",
+    readTime: "5 min read",
+    heroSymbol: "◊",
+    summary:
+      "The global information environment has shifted from a problem of information scarcity to information superabundance — with synthetic media, algorithmic amplification, and epistemic tribalism creating novel challenges to the shared factual foundations of democratic governance.",
+    lead: "For most of human history, the primary challenge in knowledge systems was scarcity: getting enough accurate information to make good decisions. The information revolution of the past three decades has eliminated scarcity but created a new and perhaps more insidious problem: an abundance of information of radically uneven quality, amplified by systems optimised for engagement rather than accuracy, in a social environment where epistemic tribalism — the tendency to evaluate truth claims based on their source rather than their content — is intensifying.",
+    sections: [
+      {
+        heading: "The Algorithmic Amplification Engine",
+        body: "Social media platforms optimising for engagement have, through the ordinary operation of their recommendation systems, created infrastructure for the amplification of emotionally engaging content regardless of its accuracy. The underlying mechanism is not conspiratorial — it emerges from the straightforward observation that content provoking strong emotional responses (outrage, fear, excitement) generates more clicks, shares, and comments than calm factual reporting. Over time, recommendation systems trained on engagement signals learn to preferentially surface emotionally activating content. Studies consistently find that false and misleading content spreads faster and further than accurate corrections on major social platforms. This is not primarily a problem of malicious actors — though they exist and exploit the dynamics — but of systemic incentive misalignment between platform economics and information quality.",
+      },
+      {
+        heading: "Synthetic Media and the Verification Crisis",
+        body: "Generative AI has added a qualitatively new dimension to the disinformation challenge: the ability to create highly realistic synthetic media (audio, video, images, text) at trivial cost and scale. Deepfake technology capable of placing real individuals into fabricated contexts has existed since 2018, but the quality and accessibility of these tools has improved dramatically. The implications extend beyond individual manipulation events: the mere existence of convincing deepfake technology creates 'liar's dividend' — the ability of real evidence to be discredited by claiming it is synthetic. In high-stakes contexts (elections, legal proceedings, military incidents) this creates profound verification challenges. Current AI-detection tools are engaged in an accelerating arms race with AI-generation tools, with no stable equilibrium in sight.",
+      },
+      {
+        heading: "Institutional Responses and Their Limitations",
+        body: "Responses to the disinformation crisis have multiplied: platform content moderation, fact-checking organisations, media literacy education, legal frameworks targeting malicious falsehoods. Each has documented limitations. Content moderation at platform scale is necessarily imperfect and subject to both over- and under-enforcement. Fact-checking reaches primarily audiences already predisposed to trust corrective information. Media literacy education has shown modest effects in controlled settings but limited scalability. Legal approaches face fundamental tensions with free expression principles. STEAMI's information environment intelligence stream focuses on understanding these dynamics as a prerequisite for institutional decision-making in contexts where information environment quality is a material variable.",
+      },
+    ],
+    keySignals: [
+      "False news spreads 6x faster than accurate information on Twitter/X (MIT Media Lab)",
+      "Deepfake detection gap: current tools 65-75% accurate — insufficient for high-stakes verification",
+      "Trust in media at historic lows across OECD countries (Reuters Institute 2023)",
+      "Epistemic polarisation measurable across 24 countries — widening 2015-2023",
+      "State-sponsored information operations documented from 81 countries",
+    ],
+    implications: [
+      "Institutional communications require explicit information environment strategy — not just accuracy but verifiability",
+      "Decision processes in high-stakes domains need structured epistemic protocols resistant to narrative manipulation",
+      "Shared factual foundations for democratic deliberation require active maintenance — they do not persist automatically",
+    ],
+    tags: [
+      "Disinformation",
+      "AI Media",
+      "Epistemic Systems",
+      "Information Governance",
+    ],
+    cardAnim: "heatmap",
+  },
+  {
+    id: "ep-010",
+    title:
+      "The Energy Transition: Scale, Speed, and the Structural Challenges of Decarbonisation",
+    eyebrow: "CLIMATE & ENERGY SYSTEMS",
+    domain: "Energy Systems",
+    accentColor: "#d4a017",
+    readTime: "5 min read",
+    heroSymbol: "⬡",
+    summary:
+      "Solar and wind costs have fallen 90%+ in a decade. Yet the energy transition faces structural challenges — in grid infrastructure, material supply chains, and political economy — that threaten to make it slower and more difficult than cost curves alone suggest.",
+    lead: "The energy transition is happening faster than most analysts predicted and slower than most scenarios require. Solar photovoltaic costs have fallen approximately 90% in the past decade, with wind following a similar trajectory. Utility-scale solar is now the cheapest source of new electricity generation in most of the world. Electric vehicle adoption is following an S-curve characteristic of major technological transitions. And yet global CO2 emissions from energy have not yet peaked, and the pace of transition remains substantially below what climate science identifies as necessary to maintain any reasonable probability of staying within 1.5°C of warming.",
+    sections: [
+      {
+        heading: "The Grid Transformation Challenge",
+        body: "The electricity grids of most countries were designed around controllable, dispatchable generation — power plants that produce electricity on demand. Wind and solar are variable: they produce when the wind blows and the sun shines, not necessarily when demand peaks. Managing a grid with high shares of variable renewable energy requires fundamental transformation: massive investment in storage (batteries, pumped hydro, hydrogen), extensive transmission infrastructure to balance supply and demand across large geographic areas, and sophisticated demand-response systems that shift flexible consumption to periods of high renewable output. These investments are technically feasible and economically justified, but they require long planning horizons, coordinated regulatory action, and upfront capital that markets often fail to mobilise at the necessary pace and scale.",
+      },
+      {
+        heading: "Critical Mineral Supply Chains",
+        body: "The clean energy transition requires a massive scaling of specific materials: lithium, cobalt, nickel, and manganese for batteries; copper for electrification; silicon and silver for solar; rare earth elements for wind turbine magnets and EV motors. The International Energy Agency projects that demand for these materials will need to increase 4- to 6-fold by 2040 under net-zero scenarios. Current mining investment and production capacity is insufficient by a wide margin. The geographic concentration of critical mineral reserves — lithium in the 'lithium triangle' of Chile, Argentina, and Bolivia; cobalt in the Democratic Republic of Congo; rare earths in China — creates supply chain vulnerabilities and political dependencies that mirror or exceed those of the current fossil fuel system. Environmental and social impacts of mining at the required scale are substantial and inadequately addressed in most net-zero scenarios.",
+      },
+      {
+        heading: "Political Economy and the Incumbency Problem",
+        body: "The fossil fuel industry represents accumulated capital investment of tens of trillions of dollars, employment of hundreds of millions of people, and political influence proportional to its economic scale. Its interests are fundamentally threatened by accelerated decarbonisation. Analysis of lobbying expenditure, political contributions, and regulatory engagement consistently shows fossil fuel interests deploying resources to slow transition-relevant regulation, expand fossil fuel infrastructure, and maintain public subsidies (which the IMF estimates at $7 trillion annually when health and climate externalities are included). The transition also creates genuine economic and social disruption in fossil fuel-dependent communities and countries that requires managed transition support to be politically sustainable. STEMONEF's TERRA and EQUIS programs both engage with these dimensions — the environmental science and the equity and economic architecture needed to make transition politically viable.",
+      },
+    ],
+    keySignals: [
+      "Solar LCOE down 90% 2010-2023 — now cheapest electricity source in history",
+      "IEA: critical mineral demand must increase 4-6x for net-zero — mining pipeline insufficient",
+      "Global fossil fuel subsidies: $7T annually including externalities (IMF 2023)",
+      "Grid-scale battery storage deployment growing 75% YoY — from low base",
+      "Energy transition job creation exceeds fossil fuel job losses globally — but geographic mismatch acute",
+    ],
+    implications: [
+      "Grid transformation investment is the binding constraint on renewable penetration — not generation cost",
+      "Critical mineral supply chains require investment and governance that parallels semiconductor strategy",
+      "Just transition frameworks are political prerequisites for socially sustainable decarbonisation",
+    ],
+    tags: [
+      "Energy Transition",
+      "Climate Policy",
+      "Renewable Energy",
+      "Critical Minerals",
+    ],
+    cardAnim: "scan",
+  },
+];
+
+// ─── Card Animation Components ───────────────────────────────────────────────
+function CardAnimPulse({ color }: { color: string }) {
+  return (
+    <div
+      style={{ width: 32, height: 32, position: "relative" }}
+      aria-hidden="true"
+    >
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <circle
+          cx="16"
+          cy="16"
+          r="4"
+          fill={color}
+          style={{ animation: "ep-pulse-core 2s ease-in-out infinite" }}
+        />
+        <circle
+          cx="16"
+          cy="16"
+          r="8"
+          fill="none"
+          stroke={color}
+          strokeWidth="1"
+          opacity="0.5"
+          style={{ animation: "ep-pulse-ring1 2s ease-in-out infinite" }}
+        />
+        <circle
+          cx="16"
+          cy="16"
+          r="13"
+          fill="none"
+          stroke={color}
+          strokeWidth="0.5"
+          opacity="0.25"
+          style={{ animation: "ep-pulse-ring2 2s ease-in-out infinite 0.4s" }}
+        />
+      </svg>
+    </div>
+  );
+}
+function CardAnimScan({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        position: "relative",
+        overflow: "hidden",
+        borderRadius: 2,
+      }}
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          position: "absolute",
+          inset: 0,
+          border: `1px solid ${color}30`,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          left: 0,
+          right: 0,
+          height: 1,
+          background: `linear-gradient(90deg, transparent, ${color}, transparent)`,
+          animation: "ep-scan-line 2s linear infinite",
+        }}
+      />
+    </div>
+  );
+}
+function CardAnimCascade({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        display: "flex",
+        gap: 3,
+        alignItems: "flex-end",
+      }}
+      aria-hidden="true"
+    >
+      {[0, 1, 2, 3].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: 4,
+            background: `${color}60`,
+            borderRadius: 1,
+            height: 8 + i * 5,
+            animation: `ep-cascade-dot 1.4s ease-in-out infinite ${i * 0.18}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+function CardAnimWaveform({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        display: "flex",
+        gap: 2,
+        alignItems: "center",
+      }}
+      aria-hidden="true"
+    >
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          style={{
+            width: 3,
+            background: color,
+            borderRadius: 1,
+            animation: `ep-wave-bar 1.2s ease-in-out infinite ${i * 0.12}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+function CardAnimOrbit({ color }: { color: string }) {
+  return (
+    <div
+      style={{ width: 32, height: 32, position: "relative" }}
+      aria-hidden="true"
+    >
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <circle
+          cx="16"
+          cy="16"
+          r="12"
+          fill="none"
+          stroke={`${color}30`}
+          strokeWidth="1"
+          strokeDasharray="4 3"
+        />
+        <circle
+          cx="16"
+          cy="4"
+          r="3"
+          fill={color}
+          style={{
+            transformOrigin: "16px 16px",
+            animation: "ep-orbit-dot 3s linear infinite",
+          }}
+        />
+        <circle cx="16" cy="16" r="2.5" fill={`${color}60`} />
+      </svg>
+    </div>
+  );
+}
+function CardAnimGrid({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        display: "grid",
+        gridTemplateColumns: "repeat(4,1fr)",
+        gap: 2,
+      }}
+      aria-hidden="true"
+    >
+      {[
+        "g0",
+        "g1",
+        "g2",
+        "g3",
+        "g4",
+        "g5",
+        "g6",
+        "g7",
+        "g8",
+        "g9",
+        "ga",
+        "gb",
+        "gc",
+        "gd",
+        "ge",
+        "gf",
+      ].map((k, i) => (
+        <div
+          key={k}
+          style={{
+            background: `${color}40`,
+            borderRadius: 1,
+            animation: `ep-grid-blink 2.4s ease-in-out infinite ${(i * 0.13) % 2.4}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+function CardAnimFlow({ color }: { color: string }) {
+  return (
+    <div style={{ width: 32, height: 32 }} aria-hidden="true">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+      >
+        <path
+          d="M2 8 Q10 4 16 16 Q22 28 30 24"
+          fill="none"
+          stroke={`${color}50`}
+          strokeWidth="1.5"
+          strokeDasharray="5 3"
+          style={{ animation: "ep-flow-dash 2s linear infinite" }}
+        />
+        <path
+          d="M2 16 Q10 12 16 20 Q22 28 30 16"
+          fill="none"
+          stroke={`${color}30`}
+          strokeWidth="1"
+          strokeDasharray="3 4"
+          style={{ animation: "ep-flow-dash 2.5s linear infinite 0.5s" }}
+        />
+      </svg>
+    </div>
+  );
+}
+function CardAnimRipple({ color }: { color: string }) {
+  return (
+    <div
+      style={{ width: 32, height: 32, position: "relative" }}
+      aria-hidden="true"
+    >
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+      >
+        {[5, 10, 15].map((r, i) => (
+          <circle
+            key={r}
+            cx="16"
+            cy="16"
+            r={r}
+            fill="none"
+            stroke={color}
+            strokeWidth="1"
+            style={{
+              animation: `ep-ripple 2.5s ease-out infinite ${i * 0.7}s`,
+              transformOrigin: "16px 16px",
+            }}
+          />
+        ))}
+      </svg>
+    </div>
+  );
+}
+function CardAnimFractal({ color }: { color: string }) {
+  return (
+    <div style={{ width: 32, height: 32 }} aria-hidden="true">
+      <svg
+        width="32"
+        height="32"
+        viewBox="0 0 32 32"
+        aria-hidden="true"
+        focusable="false"
+        style={{ animation: "ep-fractal-spin 8s linear infinite" }}
+      >
+        <polygon
+          points="16,3 29,27 3,27"
+          fill="none"
+          stroke={color}
+          strokeWidth="1"
+          opacity="0.8"
+        />
+        <polygon
+          points="16,9 24,24 8,24"
+          fill="none"
+          stroke={color}
+          strokeWidth="0.7"
+          opacity="0.5"
+          style={{ animation: "ep-fractal-spin 4s linear infinite reverse" }}
+        />
+      </svg>
+    </div>
+  );
+}
+function CardAnimHeatmap({ color }: { color: string }) {
+  return (
+    <div
+      style={{
+        width: 32,
+        height: 32,
+        display: "grid",
+        gridTemplateColumns: "repeat(3,1fr)",
+        gap: 2,
+      }}
+      aria-hidden="true"
+    >
+      {(["h0", "h1", "h2", "h3", "h4", "h5", "h6", "h7", "h8"] as const).map(
+        (k, i) => (
+          <div
+            key={k}
+            style={{
+              background: `${color}${Math.floor(20 + (i % 3) * 25)
+                .toString(16)
+                .padStart(2, "0")}`,
+              borderRadius: 1,
+              animation: `ep-heatmap-fade 3s ease-in-out infinite ${(i * 0.3) % 3}s`,
+            }}
+          />
+        ),
+      )}
+    </div>
+  );
+}
+
+function EditorialCardAnim({
+  type,
+  color,
+}: { type: EditorialPiece["cardAnim"]; color: string }) {
+  switch (type) {
+    case "pulse":
+      return <CardAnimPulse color={color} />;
+    case "scan":
+      return <CardAnimScan color={color} />;
+    case "cascade":
+      return <CardAnimCascade color={color} />;
+    case "waveform":
+      return <CardAnimWaveform color={color} />;
+    case "orbit":
+      return <CardAnimOrbit color={color} />;
+    case "grid":
+      return <CardAnimGrid color={color} />;
+    case "flow":
+      return <CardAnimFlow color={color} />;
+    case "ripple":
+      return <CardAnimRipple color={color} />;
+    case "fractal":
+      return <CardAnimFractal color={color} />;
+    case "heatmap":
+      return <CardAnimHeatmap color={color} />;
+    default:
+      return null;
+  }
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 export default function SteamiPage({ onBack }: SteamiPageProps) {
   const { data: feeds, isLoading: feedsLoading } = useGetPublicFeeds();
   const [libraryFilter, setLibraryFilter] = useState("All");
   const [selectedBrief, setSelectedBrief] = useState<FeedEntry | null>(null);
+  const [viewMode, setViewMode] = useState<"signals" | "editorial">(
+    "editorial",
+  );
+  const [selectedEditorial, setSelectedEditorial] =
+    useState<EditorialPiece | null>(null);
+  const [editorialReadProgress, setEditorialReadProgress] = useState(0);
+  const [expandedEditorialSection, setExpandedEditorialSection] = useState<
+    number | null
+  >(0);
   const libraryRef = useRef<HTMLDivElement>(null);
 
   // Compute unique domains
@@ -2471,12 +3324,19 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
         style={{ background: "rgba(8,12,32,0.4)" }}
       >
         <div className="max-w-7xl mx-auto" ref={libraryRef}>
-          <div className="mb-14 steami-reveal reveal">
+          {/* Section header */}
+          <div className="mb-10 steami-reveal reveal">
             <div
-              className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-3"
+              className="font-mono-geist text-[10px] tracking-[0.45em] uppercase mb-1"
               style={{ color: "rgba(74,126,247,0.7)" }}
             >
               ◆ KNOWLEDGE REPOSITORY
+            </div>
+            <div
+              className="font-mono-geist text-[9px] tracking-[0.3em] uppercase mb-4"
+              style={{ color: "rgba(212,160,23,0.55)" }}
+            >
+              EDITORIAL INTELLIGENCE · STEAMI DEEP-DIVES
             </div>
             <h2
               className="font-display text-4xl md:text-5xl font-light mb-3"
@@ -2495,244 +3355,769 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                 lineHeight: 1.7,
               }}
             >
-              Published intelligence briefs, research summaries and knowledge
-              products from the STEAMI platform.
+              Published intelligence briefs and deep-dive editorial pieces from
+              the STEAMI platform — covering AI governance, climate systems,
+              global health, emerging technologies, and the systemic forces
+              shaping our world.
             </p>
           </div>
 
-          {/* Filter tabs */}
+          {/* View Mode Switcher */}
           <div
-            className="flex flex-wrap gap-2 mb-8 steami-reveal reveal"
-            data-ocid="steami.library.tab"
-            style={{ transitionDelay: "0.08s" }}
+            className="flex gap-0 mb-8 steami-reveal reveal"
+            style={{
+              transitionDelay: "0.05s",
+              display: "inline-flex",
+              border: "1px solid rgba(255,255,255,0.08)",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
           >
-            {["All", ...allDomains].map((d) => (
-              <button
-                key={d}
-                type="button"
-                onClick={() => setLibraryFilter(d)}
-                className="px-4 py-2 rounded-sm font-mono-geist text-[9px] tracking-[0.2em] uppercase transition-all duration-250"
-                style={{
-                  background:
-                    libraryFilter === d
-                      ? "rgba(74,126,247,0.15)"
-                      : "rgba(255,255,255,0.03)",
-                  border: `1px solid ${libraryFilter === d ? "rgba(74,126,247,0.5)" : "rgba(255,255,255,0.08)"}`,
-                  color:
-                    libraryFilter === d
-                      ? "rgba(138,180,255,0.9)"
-                      : "rgba(255,255,255,0.35)",
-                  cursor: "pointer",
-                }}
-              >
-                {d}
-              </button>
-            ))}
-          </div>
-
-          {/* Library cards */}
-          {feedsLoading ? (
-            <div
-              data-ocid="steami.library.loading_state"
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
-            >
-              {[1, 2, 3].map((n) => (
-                <div
-                  key={n}
-                  className="p-6 rounded-sm"
-                  style={{
-                    background: "rgba(255,255,255,0.03)",
-                    border: "1px solid rgba(255,255,255,0.06)",
-                  }}
-                >
-                  <Skeleton
-                    className="h-3 w-20 mb-4"
-                    style={{ background: "rgba(255,255,255,0.06)" }}
-                  />
-                  <Skeleton
-                    className="h-5 w-full mb-2"
-                    style={{ background: "rgba(255,255,255,0.05)" }}
-                  />
-                  <Skeleton
-                    className="h-4 w-3/4 mb-2"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Skeleton
-                    className="h-4 w-1/2 mb-6"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  />
-                  <Skeleton
-                    className="h-3 w-24"
-                    style={{ background: "rgba(255,255,255,0.04)" }}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : filteredFeeds.length === 0 ? (
-            <div
-              data-ocid="steami.library.empty_state"
-              className="text-center py-20 rounded-sm"
+            <button
+              type="button"
+              data-ocid="steami.library.viewmode.tab"
+              onClick={() => setViewMode("editorial")}
+              className="px-5 py-2.5 font-mono-geist text-[9px] tracking-[0.2em] uppercase transition-all duration-200"
               style={{
-                border: "1px solid rgba(255,255,255,0.06)",
-                background: "rgba(255,255,255,0.02)",
+                background:
+                  viewMode === "editorial"
+                    ? "rgba(212,160,23,0.18)"
+                    : "transparent",
+                color:
+                  viewMode === "editorial"
+                    ? "#d4a017"
+                    : "rgba(255,255,255,0.3)",
+                borderRight: "1px solid rgba(255,255,255,0.08)",
+                cursor: "pointer",
+                borderBottom:
+                  viewMode === "editorial"
+                    ? "2px solid #d4a017"
+                    : "2px solid transparent",
               }}
             >
+              ◆ Editorial Deep-Dives
+            </button>
+            <button
+              type="button"
+              data-ocid="steami.library.viewmode.tab"
+              onClick={() => setViewMode("signals")}
+              className="px-5 py-2.5 font-mono-geist text-[9px] tracking-[0.2em] uppercase transition-all duration-200"
+              style={{
+                background:
+                  viewMode === "signals"
+                    ? "rgba(74,126,247,0.12)"
+                    : "transparent",
+                color:
+                  viewMode === "signals"
+                    ? "rgba(138,180,255,0.9)"
+                    : "rgba(255,255,255,0.3)",
+                cursor: "pointer",
+                borderBottom:
+                  viewMode === "signals"
+                    ? "2px solid #4a7ef7"
+                    : "2px solid transparent",
+              }}
+            >
+              ◈ Intelligence Signals
+            </button>
+          </div>
+
+          {/* ─ EDITORIAL VIEW ─ */}
+          {viewMode === "editorial" && (
+            <div>
+              {/* Featured Card — ep-001 full width */}
               <div
-                className="text-4xl mb-4"
-                style={{ color: "rgba(74,126,247,0.3)" }}
+                data-ocid="steami.editorial.card.1"
+                className="relative overflow-hidden rounded-sm mb-6 steami-reveal reveal"
+                style={{
+                  background: "rgba(74,126,247,0.04)",
+                  border: "1px solid rgba(74,126,247,0.2)",
+                  borderLeft: "3px solid #4a7ef7",
+                }}
               >
-                ◈
-              </div>
-              <p
-                className="font-mono-geist text-xs tracking-[0.2em] uppercase"
-                style={{ color: "rgba(255,255,255,0.25)" }}
-              >
-                {libraryFilter === "All"
-                  ? "No intelligence briefs published yet. Check back as STEAMI publishes its first intelligence outputs."
-                  : `No intelligence briefs in the "${libraryFilter}" domain yet.`}
-              </p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredFeeds.map((feed, i) => {
-                const domainColor = getDomainColor(feed.domain);
-                return (
+                {/* Scan line sweep */}
+                <div
+                  className="animate-card-scan absolute inset-x-0 top-0 h-[1px] pointer-events-none"
+                  style={{
+                    background:
+                      "linear-gradient(90deg, transparent, rgba(74,126,247,0.8), transparent)",
+                  }}
+                  aria-hidden="true"
+                />
+                <div className="flex flex-col lg:flex-row gap-0">
+                  {/* Left content */}
+                  <div className="flex-1 p-8 lg:p-10">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span
+                        className="font-mono-geist text-[8px] tracking-[0.35em] uppercase px-2 py-0.5 rounded-sm"
+                        style={{
+                          background: "rgba(74,126,247,0.12)",
+                          color: "#4a7ef7",
+                          border: "1px solid rgba(74,126,247,0.25)",
+                        }}
+                      >
+                        {EDITORIAL_PIECES[0].eyebrow}
+                      </span>
+                      <span
+                        className="font-mono-geist text-[8px] tracking-[0.2em] uppercase px-2 py-0.5 rounded-sm"
+                        style={{
+                          background: "rgba(212,160,23,0.1)",
+                          color: "#d4a017",
+                          border: "1px solid rgba(212,160,23,0.25)",
+                        }}
+                      >
+                        FEATURED DEEP-DIVE
+                      </span>
+                    </div>
+                    <h3
+                      className="font-display font-light mb-4 leading-tight"
+                      style={{
+                        fontSize: "clamp(1.6rem,4vw,2.6rem)",
+                        letterSpacing: "0.05em",
+                        color: "rgba(255,255,255,0.92)",
+                      }}
+                    >
+                      {EDITORIAL_PIECES[0].title}
+                    </h3>
+                    <p
+                      className="text-sm mb-6 leading-relaxed"
+                      style={{
+                        color: "rgba(255,255,255,0.5)",
+                        fontFamily: "Sora, sans-serif",
+                        maxWidth: "42ch",
+                      }}
+                    >
+                      {EDITORIAL_PIECES[0].summary}
+                    </p>
+                    <div className="flex items-center gap-4 mb-6">
+                      <span
+                        className="px-2 py-0.5 rounded-sm font-mono-geist text-[8px] tracking-[0.18em] uppercase"
+                        style={{
+                          background: "rgba(74,126,247,0.1)",
+                          color: "#4a7ef7",
+                          border: "1px solid rgba(74,126,247,0.2)",
+                        }}
+                      >
+                        {EDITORIAL_PIECES[0].domain}
+                      </span>
+                      <span
+                        className="font-mono-geist text-[8px]"
+                        style={{ color: "rgba(255,255,255,0.25)" }}
+                      >
+                        {EDITORIAL_PIECES[0].readTime}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      data-ocid="steami.editorial.open_modal_button.1"
+                      onClick={() => {
+                        setSelectedEditorial(EDITORIAL_PIECES[0]);
+                        setExpandedEditorialSection(0);
+                        setEditorialReadProgress(0);
+                      }}
+                      className="px-6 py-3 rounded-sm font-mono-geist text-[9px] tracking-[0.2em] uppercase transition-all duration-200"
+                      style={{
+                        background: "rgba(74,126,247,0.15)",
+                        border: "1px solid rgba(74,126,247,0.4)",
+                        color: "#7aa8ff",
+                        cursor: "pointer",
+                      }}
+                      onMouseEnter={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.background = "rgba(74,126,247,0.25)";
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "#fff";
+                      }}
+                      onMouseLeave={(e) => {
+                        (
+                          e.currentTarget as HTMLButtonElement
+                        ).style.background = "rgba(74,126,247,0.15)";
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "#7aa8ff";
+                      }}
+                    >
+                      Open Deep Dive →
+                    </button>
+                  </div>
+                  {/* Right SVG visualization — governance network */}
                   <div
-                    key={String(feed.id)}
-                    data-ocid={`steami.library.card.${i + 1}`}
-                    className="relative overflow-hidden rounded-sm p-6 cursor-default transition-all duration-300"
+                    className="hidden lg:flex items-center justify-center p-8"
                     style={{
-                      background: "rgba(255,255,255,0.03)",
-                      border: `1px solid ${domainColor}25`,
-                    }}
-                    onMouseEnter={(e) => {
-                      const el = e.currentTarget as HTMLDivElement;
-                      el.style.background = `${domainColor}08`;
-                      el.style.borderColor = `${domainColor}50`;
-                      el.style.transform = "translateY(-3px)";
-                      el.style.boxShadow = `0 8px 24px rgba(0,0,0,0.3), 0 0 16px ${domainColor}10`;
-                    }}
-                    onMouseLeave={(e) => {
-                      const el = e.currentTarget as HTMLDivElement;
-                      el.style.background = "rgba(255,255,255,0.03)";
-                      el.style.borderColor = `${domainColor}25`;
-                      el.style.transform = "none";
-                      el.style.boxShadow = "none";
+                      width: 320,
+                      flexShrink: 0,
+                      background: "rgba(74,126,247,0.03)",
                     }}
                   >
-                    {/* Scan line */}
-                    <div
-                      className="animate-card-scan absolute inset-x-0 top-0 h-[1px] pointer-events-none"
-                      style={{
-                        background: `linear-gradient(90deg, transparent, ${domainColor}60, transparent)`,
-                      }}
+                    <svg
+                      width="260"
+                      height="200"
+                      viewBox="0 0 260 200"
                       aria-hidden="true"
-                    />
-
-                    <div className="flex items-start justify-between mb-4">
-                      <span
-                        className="px-2 py-0.5 rounded-sm font-mono-geist text-[8px] tracking-[0.2em] uppercase"
+                    >
+                      {/* Node connections */}
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="60"
+                        y2="40"
+                        stroke="rgba(74,126,247,0.2)"
+                        strokeWidth="1"
+                        strokeDasharray="4 3"
+                        style={{ animation: "ep-flow-dash 3s linear infinite" }}
+                      />
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="200"
+                        y2="40"
+                        stroke="rgba(74,126,247,0.2)"
+                        strokeWidth="1"
+                        strokeDasharray="4 3"
                         style={{
-                          background: `${domainColor}12`,
-                          color: domainColor,
-                          border: `1px solid ${domainColor}30`,
+                          animation: "ep-flow-dash 2.5s linear infinite 0.5s",
                         }}
+                      />
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="40"
+                        y2="120"
+                        stroke="rgba(74,126,247,0.15)"
+                        strokeWidth="1"
+                        strokeDasharray="3 4"
+                        style={{
+                          animation: "ep-flow-dash 3.5s linear infinite 0.2s",
+                        }}
+                      />
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="220"
+                        y2="120"
+                        stroke="rgba(74,126,247,0.15)"
+                        strokeWidth="1"
+                        strokeDasharray="3 4"
+                        style={{
+                          animation: "ep-flow-dash 4s linear infinite 0.8s",
+                        }}
+                      />
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="90"
+                        y2="170"
+                        stroke="rgba(212,160,23,0.2)"
+                        strokeWidth="1"
+                        strokeDasharray="4 3"
+                        style={{
+                          animation: "ep-flow-dash 2.8s linear infinite 1s",
+                        }}
+                      />
+                      <line
+                        x1="130"
+                        y1="100"
+                        x2="170"
+                        y2="170"
+                        stroke="rgba(212,160,23,0.2)"
+                        strokeWidth="1"
+                        strokeDasharray="4 3"
+                        style={{
+                          animation: "ep-flow-dash 3.2s linear infinite 0.4s",
+                        }}
+                      />
+                      {/* Peripheral nodes */}
+                      {[
+                        { cx: 60, cy: 40, label: "EU", c: "#4a7ef7" },
+                        { cx: 200, cy: 40, label: "US", c: "#4a7ef7" },
+                        { cx: 40, cy: 120, label: "CN", c: "#4a7ef7" },
+                        { cx: 220, cy: 120, label: "G7", c: "#4a7ef7" },
+                        { cx: 90, cy: 170, label: "UN", c: "#d4a017" },
+                        { cx: 170, cy: 170, label: "ISO", c: "#d4a017" },
+                      ].map((n) => (
+                        <g key={n.label}>
+                          <circle
+                            cx={n.cx}
+                            cy={n.cy}
+                            r="18"
+                            fill="rgba(4,5,14,0.9)"
+                            stroke={n.c}
+                            strokeWidth="1"
+                            opacity="0.7"
+                            style={{
+                              animation:
+                                "ep-pulse-core 2.5s ease-in-out infinite",
+                            }}
+                          />
+                          <text
+                            x={n.cx}
+                            y={n.cy + 4}
+                            textAnchor="middle"
+                            fontSize="8"
+                            fill={n.c}
+                            fontFamily="Geist Mono, monospace"
+                            letterSpacing="0.1em"
+                          >
+                            {n.label}
+                          </text>
+                        </g>
+                      ))}
+                      {/* Center node */}
+                      <circle
+                        cx="130"
+                        cy="100"
+                        r="26"
+                        fill="rgba(4,5,14,0.95)"
+                        stroke="#4a7ef7"
+                        strokeWidth="1.5"
+                        style={{
+                          animation: "ep-pulse-ring1 3s ease-in-out infinite",
+                        }}
+                      />
+                      <circle
+                        cx="130"
+                        cy="100"
+                        r="18"
+                        fill="rgba(74,126,247,0.08)"
+                        stroke="#4a7ef7"
+                        strokeWidth="1"
+                      />
+                      <text
+                        x="130"
+                        y="96"
+                        textAnchor="middle"
+                        fontSize="7"
+                        fill="rgba(255,255,255,0.6)"
+                        fontFamily="Geist Mono, monospace"
+                        letterSpacing="0.15em"
                       >
-                        {feed.domain}
-                      </span>
-                      {feed.isFeatured && (
-                        <span
-                          className="px-2 py-0.5 rounded-sm font-mono-geist text-[8px] tracking-[0.15em] uppercase"
-                          style={{
-                            background: "rgba(212,160,23,0.1)",
-                            color: "#d4a017",
-                            border: "1px solid rgba(212,160,23,0.3)",
-                          }}
-                        >
-                          Featured
-                        </span>
-                      )}
-                    </div>
+                        AI GOV
+                      </text>
+                      <text
+                        x="130"
+                        y="107"
+                        textAnchor="middle"
+                        fontSize="6"
+                        fill="rgba(74,126,247,0.8)"
+                        fontFamily="Geist Mono, monospace"
+                        letterSpacing="0.1em"
+                      >
+                        NETWORK
+                      </text>
+                    </svg>
+                  </div>
+                </div>
+              </div>
 
-                    <h3
-                      className="font-display text-xl font-light mb-3 line-clamp-2"
+              {/* 9-card grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {EDITORIAL_PIECES.slice(1).map((piece, idx) => {
+                  const cardIdx = idx + 2; // 2..10
+                  return (
+                    <div
+                      key={piece.id}
+                      data-ocid={`steami.editorial.card.${cardIdx}`}
+                      className="relative overflow-hidden rounded-sm cursor-default transition-all duration-300 steami-reveal reveal"
                       style={{
-                        color: "rgba(255,255,255,0.88)",
-                        letterSpacing: "0.04em",
-                        lineHeight: 1.3,
+                        background: "rgba(255,255,255,0.025)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        borderLeft: `3px solid ${piece.accentColor}`,
+                        transitionDelay: `${idx * 0.05}s`,
+                      }}
+                      onMouseEnter={(e) => {
+                        const el = e.currentTarget as HTMLDivElement;
+                        el.style.background = `${piece.accentColor}06`;
+                        el.style.borderColor = `${piece.accentColor}30`;
+                        el.style.borderLeftColor = piece.accentColor;
+                        el.style.transform = "translateY(-4px)";
+                        el.style.boxShadow = `0 12px 32px rgba(0,0,0,0.4), 0 0 20px ${piece.accentColor}10`;
+                      }}
+                      onMouseLeave={(e) => {
+                        const el = e.currentTarget as HTMLDivElement;
+                        el.style.background = "rgba(255,255,255,0.025)";
+                        el.style.borderColor = "rgba(255,255,255,0.06)";
+                        el.style.borderLeftColor = piece.accentColor;
+                        el.style.transform = "none";
+                        el.style.boxShadow = "none";
                       }}
                     >
-                      {feed.title}
-                    </h3>
+                      {/* Hero symbol watermark */}
+                      <div
+                        className="absolute pointer-events-none select-none"
+                        style={{
+                          right: 16,
+                          top: 12,
+                          fontSize: "4.5rem",
+                          lineHeight: 1,
+                          color: piece.accentColor,
+                          opacity: 0.05,
+                          fontFamily: "sans-serif",
+                        }}
+                        aria-hidden="true"
+                      >
+                        {piece.heroSymbol}
+                      </div>
 
-                    <p
-                      className="text-xs leading-relaxed mb-4 line-clamp-3"
-                      style={{
-                        color: "rgba(255,255,255,0.4)",
-                        fontFamily: "Sora, sans-serif",
-                      }}
-                    >
-                      {feed.summary}
-                    </p>
+                      <div className="p-6">
+                        {/* Top row: eyebrow + anim + readtime */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div>
+                            <div
+                              className="font-mono-geist text-[7.5px] tracking-[0.3em] uppercase mb-1"
+                              style={{ color: `${piece.accentColor}90` }}
+                            >
+                              {piece.eyebrow}
+                            </div>
+                            <span
+                              className="font-mono-geist text-[7px]"
+                              style={{ color: "rgba(255,255,255,0.2)" }}
+                            >
+                              {piece.readTime}
+                            </span>
+                          </div>
+                          <EditorialCardAnim
+                            type={piece.cardAnim}
+                            color={piece.accentColor}
+                          />
+                        </div>
 
-                    {/* Tags */}
-                    <div className="flex flex-wrap gap-1.5 mb-4">
-                      {feed.domain
-                        .split(" ")
-                        .slice(0, 3)
-                        .map((tag) => (
+                        {/* Domain badge */}
+                        <div className="mb-3">
                           <span
-                            key={tag}
                             className="px-2 py-0.5 rounded-sm font-mono-geist text-[7px] tracking-[0.15em] uppercase"
                             style={{
-                              background: "rgba(255,255,255,0.04)",
-                              color: "rgba(255,255,255,0.25)",
+                              background: `${piece.accentColor}12`,
+                              color: piece.accentColor,
+                              border: `1px solid ${piece.accentColor}25`,
                             }}
                           >
-                            {tag}
+                            {piece.domain}
                           </span>
-                        ))}
-                    </div>
+                        </div>
 
-                    <div className="flex items-center justify-between">
-                      <span
-                        className="font-mono-geist text-[9px]"
-                        style={{ color: "rgba(255,255,255,0.2)" }}
-                      >
-                        {formatFeedDate(feed.timestamp)}
-                      </span>
-                      <button
-                        type="button"
-                        data-ocid={`steami.library.open_modal_button.${i + 1}`}
-                        onClick={() => setSelectedBrief(feed)}
-                        className="font-mono-geist text-[9px] tracking-[0.15em] uppercase transition-colors duration-200"
+                        {/* Title */}
+                        <h3
+                          className="font-display font-light mb-3 line-clamp-3"
+                          style={{
+                            fontSize: "1.05rem",
+                            letterSpacing: "0.04em",
+                            color: "rgba(255,255,255,0.88)",
+                            lineHeight: 1.35,
+                          }}
+                        >
+                          {piece.title}
+                        </h3>
+
+                        {/* Summary */}
+                        <p
+                          className="text-xs leading-relaxed mb-4 line-clamp-2"
+                          style={{
+                            color: "rgba(255,255,255,0.38)",
+                            fontFamily: "Sora, sans-serif",
+                          }}
+                        >
+                          {piece.summary}
+                        </p>
+
+                        {/* Tags row */}
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {piece.tags.slice(0, 2).map((tag) => (
+                            <span
+                              key={tag}
+                              className="px-1.5 py-0.5 rounded-sm font-mono-geist text-[7px] tracking-[0.1em] uppercase"
+                              style={{
+                                background: "rgba(255,255,255,0.04)",
+                                color: "rgba(255,255,255,0.22)",
+                              }}
+                            >
+                              {tag}
+                            </span>
+                          ))}
+                          <span
+                            className="px-1.5 py-0.5 rounded-sm font-mono-geist text-[7px] tracking-[0.1em] uppercase"
+                            style={{
+                              background: `${piece.accentColor}10`,
+                              color: `${piece.accentColor}90`,
+                            }}
+                          >
+                            {piece.keySignals.length} SIGNALS
+                          </span>
+                        </div>
+
+                        {/* CTA */}
+                        <button
+                          type="button"
+                          data-ocid={`steami.editorial.open_modal_button.${cardIdx}`}
+                          onClick={() => {
+                            setSelectedEditorial(piece);
+                            setExpandedEditorialSection(0);
+                            setEditorialReadProgress(0);
+                          }}
+                          className="font-mono-geist text-[8px] tracking-[0.18em] uppercase transition-all duration-200"
+                          style={{
+                            background: "none",
+                            border: "none",
+                            color: `${piece.accentColor}60`,
+                            cursor: "pointer",
+                            padding: 0,
+                          }}
+                          onMouseEnter={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.color =
+                              piece.accentColor;
+                          }}
+                          onMouseLeave={(e) => {
+                            (e.currentTarget as HTMLButtonElement).style.color =
+                              `${piece.accentColor}60`;
+                          }}
+                        >
+                          Read Deep Dive →
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* ─ SIGNALS VIEW ─ */}
+          {viewMode === "signals" && (
+            <div>
+              {/* Filter tabs */}
+              <div
+                className="flex flex-wrap gap-2 mb-8 steami-reveal reveal"
+                data-ocid="steami.library.tab"
+                style={{ transitionDelay: "0.08s" }}
+              >
+                {["All", ...allDomains].map((d) => (
+                  <button
+                    key={d}
+                    type="button"
+                    onClick={() => setLibraryFilter(d)}
+                    className="px-4 py-2 rounded-sm font-mono-geist text-[9px] tracking-[0.2em] uppercase transition-all duration-250"
+                    style={{
+                      background:
+                        libraryFilter === d
+                          ? "rgba(74,126,247,0.15)"
+                          : "rgba(255,255,255,0.03)",
+                      border: `1px solid ${libraryFilter === d ? "rgba(74,126,247,0.5)" : "rgba(255,255,255,0.08)"}`,
+                      color:
+                        libraryFilter === d
+                          ? "rgba(138,180,255,0.9)"
+                          : "rgba(255,255,255,0.35)",
+                      cursor: "pointer",
+                    }}
+                  >
+                    {d}
+                  </button>
+                ))}
+              </div>
+              {feedsLoading ? (
+                <div
+                  data-ocid="steami.library.loading_state"
+                  className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
+                >
+                  {[1, 2, 3].map((n) => (
+                    <div
+                      key={n}
+                      className="p-6 rounded-sm"
+                      style={{
+                        background: "rgba(255,255,255,0.03)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                      }}
+                    >
+                      <Skeleton
+                        className="h-3 w-20 mb-4"
+                        style={{ background: "rgba(255,255,255,0.06)" }}
+                      />
+                      <Skeleton
+                        className="h-5 w-full mb-2"
+                        style={{ background: "rgba(255,255,255,0.05)" }}
+                      />
+                      <Skeleton
+                        className="h-4 w-3/4 mb-2"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
+                      />
+                      <Skeleton
+                        className="h-4 w-1/2 mb-6"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
+                      />
+                      <Skeleton
+                        className="h-3 w-24"
+                        style={{ background: "rgba(255,255,255,0.04)" }}
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : filteredFeeds.length === 0 ? (
+                <div
+                  data-ocid="steami.library.empty_state"
+                  className="text-center py-20 rounded-sm"
+                  style={{
+                    border: "1px solid rgba(255,255,255,0.06)",
+                    background: "rgba(255,255,255,0.02)",
+                  }}
+                >
+                  <div
+                    className="text-4xl mb-4"
+                    style={{ color: "rgba(74,126,247,0.3)" }}
+                  >
+                    ◈
+                  </div>
+                  <p
+                    className="font-mono-geist text-xs tracking-[0.2em] uppercase mb-2"
+                    style={{ color: "rgba(255,255,255,0.25)" }}
+                  >
+                    {libraryFilter === "All"
+                      ? "No intelligence signals published yet."
+                      : `No signals in the "${libraryFilter}" domain yet.`}
+                  </p>
+                  <p
+                    className="font-mono-geist text-[8px] tracking-[0.15em] uppercase"
+                    style={{ color: "rgba(212,160,23,0.4)" }}
+                  >
+                    Switch to Editorial Deep-Dives to explore 10 in-depth
+                    intelligence pieces.
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredFeeds.map((feed, i) => {
+                    const domainColor = getDomainColor(feed.domain);
+                    return (
+                      <div
+                        key={String(feed.id)}
+                        data-ocid={`steami.library.card.${i + 1}`}
+                        className="relative overflow-hidden rounded-sm p-6 cursor-default transition-all duration-300"
                         style={{
-                          background: "none",
-                          border: "none",
-                          color: `${domainColor}70`,
-                          cursor: "pointer",
+                          background: "rgba(255,255,255,0.03)",
+                          border: `1px solid ${domainColor}25`,
                         }}
                         onMouseEnter={(e) => {
-                          (e.currentTarget as HTMLButtonElement).style.color =
-                            domainColor;
+                          const el = e.currentTarget as HTMLDivElement;
+                          el.style.background = `${domainColor}08`;
+                          el.style.borderColor = `${domainColor}50`;
+                          el.style.transform = "translateY(-3px)";
+                          el.style.boxShadow = `0 8px 24px rgba(0,0,0,0.3), 0 0 16px ${domainColor}10`;
                         }}
                         onMouseLeave={(e) => {
-                          (e.currentTarget as HTMLButtonElement).style.color =
-                            `${domainColor}70`;
+                          const el = e.currentTarget as HTMLDivElement;
+                          el.style.background = "rgba(255,255,255,0.03)";
+                          el.style.borderColor = `${domainColor}25`;
+                          el.style.transform = "none";
+                          el.style.boxShadow = "none";
                         }}
                       >
-                        View Brief →
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
+                        <div
+                          className="animate-card-scan absolute inset-x-0 top-0 h-[1px] pointer-events-none"
+                          style={{
+                            background: `linear-gradient(90deg, transparent, ${domainColor}60, transparent)`,
+                          }}
+                          aria-hidden="true"
+                        />
+                        <div className="flex items-start justify-between mb-4">
+                          <span
+                            className="px-2 py-0.5 rounded-sm font-mono-geist text-[8px] tracking-[0.2em] uppercase"
+                            style={{
+                              background: `${domainColor}12`,
+                              color: domainColor,
+                              border: `1px solid ${domainColor}30`,
+                            }}
+                          >
+                            {feed.domain}
+                          </span>
+                          {feed.isFeatured && (
+                            <span
+                              className="px-2 py-0.5 rounded-sm font-mono-geist text-[8px] tracking-[0.15em] uppercase"
+                              style={{
+                                background: "rgba(212,160,23,0.1)",
+                                color: "#d4a017",
+                                border: "1px solid rgba(212,160,23,0.3)",
+                              }}
+                            >
+                              Featured
+                            </span>
+                          )}
+                        </div>
+                        <h3
+                          className="font-display text-xl font-light mb-3 line-clamp-2"
+                          style={{
+                            color: "rgba(255,255,255,0.88)",
+                            letterSpacing: "0.04em",
+                            lineHeight: 1.3,
+                          }}
+                        >
+                          {feed.title}
+                        </h3>
+                        <p
+                          className="text-xs leading-relaxed mb-4 line-clamp-3"
+                          style={{
+                            color: "rgba(255,255,255,0.4)",
+                            fontFamily: "Sora, sans-serif",
+                          }}
+                        >
+                          {feed.summary}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5 mb-4">
+                          {feed.domain
+                            .split(" ")
+                            .slice(0, 3)
+                            .map((tag) => (
+                              <span
+                                key={tag}
+                                className="px-2 py-0.5 rounded-sm font-mono-geist text-[7px] tracking-[0.15em] uppercase"
+                                style={{
+                                  background: "rgba(255,255,255,0.04)",
+                                  color: "rgba(255,255,255,0.25)",
+                                }}
+                              >
+                                {tag}
+                              </span>
+                            ))}
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="font-mono-geist text-[9px]"
+                            style={{ color: "rgba(255,255,255,0.2)" }}
+                          >
+                            {formatFeedDate(feed.timestamp)}
+                          </span>
+                          <button
+                            type="button"
+                            data-ocid={`steami.library.open_modal_button.${i + 1}`}
+                            onClick={() => setSelectedBrief(feed)}
+                            className="font-mono-geist text-[9px] tracking-[0.15em] uppercase transition-colors duration-200"
+                            style={{
+                              background: "none",
+                              border: "none",
+                              color: `${domainColor}70`,
+                              cursor: "pointer",
+                            }}
+                            onMouseEnter={(e) => {
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.color = domainColor;
+                            }}
+                            onMouseLeave={(e) => {
+                              (
+                                e.currentTarget as HTMLButtonElement
+                              ).style.color = `${domainColor}70`;
+                            }}
+                          >
+                            View Brief →
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </div>
       </section>
 
-      {/* Intelligence Brief Dialog */}
+      {/* Intelligence Brief Dialog (admin signals) */}
       <Dialog
         open={!!selectedBrief}
         onOpenChange={(open) => {
@@ -2786,7 +4171,6 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                   {selectedBrief.title}
                 </DialogTitle>
               </DialogHeader>
-
               <div className="space-y-4 mt-2">
                 <p
                   className="text-sm leading-relaxed"
@@ -2797,16 +4181,13 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                 >
                   {selectedBrief.summary}
                 </p>
-                <div className="flex items-center gap-4">
-                  <div
-                    className="font-mono-geist text-[9px]"
-                    style={{ color: "rgba(255,255,255,0.25)" }}
-                  >
-                    Published: {formatFeedDate(selectedBrief.timestamp)}
-                  </div>
+                <div
+                  className="font-mono-geist text-[9px]"
+                  style={{ color: "rgba(255,255,255,0.25)" }}
+                >
+                  Published: {formatFeedDate(selectedBrief.timestamp)}
                 </div>
               </div>
-
               <div className="flex justify-end mt-4">
                 <button
                   type="button"
@@ -2833,6 +4214,377 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
               </div>
             </>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Editorial Deep-Dive Dialog */}
+      <Dialog
+        open={!!selectedEditorial}
+        onOpenChange={(open) => {
+          if (!open) {
+            setSelectedEditorial(null);
+            setEditorialReadProgress(0);
+            setExpandedEditorialSection(0);
+          }
+        }}
+      >
+        <DialogContent
+          data-ocid="steami.editorial.dialog"
+          className="rounded-sm p-0 overflow-hidden"
+          style={{
+            maxWidth: "780px",
+            maxHeight: "90vh",
+            display: "flex",
+            flexDirection: "column",
+            background: "rgba(4,5,14,0.98)",
+            border: selectedEditorial
+              ? `1px solid ${selectedEditorial.accentColor}30`
+              : "1px solid rgba(255,255,255,0.1)",
+            backdropFilter: "blur(32px)",
+          }}
+        >
+          {selectedEditorial &&
+            (() => {
+              const ep = selectedEditorial;
+              return (
+                <>
+                  {/* Header bar */}
+                  <div
+                    style={{
+                      flexShrink: 0,
+                      height: 56,
+                      background: `linear-gradient(90deg, ${ep.accentColor}22, ${ep.accentColor}08, transparent)`,
+                      borderBottom: `1px solid ${ep.accentColor}20`,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "space-between",
+                      padding: "0 24px",
+                    }}
+                  >
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 12 }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "1.4rem",
+                          color: ep.accentColor,
+                          opacity: 0.7,
+                        }}
+                        aria-hidden="true"
+                      >
+                        {ep.heroSymbol}
+                      </span>
+                      <span
+                        className="font-mono-geist text-[7.5px] tracking-[0.35em] uppercase"
+                        style={{ color: `${ep.accentColor}90` }}
+                      >
+                        {ep.eyebrow}
+                      </span>
+                      <span
+                        className="px-2 py-0.5 rounded-sm font-mono-geist text-[7px] tracking-[0.15em] uppercase"
+                        style={{
+                          background: `${ep.accentColor}12`,
+                          color: ep.accentColor,
+                          border: `1px solid ${ep.accentColor}25`,
+                        }}
+                      >
+                        {ep.domain}
+                      </span>
+                    </div>
+                    <div
+                      style={{ display: "flex", alignItems: "center", gap: 12 }}
+                    >
+                      <span
+                        className="font-mono-geist text-[7.5px]"
+                        style={{ color: "rgba(255,255,255,0.3)" }}
+                      >
+                        {ep.readTime}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Reading progress bar */}
+                  <div
+                    style={{
+                      height: 2,
+                      background: "rgba(255,255,255,0.05)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    <div
+                      style={{
+                        height: "100%",
+                        width: `${editorialReadProgress}%`,
+                        background: ep.accentColor,
+                        transition: "width 0.1s linear",
+                      }}
+                    />
+                  </div>
+
+                  {/* Scrollable body */}
+                  <div
+                    style={{
+                      flex: 1,
+                      overflowY: "auto",
+                      padding: "32px 32px 40px",
+                    }}
+                    onScroll={(e) => {
+                      const el = e.currentTarget;
+                      const pct =
+                        (el.scrollTop /
+                          Math.max(1, el.scrollHeight - el.clientHeight)) *
+                        100;
+                      setEditorialReadProgress(Math.round(pct));
+                    }}
+                  >
+                    {/* Title */}
+                    <DialogTitle
+                      className="font-display font-light mb-6"
+                      style={{
+                        fontSize: "clamp(1.4rem,3.5vw,1.9rem)",
+                        letterSpacing: "0.04em",
+                        color: "rgba(255,255,255,0.92)",
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {ep.title}
+                    </DialogTitle>
+
+                    {/* Lead paragraph */}
+                    <p
+                      className="text-sm leading-[1.85] mb-8 italic"
+                      style={{
+                        color: "rgba(255,255,255,0.65)",
+                        fontFamily: "Sora, sans-serif",
+                        borderLeft: `2px solid ${ep.accentColor}60`,
+                        paddingLeft: 16,
+                      }}
+                    >
+                      {ep.lead}
+                    </p>
+
+                    {/* Sections accordion */}
+                    <div className="space-y-2 mb-8">
+                      {ep.sections.map((sec, si) => (
+                        <div
+                          key={sec.heading}
+                          style={{
+                            border: `1px solid ${expandedEditorialSection === si ? `${ep.accentColor}30` : "rgba(255,255,255,0.06)"}`,
+                            borderRadius: 2,
+                            overflow: "hidden",
+                            transition: "border-color 0.2s",
+                          }}
+                        >
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setExpandedEditorialSection(
+                                expandedEditorialSection === si ? null : si,
+                              )
+                            }
+                            className="w-full text-left px-5 py-4 flex items-center justify-between transition-colors duration-200"
+                            style={{
+                              background:
+                                expandedEditorialSection === si
+                                  ? `${ep.accentColor}08`
+                                  : "rgba(255,255,255,0.02)",
+                              cursor: "pointer",
+                              border: "none",
+                            }}
+                          >
+                            <span
+                              className="font-mono-geist text-[9px] tracking-[0.3em] uppercase"
+                              style={{
+                                color:
+                                  expandedEditorialSection === si
+                                    ? ep.accentColor
+                                    : "rgba(255,255,255,0.45)",
+                              }}
+                            >
+                              {sec.heading}
+                            </span>
+                            <span
+                              style={{
+                                color:
+                                  expandedEditorialSection === si
+                                    ? ep.accentColor
+                                    : "rgba(255,255,255,0.2)",
+                                fontSize: "0.6rem",
+                              }}
+                            >
+                              {expandedEditorialSection === si ? "▲" : "▼"}
+                            </span>
+                          </button>
+                          {expandedEditorialSection === si && (
+                            <div
+                              className="px-5 pb-5 pt-2"
+                              style={{ background: `${ep.accentColor}04` }}
+                            >
+                              <p
+                                className="text-sm leading-[1.8]"
+                                style={{
+                                  color: "rgba(255,255,255,0.62)",
+                                  fontFamily: "Sora, sans-serif",
+                                }}
+                              >
+                                {sec.body}
+                              </p>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Key Signals panel */}
+                    <div
+                      className="mb-6 p-5 rounded-sm"
+                      style={{
+                        background: `${ep.accentColor}06`,
+                        border: `1px solid ${ep.accentColor}20`,
+                      }}
+                    >
+                      <div
+                        className="font-mono-geist text-[8px] tracking-[0.4em] uppercase mb-4"
+                        style={{ color: `${ep.accentColor}80` }}
+                      >
+                        ◆ KEY SIGNALS
+                      </div>
+                      <ul className="space-y-2.5">
+                        {ep.keySignals.map((sig) => (
+                          <li
+                            key={sig}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                            }}
+                          >
+                            <span
+                              style={{
+                                width: 5,
+                                height: 5,
+                                borderRadius: "50%",
+                                background: ep.accentColor,
+                                flexShrink: 0,
+                                marginTop: 5,
+                              }}
+                              aria-hidden="true"
+                            />
+                            <span
+                              className="font-mono-geist text-[9px] leading-relaxed"
+                              style={{ color: "rgba(255,255,255,0.55)" }}
+                            >
+                              {sig}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Implications panel */}
+                    <div
+                      className="mb-8 p-5 rounded-sm"
+                      style={{
+                        background: "rgba(212,160,23,0.04)",
+                        border: "1px solid rgba(212,160,23,0.15)",
+                      }}
+                    >
+                      <div
+                        className="font-mono-geist text-[8px] tracking-[0.4em] uppercase mb-4"
+                        style={{ color: "rgba(212,160,23,0.7)" }}
+                      >
+                        ▶ STRATEGIC IMPLICATIONS
+                      </div>
+                      <ul className="space-y-3">
+                        {ep.implications.map((impl) => (
+                          <li
+                            key={impl}
+                            style={{
+                              display: "flex",
+                              alignItems: "flex-start",
+                              gap: 10,
+                            }}
+                          >
+                            <span
+                              className="font-mono-geist text-[10px]"
+                              style={{
+                                color: "#d4a017",
+                                flexShrink: 0,
+                                marginTop: 1,
+                              }}
+                            >
+                              →
+                            </span>
+                            <span
+                              className="text-xs leading-relaxed"
+                              style={{
+                                color: "rgba(255,255,255,0.55)",
+                                fontFamily: "Sora, sans-serif",
+                              }}
+                            >
+                              {impl}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-2 mb-6">
+                      {ep.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="px-2 py-0.5 rounded-sm font-mono-geist text-[7.5px] tracking-[0.15em] uppercase"
+                          style={{
+                            background: `${ep.accentColor}10`,
+                            color: `${ep.accentColor}80`,
+                            border: `1px solid ${ep.accentColor}20`,
+                          }}
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+
+                    {/* Close button */}
+                    <div className="flex justify-end">
+                      <button
+                        type="button"
+                        data-ocid="steami.editorial.close_button"
+                        onClick={() => {
+                          setSelectedEditorial(null);
+                          setEditorialReadProgress(0);
+                          setExpandedEditorialSection(0);
+                        }}
+                        className="px-6 py-2.5 rounded-sm font-mono-geist text-[8px] tracking-[0.2em] uppercase transition-all duration-200"
+                        style={{
+                          background: "rgba(255,255,255,0.04)",
+                          border: "1px solid rgba(255,255,255,0.1)",
+                          color: "rgba(255,255,255,0.4)",
+                          cursor: "pointer",
+                        }}
+                        onMouseEnter={(e) => {
+                          (
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "rgba(255,255,255,0.08)";
+                          (e.currentTarget as HTMLButtonElement).style.color =
+                            "rgba(255,255,255,0.7)";
+                        }}
+                        onMouseLeave={(e) => {
+                          (
+                            e.currentTarget as HTMLButtonElement
+                          ).style.background = "rgba(255,255,255,0.04)";
+                          (e.currentTarget as HTMLButtonElement).style.color =
+                            "rgba(255,255,255,0.4)";
+                        }}
+                      >
+                        Close Brief
+                      </button>
+                    </div>
+                  </div>
+                </>
+              );
+            })()}
         </DialogContent>
       </Dialog>
 

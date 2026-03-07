@@ -402,6 +402,62 @@
   animation: featured-glow 2.5s ease-in-out infinite;
 }
 
+/* ─── Editorial Card Micro-Animations ───────────────────────────────────── */
+
+@keyframes ep-pulse-core {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  50%       { opacity: 1;   transform: scale(1.15); }
+}
+@keyframes ep-pulse-ring1 {
+  0%, 100% { opacity: 0.5; transform: scale(1); }
+  50%       { opacity: 0.8; transform: scale(1.08); }
+}
+@keyframes ep-pulse-ring2 {
+  0%, 100% { opacity: 0.2; transform: scale(1); }
+  50%       { opacity: 0.4; transform: scale(1.12); }
+}
+@keyframes ep-scan-line {
+  0%   { top: 0%;   opacity: 0; }
+  5%   { opacity: 1; }
+  95%  { opacity: 0.6; }
+  100% { top: 100%; opacity: 0; }
+}
+@keyframes ep-cascade-dot {
+  0%, 100% { transform: scaleY(1);   opacity: 0.4; }
+  50%       { transform: scaleY(1.8); opacity: 1; }
+}
+@keyframes ep-wave-bar {
+  0%, 100% { height: 6px;  }
+  25%       { height: 22px; }
+  50%       { height: 12px; }
+  75%       { height: 18px; }
+}
+@keyframes ep-orbit-dot {
+  from { transform: rotate(0deg)   translateY(-12px) rotate(0deg); }
+  to   { transform: rotate(360deg) translateY(-12px) rotate(-360deg); }
+}
+@keyframes ep-grid-blink {
+  0%, 100% { opacity: 0.15; }
+  50%       { opacity: 0.8;  }
+}
+@keyframes ep-flow-dash {
+  from { stroke-dashoffset: 0; }
+  to   { stroke-dashoffset: -24; }
+}
+@keyframes ep-ripple {
+  0%   { opacity: 0.7; transform: scale(0.5); }
+  80%  { opacity: 0;   transform: scale(1.4); }
+  100% { opacity: 0;   transform: scale(1.4); }
+}
+@keyframes ep-fractal-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+@keyframes ep-heatmap-fade {
+  0%, 100% { opacity: 0.25; }
+  50%       { opacity: 0.9;  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
