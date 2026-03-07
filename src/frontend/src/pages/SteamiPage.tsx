@@ -9,8 +9,1291 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { FeedEntry } from "../backend.d";
 import { useGetPublicFeeds } from "../hooks/useQueries";
 
+// ─── Global Keyframe Styles ───────────────────────────────────────────────────
+const STEAMI_STYLES = `
+@keyframes stageSlideUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes lineDraw {
+  from { stroke-dashoffset: var(--line-len, 800); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes hexBorderFill {
+  from { stroke-dashoffset: var(--perim, 600); }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes fillFromBottom {
+  from { background-size: 0% 100%; }
+  to   { background-size: 100% 100%; }
+}
+@keyframes typingCursor {
+  0%, 100% { border-right-color: transparent; }
+  50%       { border-right-color: #d4a017; }
+}
+@keyframes implSlideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes dividerDraw {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+@keyframes orbBreath {
+  0%, 100% { transform: scale(0.95); opacity: 0.3; }
+  50%       { transform: scale(1.05); opacity: 0.6; }
+}
+@keyframes signalTick {
+  0%, 100% { transform: scale(1); }
+  50%       { transform: scale(1.06); }
+}
+@keyframes radarPing {
+  0%   { transform: scale(1);   opacity: 0.8; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+@keyframes fadeInWord {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes pipelinePacket {
+  0%   { offset-distance: 0%;   opacity: 1; }
+  90%  { offset-distance: 100%; opacity: 1; }
+  100% { offset-distance: 100%; opacity: 0; }
+}
+@keyframes statCountUp {
+  from { transform: scale(0.92); opacity: 0; }
+  to   { transform: scale(1);    opacity: 1; }
+}
+@keyframes closingRingDraw {
+  from { stroke-dashoffset: 226.2; }
+  to   { stroke-dashoffset: var(--ring-target, 0); }
+}
+@keyframes pulseConcentric {
+  0%   { transform: scale(1);   opacity: 0.5; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+`;
+
 interface SteamiPageProps {
   onBack: () => void;
+}
+
+// ─── Section Divider ──────────────────────────────────────────────────────────
+function SectionDivider({ label }: { label: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.3 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return (
+    <div
+      ref={ref}
+      className="max-w-7xl mx-auto px-6 py-2 flex items-center gap-4"
+      aria-hidden="true"
+    >
+      <div
+        style={{
+          flex: 1,
+          height: 1,
+          background:
+            "linear-gradient(90deg, transparent, rgba(74,126,247,0.2))",
+          transform: visible ? "scaleX(1)" : "scaleX(0)",
+          transformOrigin: "right center",
+          transition: "transform 0.8s cubic-bezier(0.22,0.61,0.36,1)",
+        }}
+      />
+      <div
+        style={{
+          color: "#d4a017",
+          fontSize: "0.55rem",
+          fontFamily: "Geist Mono, monospace",
+          letterSpacing: "0.3em",
+          opacity: visible ? 0.5 : 0,
+          transition: "opacity 0.5s ease 0.3s",
+          whiteSpace: "nowrap",
+        }}
+      >
+        ◆ {label}
+      </div>
+      <div
+        style={{
+          flex: 1,
+          height: 1,
+          background:
+            "linear-gradient(90deg, rgba(74,126,247,0.2), transparent)",
+          transform: visible ? "scaleX(1)" : "scaleX(0)",
+          transformOrigin: "left center",
+          transition: "transform 0.8s cubic-bezier(0.22,0.61,0.36,1)",
+        }}
+      />
+    </div>
+  );
+}
+
+// ─── STEAMI Stat Bar ──────────────────────────────────────────────────────────
+function SteamiStatBar() {
+  const ref = useRef<HTMLDivElement>(null);
+  const [counts, setCounts] = useState([0, 0, 0]);
+  const targets = [10, 5, 5];
+  const [blinkOn, setBlinkOn] = useState(true);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (!e.isIntersecting) return;
+        targets.forEach((target, idx) => {
+          const delay = idx * 200;
+          const duration = 1200;
+          const steps = 30;
+          let step = 0;
+          setTimeout(() => {
+            const interval = setInterval(() => {
+              step++;
+              setCounts((prev) => {
+                const next = [...prev];
+                next[idx] = Math.round((step / steps) * target);
+                return next;
+              });
+              if (step >= steps) clearInterval(interval);
+            }, duration / steps);
+          }, delay);
+        });
+        obs.disconnect();
+      },
+      { threshold: 0.5 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setBlinkOn((p) => !p), 600);
+    return () => clearInterval(t);
+  }, []);
+
+  const stats = [
+    { value: `${counts[0]}`, label: "ACTIVE DEEP-DIVES" },
+    { value: `${counts[1]}`, label: "INTELLIGENCE DOMAINS" },
+    { value: `${counts[2]}`, label: "DISTRIBUTION CHANNELS" },
+    { value: "ACTIVE", label: "SYNTHESIS ENGINE", isSynthesis: true },
+  ];
+
+  return (
+    <div
+      ref={ref}
+      className="max-w-xl"
+      style={{
+        background: "rgba(255,255,255,0.03)",
+        border: "1px solid rgba(255,255,255,0.07)",
+        padding: "12px 24px",
+        display: "flex",
+        flexWrap: "wrap",
+        gap: 0,
+        borderRadius: 2,
+        marginTop: 16,
+        marginBottom: 24,
+      }}
+    >
+      {stats.map((s, i) => (
+        <div
+          key={s.label}
+          style={{
+            flex: "1 1 120px",
+            padding: "8px 12px",
+            borderRight:
+              i < stats.length - 1
+                ? "1px solid rgba(255,255,255,0.06)"
+                : "none",
+            animation: `statCountUp 0.6s ease ${i * 0.2}s both`,
+            willChange: "transform, opacity",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "1.1rem",
+              color: "#d4a017",
+              letterSpacing: "0.05em",
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              animation: s.isSynthesis
+                ? undefined
+                : `signalTick 2s ease-in-out ${i * 0.4}s infinite`,
+            }}
+          >
+            {s.value}
+            {s.isSynthesis && (
+              <span
+                style={{
+                  width: 6,
+                  height: 6,
+                  borderRadius: "50%",
+                  background: "#d4a017",
+                  opacity: blinkOn ? 1 : 0.15,
+                  transition: "opacity 0.2s",
+                  marginLeft: 4,
+                }}
+              />
+            )}
+          </div>
+          <div
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "0.52rem",
+              letterSpacing: "0.2em",
+              color: "rgba(255,255,255,0.35)",
+              textTransform: "uppercase",
+              marginTop: 2,
+            }}
+          >
+            {s.label}
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── Word-by-word animated hero subtitle ─────────────────────────────────────
+function AnimatedHeroSubtitle() {
+  const text = [
+    "STEAMI synthesises intelligence across five strategic domains — artificial intelligence governance, climate systems, emerging technologies, global health, and future infrastructure.",
+    "It converts fragmented signals into decision-grade knowledge products for institutions, researchers, and engaged citizens.",
+    "Every insight published by STEAMI passes a rigorous synthesis, verification, and ethical review process.",
+  ].join(" ");
+  const words = text.split(" ");
+  return (
+    <p
+      className="text-sm mb-8"
+      style={{
+        color: "rgba(255,255,255,0.5)",
+        fontFamily: "Sora, sans-serif",
+        maxWidth: "560px",
+        lineHeight: 1.85,
+      }}
+    >
+      {words.map((word, i) => (
+        <span
+          // biome-ignore lint/suspicious/noArrayIndexKey: static word list
+          key={`w-${i}`}
+          style={{
+            opacity: 0,
+            display: "inline",
+            animation: "fadeInWord 0.4s both",
+            animationDelay: `${0.4 + i * 0.025}s`,
+            willChange: "transform, opacity",
+          }}
+        >
+          {word}{" "}
+        </span>
+      ))}
+    </p>
+  );
+}
+
+// ─── Intelligence Flow Diagram ────────────────────────────────────────────────
+const PIPELINE_STAGES = [
+  {
+    label: "Research\nSources",
+    x: 90,
+    color: "#4a7ef7",
+    throughput: "142 signals/hr",
+  },
+  {
+    label: "Signal\nIngestion",
+    x: 225,
+    color: "#22d3b0",
+    throughput: "98 processed/hr",
+  },
+  {
+    label: "Synthesis\nEngine",
+    x: 450,
+    color: "#d4a017",
+    throughput: "61 synthesised/hr",
+  },
+  {
+    label: "Ethics\nReview",
+    x: 675,
+    color: "#a78bfa",
+    throughput: "58 validated/hr",
+  },
+  {
+    label: "Distribution",
+    x: 810,
+    color: "#22d3b0",
+    throughput: "55 published/hr",
+  },
+];
+
+const PACKET_COLORS = [
+  "#4a7ef7",
+  "#22d3b0",
+  "#d4a017",
+  "#a78bfa",
+  "#4a7ef7",
+  "#22d3b0",
+  "#d4a017",
+  "#a78bfa",
+];
+const PACKET_DURS = [2.2, 2.8, 2.5, 3.1, 2.4, 3.0, 2.7, 2.9];
+const PACKET_DELAYS = [0, 0.6, 1.2, 1.8, 2.4, 3.0, 3.6, 4.2];
+
+// Cubic-bezier path segments connecting consecutive stage nodes
+const pipelinePaths = PIPELINE_STAGES.slice(1).map((s, i) => {
+  const prev = PIPELINE_STAGES[i];
+  const mx = (prev.x + s.x) / 2;
+  return `M ${prev.x} 100 C ${mx} 100 ${mx} 100 ${s.x} 100`;
+});
+
+function IntelligenceFlowDiagram() {
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => {
+    setTimeout(() => setMounted(true), 200);
+  }, []);
+
+  return (
+    <div
+      className="steami-reveal reveal"
+      style={{
+        background: "rgba(8,12,32,0.6)",
+        border: "1px solid rgba(74,126,247,0.12)",
+        borderRadius: 4,
+        padding: "24px 16px 20px",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* LIVE label */}
+      <div
+        style={{
+          position: "absolute",
+          top: 14,
+          right: 18,
+          display: "flex",
+          alignItems: "center",
+          gap: 6,
+          fontFamily: "Geist Mono, monospace",
+          fontSize: "0.6rem",
+          letterSpacing: "0.25em",
+          color: "#22d3b0",
+          textTransform: "uppercase",
+        }}
+      >
+        <span
+          style={{
+            width: 6,
+            height: 6,
+            borderRadius: "50%",
+            background: "#22d3b0",
+            animation: "ep-pulse-core 1.5s ease-in-out infinite",
+          }}
+        />
+        LIVE PIPELINE
+      </div>
+
+      {/* Main SVG diagram */}
+      <div style={{ overflowX: "auto" }}>
+        <svg
+          width="900"
+          height="200"
+          viewBox="0 0 900 200"
+          style={{ minWidth: 600, display: "block", margin: "0 auto" }}
+          role="img"
+          aria-label="Intelligence flow pipeline"
+        >
+          <title>Intelligence flow pipeline diagram showing five stages</title>
+          <defs>
+            {pipelinePaths.map((d, i) => (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static pipeline stages
+              <path key={`pp-${i}`} id={`pp-${i}`} d={d} fill="none" />
+            ))}
+          </defs>
+
+          {/* Connecting paths with draw animation */}
+          {pipelinePaths.map((d, i) => {
+            const len = 135 + i * 0; // approximate
+            return (
+              <path
+                // biome-ignore lint/suspicious/noArrayIndexKey: static pipeline stages
+                key={`path-${i}`}
+                d={d}
+                fill="none"
+                stroke="rgba(74,126,247,0.2)"
+                strokeWidth="1.5"
+                strokeDasharray={`${len} ${len}`}
+                strokeDashoffset={mounted ? 0 : len}
+                style={{
+                  transition: `stroke-dashoffset 1.2s cubic-bezier(0.22,0.61,0.36,1) ${i * 0.18}s`,
+                }}
+              />
+            );
+          })}
+
+          {/* Animated packets */}
+          {PACKET_COLORS.map((color, pi) => {
+            const segIdx = pi % 4;
+            return (
+              // biome-ignore lint/suspicious/noArrayIndexKey: static packet list
+              <circle key={`pkt-${pi}`} r={5} fill={color} opacity={0.9}>
+                <animateMotion
+                  dur={`${PACKET_DURS[pi]}s`}
+                  begin={`${PACKET_DELAYS[pi]}s`}
+                  repeatCount="indefinite"
+                  path={pipelinePaths[segIdx]}
+                />
+              </circle>
+            );
+          })}
+
+          {/* Stage nodes */}
+          {PIPELINE_STAGES.map((s) => (
+            <g key={s.label}>
+              {/* Outer pulse ring */}
+              <circle
+                cx={s.x}
+                cy={100}
+                r={32}
+                fill={`${s.color}08`}
+                stroke={`${s.color}30`}
+                strokeWidth="1"
+              >
+                <animate
+                  attributeName="r"
+                  values="28;35;28"
+                  dur="3s"
+                  repeatCount="indefinite"
+                />
+                <animate
+                  attributeName="opacity"
+                  values="0.4;0.8;0.4"
+                  dur="3s"
+                  repeatCount="indefinite"
+                />
+              </circle>
+              {/* Core circle */}
+              <circle
+                cx={s.x}
+                cy={100}
+                r={22}
+                fill={`${s.color}15`}
+                stroke={s.color}
+                strokeWidth="1.5"
+              />
+              {/* Label lines */}
+              {s.label.split("\n").map((ln, li) => (
+                <text
+                  key={`lbl-${s.label}-${li}`}
+                  x={s.x}
+                  y={140 + li * 11}
+                  textAnchor="middle"
+                  fill="rgba(255,255,255,0.45)"
+                  fontSize="8"
+                  fontFamily="Geist Mono, monospace"
+                  letterSpacing="0.05em"
+                >
+                  {ln}
+                </text>
+              ))}
+            </g>
+          ))}
+        </svg>
+      </div>
+
+      {/* Throughput chips */}
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          gap: 8,
+          marginTop: 16,
+        }}
+      >
+        {PIPELINE_STAGES.map((s) => (
+          <div
+            key={`chip-${s.label}`}
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "0.6rem",
+              letterSpacing: "0.1em",
+              color: s.color,
+              background: `${s.color}10`,
+              border: `1px solid ${s.color}30`,
+              borderRadius: 2,
+              padding: "4px 10px",
+            }}
+          >
+            {s.throughput}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Signal Velocity Ticker ───────────────────────────────────────────────────
+function SignalVelocityTicker() {
+  const [count, setCount] = useState(142);
+  const [blinkOn, setBlinkOn] = useState(true);
+
+  useEffect(() => {
+    let dir = 1;
+    const t = setInterval(() => {
+      setCount((c) => {
+        const next = c + dir;
+        if (next >= 148) dir = -1;
+        if (next <= 140) dir = 1;
+        return next;
+      });
+    }, 300);
+    return () => clearInterval(t);
+  }, []);
+
+  useEffect(() => {
+    const t = setInterval(() => setBlinkOn((p) => !p), 700);
+    return () => clearInterval(t);
+  }, []);
+
+  return (
+    <div
+      style={{
+        marginTop: 20,
+        display: "flex",
+        alignItems: "center",
+        gap: 10,
+        fontFamily: "Geist Mono, monospace",
+        fontSize: "0.7rem",
+        letterSpacing: "0.2em",
+        color: "rgba(255,255,255,0.3)",
+        textTransform: "uppercase",
+      }}
+    >
+      <span
+        style={{
+          width: 7,
+          height: 7,
+          borderRadius: "50%",
+          background: "#22d3b0",
+          opacity: blinkOn ? 1 : 0.15,
+          transition: "opacity 0.2s",
+        }}
+      />
+      SIGNAL INGESTION VELOCITY:{" "}
+      <span
+        style={{
+          color: "#d4a017",
+          fontSize: "0.85rem",
+          animation: "signalTick 0.3s ease-in-out",
+        }}
+      >
+        {count}
+      </span>{" "}
+      SIGNALS / HR
+    </div>
+  );
+}
+
+// ─── Intelligence Domains Hub ─────────────────────────────────────────────────
+const DOMAIN_HUB_DATA = [
+  {
+    title: "AI Governance",
+    glyph: "◈",
+    color: "#4a7ef7",
+    signalVol: 18,
+    mandate:
+      "Systematic tracking of AI regulation, governance architectures, and institutional responses to frontier AI systems.",
+    questions: [
+      "Which regulatory models will achieve binding international coordination?",
+      "How do enforcement gaps evolve as capability outpaces governance?",
+    ],
+    signalRange: "18+ active signals",
+    currentFocus:
+      "EU AI Act implementation, US executive order compliance, GPAI governance architecture.",
+  },
+  {
+    title: "Climate Systems",
+    glyph: "◇",
+    color: "#22d3b0",
+    signalVol: 24,
+    mandate:
+      "Synthesis of planetary climate science, boundary transgressions, and systemic environmental intelligence.",
+    questions: [
+      "When do cascading tipping points create irreversible trajectories?",
+      "Which adaptation investments are highest-leverage given deep uncertainty?",
+    ],
+    signalRange: "24+ active signals",
+    currentFocus:
+      "Arctic methane release acceleration, IPCC AR7 preparation, Himalayan glacier melt projections.",
+  },
+  {
+    title: "Emerging Technologies",
+    glyph: "▷",
+    color: "#d4a017",
+    signalVol: 15,
+    mandate:
+      "Foresight intelligence on breakthrough technologies, convergence dynamics, and civilisation-scale capability shifts.",
+    questions: [
+      "How does synthetic biology's dual-use dilemma resolve under distributed capability?",
+      "What governance frameworks are possible for general-purpose AI systems?",
+    ],
+    signalRange: "15+ active signals",
+    currentFocus:
+      "LLM capability frontiers, quantum computing milestones, neurotechnology ethics.",
+  },
+  {
+    title: "Global Health Intelligence",
+    glyph: "◆",
+    color: "#a78bfa",
+    signalVol: 12,
+    mandate:
+      "Decision-grade analysis of global health systems, surveillance gaps, and emerging biological threats.",
+    questions: [
+      "How do AMR trajectories interact with weakening international health governance?",
+      "What surveillance infrastructure is minimally sufficient for pandemic early warning?",
+    ],
+    signalRange: "12+ active signals",
+    currentFocus:
+      "AMR resistance mapping, WHO reform progress, mental health burden data.",
+  },
+  {
+    title: "Future Infrastructure",
+    glyph: "◎",
+    color: "#4a7ef7",
+    signalVol: 9,
+    mandate:
+      "Intelligence on next-generation infrastructure — digital, physical, and energy — as civilisational foundation.",
+    questions: [
+      "How does semiconductor supply chain fragmentation reshape geopolitical alignments?",
+      "What grid infrastructure investment is necessary for net-zero by 2050?",
+    ],
+    signalRange: "9+ active signals",
+    currentFocus:
+      "Undersea cable geopolitics, critical mineral supply chains, AI data centre energy demand.",
+  },
+];
+
+const MAX_VOL = 24;
+
+function IntelligenceDomainsHub({
+  onFilterLibrary,
+}: { onFilterLibrary: (d: string) => void }) {
+  const [activeDomain, setActiveDomain] = useState<string | null>(null);
+  const activeData = DOMAIN_HUB_DATA.find((d) => d.title === activeDomain);
+
+  return (
+    <div>
+      {/* Domain cards grid */}
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3 mb-4">
+        {DOMAIN_HUB_DATA.map((d, i) => {
+          const isActive = activeDomain === d.title;
+          const volPct = (d.signalVol / MAX_VOL) * 100;
+          return (
+            <button
+              key={d.title}
+              type="button"
+              data-ocid={`steami.domains.card.${i + 1}`}
+              onClick={() => setActiveDomain(isActive ? null : d.title)}
+              style={{
+                background: isActive
+                  ? `${d.color}12`
+                  : "rgba(255,255,255,0.03)",
+                border: `1px solid ${isActive ? d.color : `${d.color}30`}`,
+                borderRadius: 3,
+                padding: "20px 14px",
+                cursor: "pointer",
+                textAlign: "left",
+                transition: "all 0.3s ease",
+                boxShadow: isActive ? `0 0 24px ${d.color}20` : "none",
+                transform: isActive ? "translateY(-4px)" : "none",
+              }}
+              onMouseEnter={(e) => {
+                if (!isActive) {
+                  const el = e.currentTarget;
+                  el.style.background = `${d.color}08`;
+                  el.style.borderColor = `${d.color}60`;
+                  el.style.transform = "translateY(-3px)";
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isActive) {
+                  const el = e.currentTarget;
+                  el.style.background = "rgba(255,255,255,0.03)";
+                  el.style.borderColor = `${d.color}30`;
+                  el.style.transform = "none";
+                }
+              }}
+            >
+              {/* Hex glyph */}
+              <div
+                style={{
+                  fontSize: "1.6rem",
+                  color: d.color,
+                  marginBottom: 8,
+                  lineHeight: 1,
+                }}
+              >
+                {d.glyph}
+              </div>
+              {/* Active badge */}
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 4,
+                  marginBottom: 8,
+                }}
+              >
+                <span
+                  style={{
+                    width: 5,
+                    height: 5,
+                    borderRadius: "50%",
+                    background: d.color,
+                    animation: "ep-pulse-core 2s ease-in-out infinite",
+                  }}
+                />
+                <span
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.5rem",
+                    letterSpacing: "0.25em",
+                    color: `${d.color}80`,
+                    textTransform: "uppercase",
+                  }}
+                >
+                  ACTIVE
+                </span>
+              </div>
+              <div
+                style={{
+                  fontFamily: "Fraunces, serif",
+                  fontSize: "0.78rem",
+                  color: "rgba(255,255,255,0.82)",
+                  letterSpacing: "0.04em",
+                  marginBottom: 12,
+                  fontWeight: 300,
+                }}
+              >
+                {d.title}
+              </div>
+              {/* Signal volume bar */}
+              <div style={{ marginBottom: 4 }}>
+                <div
+                  style={{
+                    height: 2,
+                    background: "rgba(255,255,255,0.06)",
+                    borderRadius: 1,
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      height: "100%",
+                      width: `${volPct}%`,
+                      background: d.color,
+                      borderRadius: 1,
+                      transition: "width 1s ease",
+                    }}
+                  />
+                </div>
+                <div
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.52rem",
+                    color: "rgba(255,255,255,0.3)",
+                    marginTop: 4,
+                    letterSpacing: "0.1em",
+                  }}
+                >
+                  {d.signalRange}
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Expandable detail panel */}
+      <div
+        style={{
+          maxHeight: activeDomain ? 400 : 0,
+          opacity: activeDomain ? 1 : 0,
+          overflow: "hidden",
+          transition:
+            "max-height 0.45s cubic-bezier(0.22,0.61,0.36,1), opacity 0.35s ease",
+        }}
+      >
+        {activeData && (
+          <div
+            style={{
+              background: `${activeData.color}08`,
+              border: `1px solid ${activeData.color}30`,
+              borderRadius: 3,
+              padding: "24px 28px",
+              marginTop: 4,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                justifyContent: "space-between",
+                flexWrap: "wrap",
+                gap: 16,
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 260 }}>
+                <div
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.3em",
+                    color: `${activeData.color}80`,
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  DOMAIN MANDATE
+                </div>
+                <p
+                  style={{
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "0.82rem",
+                    color: "rgba(255,255,255,0.7)",
+                    lineHeight: 1.7,
+                    marginBottom: 16,
+                  }}
+                >
+                  {activeData.mandate}
+                </p>
+                <div
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.25em",
+                    color: "rgba(255,255,255,0.3)",
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  KEY QUESTIONS
+                </div>
+                {activeData.questions.map((q, qi) => (
+                  <div
+                    // biome-ignore lint/suspicious/noArrayIndexKey: static question list
+                    key={qi}
+                    style={{
+                      display: "flex",
+                      gap: 8,
+                      marginBottom: 8,
+                      animation: `implSlideIn 0.4s ease ${qi * 0.1}s both`,
+                      willChange: "transform, opacity",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: activeData.color,
+                        fontSize: "0.7rem",
+                        flexShrink: 0,
+                        marginTop: 2,
+                      }}
+                    >
+                      →
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "Sora, sans-serif",
+                        fontSize: "0.78rem",
+                        color: "rgba(255,255,255,0.55)",
+                        lineHeight: 1.6,
+                      }}
+                    >
+                      {q}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <div style={{ minWidth: 200 }}>
+                <div
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.25em",
+                    color: "rgba(255,255,255,0.3)",
+                    textTransform: "uppercase",
+                    marginBottom: 8,
+                  }}
+                >
+                  CURRENT FOCUS
+                </div>
+                <p
+                  style={{
+                    fontFamily: "Sora, sans-serif",
+                    fontSize: "0.78rem",
+                    color: "rgba(255,255,255,0.55)",
+                    lineHeight: 1.65,
+                    marginBottom: 16,
+                  }}
+                >
+                  {activeData.currentFocus}
+                </p>
+                <button
+                  type="button"
+                  data-ocid="steami.domains.primary_button"
+                  onClick={() => onFilterLibrary(activeData.title)}
+                  style={{
+                    fontFamily: "Geist Mono, monospace",
+                    fontSize: "0.6rem",
+                    letterSpacing: "0.2em",
+                    color: activeData.color,
+                    background: `${activeData.color}10`,
+                    border: `1px solid ${activeData.color}40`,
+                    borderRadius: 2,
+                    padding: "8px 14px",
+                    cursor: "pointer",
+                    textTransform: "uppercase",
+                    transition: "all 0.2s ease",
+                  }}
+                >
+                  VIEW SIGNALS →
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ─── STEAMI Closing Section ───────────────────────────────────────────────────
+const CLOSING_RINGS = [
+  { label: "AI Governance", pct: 72, color: "#4a7ef7" },
+  { label: "Climate Systems", pct: 88, color: "#22d3b0" },
+  { label: "Technology", pct: 65, color: "#d4a017" },
+  { label: "Health", pct: 58, color: "#a78bfa" },
+];
+const FULL_CIRC = 226.2; // 2π × 36
+
+function ClosingProgressRing({
+  ring,
+  visible,
+}: { ring: (typeof CLOSING_RINGS)[0]; visible: boolean }) {
+  const target = FULL_CIRC * (1 - ring.pct / 100);
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 10,
+      }}
+    >
+      <svg width="84" height="84" viewBox="0 0 84 84" aria-hidden="true">
+        {/* Track */}
+        <circle
+          cx="42"
+          cy="42"
+          r="36"
+          fill="none"
+          stroke="rgba(255,255,255,0.06)"
+          strokeWidth="4"
+        />
+        {/* Progress arc */}
+        <circle
+          cx="42"
+          cy="42"
+          r="36"
+          fill="none"
+          stroke={ring.color}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={FULL_CIRC}
+          strokeDashoffset={visible ? target : FULL_CIRC}
+          transform="rotate(-90 42 42)"
+          style={{
+            transition:
+              "stroke-dashoffset 1.6s cubic-bezier(0.22,0.61,0.36,1) 0.3s",
+          }}
+        />
+        {/* Center text */}
+        <text
+          x="42"
+          y="46"
+          textAnchor="middle"
+          fill={ring.color}
+          fontSize="14"
+          fontFamily="Geist Mono, monospace"
+          fontWeight="600"
+        >
+          {visible ? `${ring.pct}%` : "0%"}
+        </text>
+      </svg>
+      <div style={{ textAlign: "center" }}>
+        <div
+          style={{
+            fontFamily: "Fraunces, serif",
+            fontSize: "0.7rem",
+            color: "rgba(255,255,255,0.7)",
+            letterSpacing: "0.06em",
+            marginBottom: 2,
+          }}
+        >
+          {ring.label}
+        </div>
+        <div
+          style={{
+            fontFamily: "Geist Mono, monospace",
+            fontSize: "0.5rem",
+            color: "rgba(255,255,255,0.3)",
+            letterSpacing: "0.15em",
+            textTransform: "uppercase",
+          }}
+        >
+          signal coverage
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SteamiClosingSection({
+  libraryRef,
+}: { libraryRef: React.RefObject<HTMLDivElement | null> }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) setVisible(true);
+      },
+      { threshold: 0.3 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+
+  return (
+    <section
+      ref={ref}
+      style={{
+        background:
+          "linear-gradient(160deg, rgba(8,14,40,0.97) 0%, rgba(4,5,14,1) 100%)",
+        padding: "80px 24px",
+        textAlign: "center",
+        position: "relative",
+        overflow: "hidden",
+      }}
+    >
+      {/* Background watermark */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          fontSize: "clamp(8rem, 20vw, 16rem)",
+          fontFamily: "Fraunces, serif",
+          color: "rgba(212,160,23,0.04)",
+          userSelect: "none",
+          pointerEvents: "none",
+          lineHeight: 1,
+          fontWeight: 300,
+        }}
+      >
+        10
+      </div>
+
+      {/* Concentric pulse rings behind badge */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          top: "50%",
+          left: "50%",
+          transform: "translate(-50%, -50%)",
+          pointerEvents: "none",
+        }}
+      >
+        {[60, 120, 180].map((r, i) => (
+          <div
+            key={r}
+            style={{
+              position: "absolute",
+              width: r * 2,
+              height: r * 2,
+              borderRadius: "50%",
+              border: "1px solid rgba(212,160,23,0.08)",
+              top: -r,
+              left: -r,
+              animation: `pulseConcentric 3s ease-in-out ${i * 1}s infinite both`,
+              willChange: "transform, opacity",
+            }}
+          />
+        ))}
+      </div>
+
+      <div className="relative z-10 max-w-5xl mx-auto">
+        <div
+          style={{
+            fontFamily: "Geist Mono, monospace",
+            fontSize: "0.6rem",
+            letterSpacing: "0.5em",
+            color: "rgba(212,160,23,0.7)",
+            textTransform: "uppercase",
+            marginBottom: 20,
+          }}
+        >
+          ◆ INTELLIGENCE AT SCALE
+        </div>
+
+        <h2
+          style={{
+            fontFamily: "Fraunces, serif",
+            fontSize: "clamp(2.5rem, 7vw, 5rem)",
+            fontWeight: 300,
+            background: "linear-gradient(135deg, #d4a017, #f0c040, #d4a017)",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
+            backgroundClip: "text",
+            letterSpacing: "0.08em",
+            lineHeight: 1.1,
+            marginBottom: 16,
+          }}
+        >
+          Signal Intelligence.
+          <br />
+          At Civilisational Scale.
+        </h2>
+
+        <p
+          style={{
+            fontFamily: "Sora, sans-serif",
+            fontSize: "0.85rem",
+            color: "rgba(255,255,255,0.4)",
+            maxWidth: "500px",
+            margin: "0 auto 48px",
+            lineHeight: 1.7,
+          }}
+        >
+          Ten deep-dive editorial pieces. Five intelligence domains. A single
+          mission: convert the world's most important signals into
+          decision-grade knowledge.
+        </p>
+
+        {/* Progress rings */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            flexWrap: "wrap",
+            gap: 40,
+            marginBottom: 48,
+          }}
+        >
+          {CLOSING_RINGS.map((ring) => (
+            <ClosingProgressRing
+              key={ring.label}
+              ring={ring}
+              visible={visible}
+            />
+          ))}
+        </div>
+
+        {/* Status badge */}
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 32,
+            padding: "10px 20px",
+            background: "rgba(212,160,23,0.06)",
+            border: "1px solid rgba(212,160,23,0.25)",
+            borderRadius: 20,
+          }}
+        >
+          <div style={{ position: "relative", width: 10, height: 10 }}>
+            <span
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                background: "#d4a017",
+                animation: "ep-pulse-core 1.8s ease-in-out infinite",
+              }}
+            />
+          </div>
+          <span
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "0.6rem",
+              letterSpacing: "0.25em",
+              color: "#d4a017",
+              textTransform: "uppercase",
+            }}
+          >
+            SYNTHESIS ENGINE: ACTIVE
+          </span>
+        </div>
+
+        {/* CTA */}
+        <div>
+          <button
+            type="button"
+            data-ocid="steami.closing.primary_button"
+            onClick={() =>
+              libraryRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              })
+            }
+            style={{
+              fontFamily: "Geist Mono, monospace",
+              fontSize: "0.65rem",
+              letterSpacing: "0.25em",
+              color: "rgba(138,180,255,0.9)",
+              background: "rgba(74,126,247,0.1)",
+              border: "1px solid rgba(74,126,247,0.4)",
+              borderRadius: 2,
+              padding: "14px 28px",
+              cursor: "pointer",
+              textTransform: "uppercase",
+              transition: "all 0.3s ease",
+            }}
+            onMouseEnter={(e) => {
+              const el = e.currentTarget;
+              el.style.background = "rgba(74,126,247,0.2)";
+              el.style.boxShadow = "0 0 24px rgba(74,126,247,0.25)";
+            }}
+            onMouseLeave={(e) => {
+              const el = e.currentTarget;
+              el.style.background = "rgba(74,126,247,0.1)";
+              el.style.boxShadow = "none";
+            }}
+          >
+            EXPLORE THE INTELLIGENCE LIBRARY →
+          </button>
+        </div>
+      </div>
+    </section>
+  );
 }
 
 const LEGAL_NOTE =
@@ -860,36 +2143,41 @@ const SYNTHESIS_STEPS = [
     label: "Signal Analysis",
     glyph: "◎",
     color: "#4a7ef7",
+    confidence: 87,
     methodology:
-      "Raw intelligence signals are processed, normalized and classified by domain and confidence score",
+      "Raw intelligence signals are processed, normalised and classified by domain and confidence score. Each signal is evaluated against a 12-point quality rubric covering source credibility, methodological soundness, recency, and contextual relevance. Signals below the 70th confidence percentile are flagged for secondary review or discarded. Only signals meeting minimum quality thresholds proceed to pattern detection.",
   },
   {
     label: "Pattern Detection",
     glyph: "◇",
     color: "#22d3b0",
+    confidence: 91,
     methodology:
-      "ML-assisted pattern recognition identifies correlations across disparate data sources",
+      "ML-assisted pattern recognition identifies correlations across disparate data sources spanning 47 monitored research domains. The detection engine maintains a continuously updated semantic graph of interconnected concepts, trends, and entities. Emerging patterns are scored by novelty, significance, and temporal trajectory. Cross-domain patterns receive elevated priority for synthesis processing.",
   },
   {
     label: "Cross-domain Synthesis",
     glyph: "◈",
     color: "#d4a017",
+    confidence: 95,
     methodology:
-      "Insights from climate, technology, health and policy domains are cross-referenced and synthesized",
+      "Insights from climate, technology, health and policy domains are cross-referenced and synthesised into unified analytical frameworks. Domain specialists review synthesis outputs for accuracy, contextual integrity, and potential misattribution. Synthesis products are structured around causal chains, not correlations, to support decision-grade reasoning. Each synthesis product carries full methodology and confidence documentation.",
   },
   {
     label: "Insight Generation",
     glyph: "◆",
     color: "#a78bfa",
+    confidence: 99,
     methodology:
-      "Validated insights are structured into intelligence frameworks with evidence chains",
+      "Validated insights are structured into intelligence frameworks with complete evidence chains and annotated source networks. Each insight is assigned a classification tier: Foundational (long-horizon significance), Applied (medium-term relevance), or Operational (near-term decision support). Frameworks are tested against expert review panels before publication classification. The insight generation phase produces STEAMI's primary intellectual property.",
   },
   {
     label: "Intelligence Brief",
     glyph: "▷",
     color: "#22d3b0",
+    confidence: 97,
     methodology:
-      "Decision-grade intelligence products formatted for target audiences and distribution channels",
+      "Decision-grade intelligence products are formatted for target audiences ranging from policy institutions to academic researchers. Distribution packaging includes full source citation, methodology disclosure, confidence ratings, and recommended use protocols. Each brief is assigned a dissemination tier (Public, Institutional, Restricted) by STEAMI editorial governance. Publication triggers automatic indexing in the INTELLIARCHIVE knowledge system.",
   },
 ];
 
@@ -996,6 +2284,41 @@ function SynthesisPipeline() {
         >
           {SYNTHESIS_STEPS[activeStep].methodology}
         </p>
+        {/* Confidence score */}
+        <div className="mt-4 flex items-center gap-3">
+          <div
+            className="font-mono-geist text-[8px] tracking-[0.2em] uppercase flex-shrink-0"
+            style={{ color: "rgba(255,255,255,0.25)" }}
+          >
+            CONFIDENCE SCORE
+          </div>
+          <div
+            style={{
+              flex: 1,
+              height: 3,
+              background: "rgba(255,255,255,0.06)",
+              borderRadius: 2,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${SYNTHESIS_STEPS[activeStep].confidence}%`,
+                background: SYNTHESIS_STEPS[activeStep].color,
+                borderRadius: 2,
+                transition: "width 0.6s cubic-bezier(0.22,0.61,0.36,1)",
+              }}
+            />
+          </div>
+          <div
+            className="font-mono-geist text-[8px]"
+            style={{ color: SYNTHESIS_STEPS[activeStep].color, flexShrink: 0 }}
+          >
+            {SYNTHESIS_STEPS[activeStep].confidence}%
+          </div>
+        </div>
+
         {locked && (
           <button
             type="button"
@@ -1217,6 +2540,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "◎",
     color: "#4a7ef7",
     type: "Digital",
+    status: "ACTIVE" as const,
+    sparkline: [3, 5, 4, 7, 6, 8, 7, 9],
     desc: "Primary intelligence portal for public and institutional access. Features searchable knowledge base, interactive briefs and real-time signal feeds.",
   },
   {
@@ -1224,6 +2549,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "◇",
     color: "#22d3b0",
     type: "Editorial",
+    status: "ACTIVE" as const,
+    sparkline: [2, 4, 3, 5, 6, 5, 7, 6],
     desc: "Curated intelligence digests delivered to subscriber networks. Tailored by domain interest and audience classification.",
   },
   {
@@ -1231,6 +2558,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "▷",
     color: "#d4a017",
     type: "Media",
+    status: "ACTIVE" as const,
+    sparkline: [1, 2, 4, 3, 5, 4, 6, 5],
     desc: "Complex intelligence translated into accessible visual formats. Produced in partnership with STEAMI Network editorial team.",
   },
   {
@@ -1238,6 +2567,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "◈",
     color: "#a78bfa",
     type: "Audio",
+    status: "ACTIVE" as const,
+    sparkline: [2, 3, 2, 4, 3, 5, 4, 6],
     desc: "Long-form intelligence conversations with researchers, policymakers and domain experts. Distributed across major platforms.",
   },
   {
@@ -1245,6 +2576,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "◆",
     color: "#22d3b0",
     type: "Formal",
+    status: "IN DEVELOPMENT" as const,
+    sparkline: [1, 1, 2, 1, 2, 2, 3, 2],
     desc: "Formal intelligence briefings formatted for institutional and government audiences. Peer-reviewed before distribution.",
   },
   {
@@ -1252,6 +2585,8 @@ const DISTRIBUTION_CHANNELS = [
     glyph: "◉",
     color: "#4a7ef7",
     type: "Social",
+    status: "IN DEVELOPMENT" as const,
+    sparkline: [1, 2, 1, 3, 2, 3, 2, 4],
     desc: "Signal amplification through strategic social channels. Filtered for accuracy and contextual framing.",
   },
 ];
@@ -2535,11 +3870,32 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
     );
     const els = document.querySelectorAll(".steami-reveal");
     for (const el of els) observer.observe(el);
-    return () => observer.disconnect();
+
+    // Animate heading underlines
+    const underlineObs = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) {
+            (entry.target as HTMLElement).style.transform = "scaleX(1)";
+          }
+        }
+      },
+      { threshold: 0.5 },
+    );
+    const underlines = document.querySelectorAll(".steami-heading-underline");
+    for (const ul of underlines) underlineObs.observe(ul);
+
+    return () => {
+      observer.disconnect();
+      underlineObs.disconnect();
+    };
   }, []);
 
   return (
     <div style={{ background: "var(--neural-bg)", minHeight: "100vh" }}>
+      {/* Global keyframe styles */}
+      <style>{STEAMI_STYLES}</style>
+
       {/* Sticky nav */}
       <div
         className="sticky top-[65px] z-40 px-6 py-3 flex items-center justify-between"
@@ -2626,23 +3982,16 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
             Intelligence Finds Its Voice.
           </p>
 
-          <p
-            className="text-base mb-10 animate-fade-in-up"
-            style={{
-              color: "rgba(255,255,255,0.45)",
-              fontFamily: "Sora, sans-serif",
-              maxWidth: "480px",
-              lineHeight: 1.7,
-              animationDelay: "0.26s",
-            }}
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.26s" }}
           >
-            The intelligence and knowledge synthesis platform of STEMONEF
-            Enterprises.
-          </p>
+            <AnimatedHeroSubtitle />
+          </div>
 
           {/* CTA buttons */}
           <div
-            className="flex flex-wrap gap-4 mb-10 animate-fade-in-up"
+            className="flex flex-wrap gap-4 mb-4 animate-fade-in-up"
             style={{ animationDelay: "0.34s" }}
           >
             <button
@@ -2701,6 +4050,14 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
             </button>
           </div>
 
+          {/* Stat bar */}
+          <div
+            className="animate-fade-in-up"
+            style={{ animationDelay: "0.38s" }}
+          >
+            <SteamiStatBar />
+          </div>
+
           {/* Positioning statement */}
           <div
             className="glass-strong p-6 max-w-xl rounded-sm animate-fade-in-up"
@@ -2750,6 +4107,8 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
         />
       </section>
 
+      <SectionDivider label="SYSTEM DESIGN" />
+
       {/* ── SECTION 2: INTELLIGENCE ARCHITECTURE — LANDMARK ── */}
       <section id="steami-architecture" className="py-28 px-6">
         <div className="max-w-7xl mx-auto">
@@ -2761,7 +4120,7 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
               ◆ SYSTEM DESIGN
             </div>
             <h2
-              className="font-display font-light text-gradient-hero mb-5"
+              className="font-display font-light text-gradient-hero mb-3"
               style={{
                 fontSize: "clamp(2.8rem, 7vw, 5.5rem)",
                 letterSpacing: "0.07em",
@@ -2770,6 +4129,19 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
             >
               Intelligence Architecture
             </h2>
+            {/* Animated underline */}
+            <div
+              className="steami-heading-underline mb-5"
+              style={{
+                height: 2,
+                background: "linear-gradient(90deg, #4a7ef7, transparent)",
+                transformOrigin: "left",
+                transform: "scaleX(0)",
+                transition:
+                  "transform 0.8s cubic-bezier(0.22,0.61,0.36,1) 0.1s",
+                maxWidth: 280,
+              }}
+            />
             {/* Landmark ruled accent */}
             <div className="flex items-center gap-4 mb-5" aria-hidden="true">
               <div
@@ -2808,6 +4180,57 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
           </div>
         </div>
       </section>
+
+      <SectionDivider label="PIPELINE SECTION" />
+
+      {/* ── INTELLIGENCE FLOW DIAGRAM ── */}
+      <section className="py-16 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-10 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[9px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(74,126,247,0.6)" }}
+            >
+              ◆ ANIMATED PIPELINE
+            </div>
+            <h2
+              className="font-display font-light mb-1"
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                letterSpacing: "0.07em",
+                color: "rgba(255,255,255,0.88)",
+              }}
+            >
+              Intelligence Flow Diagram
+            </h2>
+            <div
+              style={{
+                height: 2,
+                width: 0,
+                background: "linear-gradient(90deg, #4a7ef7, transparent)",
+                transformOrigin: "left",
+                transition: "width 0.8s cubic-bezier(0.22,0.61,0.36,1) 0.2s",
+                marginBottom: 10,
+              }}
+              className="steami-underline"
+            />
+            <p
+              className="text-xs max-w-xl"
+              style={{
+                color: "rgba(255,255,255,0.38)",
+                fontFamily: "Sora, sans-serif",
+                lineHeight: 1.65,
+              }}
+            >
+              Live animated view of how raw signals traverse the five-stage
+              synthesis pipeline, with real-time throughput indicators.
+            </p>
+          </div>
+          <IntelligenceFlowDiagram />
+        </div>
+      </section>
+
+      <SectionDivider label="INGESTION LAYER" />
 
       {/* ── SECTION 3: SIGNAL INGESTION — DENSE ── */}
       <section
@@ -2860,9 +4283,12 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
             style={{ transitionDelay: "0.1s" }}
           >
             <SignalIngestionSVG />
+            <SignalVelocityTicker />
           </div>
         </div>
       </section>
+
+      <SectionDivider label="SYNTHESIS ENGINE" />
 
       {/* ── SECTION 4: KNOWLEDGE SYNTHESIS ENGINE ── */}
       <section className="py-24 px-6">
@@ -2900,6 +4326,8 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
           </div>
         </div>
       </section>
+
+      <SectionDivider label="INSIGHT STREAMS" />
 
       {/* ── SECTION 5: INSIGHT STREAMS ── */}
       <section
@@ -2944,6 +4372,51 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
           </div>
         </div>
       </section>
+
+      <SectionDivider label="DOMAIN HUB" />
+
+      {/* ── INTELLIGENCE DOMAINS HUB ── */}
+      <section className="py-20 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12 steami-reveal reveal">
+            <div
+              className="font-mono-geist text-[9px] tracking-[0.4em] uppercase mb-3"
+              style={{ color: "rgba(74,126,247,0.65)" }}
+            >
+              ◆ DOMAIN INTELLIGENCE HUB
+            </div>
+            <h2
+              className="font-display font-light mb-2"
+              style={{
+                fontSize: "clamp(1.8rem, 4vw, 2.8rem)",
+                letterSpacing: "0.07em",
+                color: "rgba(255,255,255,0.9)",
+              }}
+            >
+              Active Intelligence Domains
+            </h2>
+            <p
+              className="text-xs max-w-xl"
+              style={{
+                color: "rgba(255,255,255,0.38)",
+                fontFamily: "Sora, sans-serif",
+                lineHeight: 1.65,
+              }}
+            >
+              Click any domain to expand its mandate, key questions, and current
+              focus areas.
+            </p>
+          </div>
+          <div
+            className="steami-reveal reveal"
+            style={{ transitionDelay: "0.1s" }}
+          >
+            <IntelligenceDomainsHub onFilterLibrary={handleFilterLibrary} />
+          </div>
+        </div>
+      </section>
+
+      <SectionDivider label="INTELLIGENCE LAYER" />
 
       {/* ── SECTION 6: STEAMI INTELLIGENCE (R&D) ── */}
       <section className="py-24 px-6">
@@ -3234,7 +4707,7 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                 </div>
 
                 <h3
-                  className="font-display text-lg font-light mb-3"
+                  className="font-display text-lg font-light mb-2"
                   style={{
                     color: "rgba(255,255,255,0.85)",
                     letterSpacing: "0.06em",
@@ -3243,7 +4716,7 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                   {ch.label}
                 </h3>
                 <p
-                  className="text-xs leading-relaxed"
+                  className="text-xs leading-relaxed mb-4"
                   style={{
                     color: "rgba(255,255,255,0.4)",
                     fontFamily: "Sora, sans-serif",
@@ -3251,11 +4724,58 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                 >
                   {ch.desc}
                 </p>
+                {/* Status badge */}
+                <div className="flex items-center justify-between">
+                  <span
+                    style={{
+                      fontFamily: "Geist Mono, monospace",
+                      fontSize: "0.52rem",
+                      letterSpacing: "0.2em",
+                      color: ch.status === "ACTIVE" ? "#22d3b0" : "#d4a017",
+                      background:
+                        ch.status === "ACTIVE"
+                          ? "rgba(34,211,176,0.08)"
+                          : "rgba(212,160,23,0.08)",
+                      border: `1px solid ${ch.status === "ACTIVE" ? "rgba(34,211,176,0.25)" : "rgba(212,160,23,0.25)"}`,
+                      borderRadius: 2,
+                      padding: "2px 7px",
+                      textTransform: "uppercase",
+                    }}
+                  >
+                    {ch.status}
+                  </span>
+                  {/* Sparkline */}
+                  <svg
+                    width="50"
+                    height="18"
+                    viewBox="0 0 50 18"
+                    aria-hidden="true"
+                  >
+                    <polyline
+                      points={ch.sparkline
+                        .map((v, idx) => `${idx * 7},${18 - v * 1.8}`)
+                        .join(" ")}
+                      fill="none"
+                      stroke={`${ch.color}60`}
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle
+                      cx={(ch.sparkline.length - 1) * 7}
+                      cy={18 - ch.sparkline[ch.sparkline.length - 1] * 1.8}
+                      r="2"
+                      fill={ch.color}
+                    />
+                  </svg>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
+
+      <SectionDivider label="INTELLIGENCE CYCLE" />
 
       {/* ── SECTION 8: FEEDBACK LOOP — LANDMARK ── */}
       <section className="py-28 px-6">
@@ -3302,21 +4822,46 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
           >
             <FeedbackLoopSVG />
           </div>
-          <p
-            className="text-center text-sm mt-10"
+          <div
+            className="mt-10 p-6 rounded-sm"
             style={{
-              color: "rgba(255,255,255,0.3)",
-              fontFamily: "Sora, sans-serif",
-              letterSpacing: "0.04em",
-              maxWidth: "480px",
+              background: "rgba(74,126,247,0.04)",
+              border: "1px solid rgba(74,126,247,0.12)",
+              maxWidth: 640,
               margin: "2.5rem auto 0",
             }}
           >
-            This loop continuously refines the quality and relevance of every
-            intelligence product published by STEAMI.
-          </p>
+            <div
+              className="font-mono-geist text-[8px] tracking-[0.3em] uppercase mb-3"
+              style={{ color: "rgba(74,126,247,0.5)" }}
+            >
+              ◆ CYCLE PARAMETERS
+            </div>
+            <p
+              className="text-xs leading-relaxed"
+              style={{
+                color: "rgba(255,255,255,0.4)",
+                fontFamily: "Sora, sans-serif",
+                lineHeight: 1.75,
+              }}
+            >
+              The STEAMI intelligence cycle completes approximately every{" "}
+              <strong style={{ color: "rgba(255,255,255,0.65)" }}>
+                14–21 days
+              </strong>{" "}
+              for standard intelligence products. Expedited cycles of{" "}
+              <strong style={{ color: "rgba(255,255,255,0.65)" }}>
+                72–96 hours
+              </strong>{" "}
+              are available for high-priority signals designated by STEAMI
+              editorial governance. The cycle has no terminal state — every
+              published product re-enters the system as a new research signal.
+            </p>
+          </div>
         </div>
       </section>
+
+      <SectionDivider label="KNOWLEDGE REPOSITORY" />
 
       {/* ── SECTION 9: INTELLIGENCE LIBRARY ── */}
       <section
@@ -3764,7 +5309,10 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                           <div>
                             <div
                               className="font-mono-geist text-[7.5px] tracking-[0.3em] uppercase mb-1"
-                              style={{ color: `${piece.accentColor}90` }}
+                              style={{
+                                color: piece.accentColor,
+                                opacity: 0.85,
+                              }}
                             >
                               {piece.eyebrow}
                             </div>
@@ -4276,7 +5824,7 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
                       </span>
                       <span
                         className="font-mono-geist text-[7.5px] tracking-[0.35em] uppercase"
-                        style={{ color: `${ep.accentColor}90` }}
+                        style={{ color: ep.accentColor, opacity: 0.85 }}
                       >
                         {ep.eyebrow}
                       </span>
@@ -4588,6 +6136,8 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
         </DialogContent>
       </Dialog>
 
+      <SectionDivider label="ETHICAL GOVERNANCE" />
+
       {/* ── SECTION 10: ETHICAL GOVERNANCE — DENSE ── */}
       <section className="py-20 px-6">
         <div className="max-w-6xl mx-auto">
@@ -4714,6 +6264,9 @@ export default function SteamiPage({ onBack }: SteamiPageProps) {
           </div>
         </div>
       </section>
+
+      {/* ── STEAMI CLOSING SECTION ── */}
+      <SteamiClosingSection libraryRef={libraryRef} />
 
       {/* ── LEGAL FOOTER ── */}
       <div

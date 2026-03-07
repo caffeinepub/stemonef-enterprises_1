@@ -22,7 +22,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import type { FeedEntry } from "../backend.d";
-import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   useCreateElpisAnnouncement,
   useCreateElpisCouncilMember,
@@ -4483,32 +4482,92 @@ function LiveClock() {
   return <span>{time} UTC</span>;
 }
 
+// ── ADMIN PASSWORD & SESSION HELPERS ─────────────────────────────────────────
+const ADMIN_PASSWORD = "STEMONEF-ADMIN-2026";
+const SESSION_KEY = "stemonef_admin_session";
+const SESSION_DURATION_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+interface AdminSession {
+  expiresAt: number;
+}
+
+function readAdminSession(): AdminSession | null {
+  try {
+    const raw = localStorage.getItem(SESSION_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as AdminSession;
+  } catch {
+    return null;
+  }
+}
+
+function isAdminSessionValid(): boolean {
+  const session = readAdminSession();
+  if (!session) return false;
+  return Date.now() < session.expiresAt;
+}
+
+function writeAdminSession(): void {
+  const session: AdminSession = { expiresAt: Date.now() + SESSION_DURATION_MS };
+  localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+  // Also seed caffeineAdminToken into sessionStorage so useActor picks it up
+  try {
+    sessionStorage.setItem("caffeineAdminToken", ADMIN_PASSWORD);
+  } catch {
+    /* ignore */
+  }
+}
+
+function clearAdminSession(): void {
+  localStorage.removeItem(SESSION_KEY);
+  try {
+    sessionStorage.removeItem("caffeineAdminToken");
+  } catch {
+    /* ignore */
+  }
+}
+
+// On page load, if a valid 24h session exists, re-seed sessionStorage token
+// so the actor can read it without re-login
+(function seedTokenFromSession() {
+  if (isAdminSessionValid()) {
+    try {
+      sessionStorage.setItem("caffeineAdminToken", ADMIN_PASSWORD);
+    } catch {
+      /* ignore */
+    }
+  }
+})();
+
 // ── MAIN ADMIN DASHBOARD ──────────────────────────────────────────────────────
 export default function AdminDashboard({
   onGoHome,
 }: {
   onGoHome: () => void;
 }) {
-  const { identity, login, isInitializing } = useInternetIdentity();
-  const { data: isAdmin, isLoading } = useIsAdmin();
+  const { data: isAdmin, isLoading, refetch: refetchIsAdmin } = useIsAdmin();
   const [activeModule, setActiveModule] = useState<AdminModule>("overview");
   const [sidebarExpanded, setSidebarExpanded] = useState(true);
   const [transitioning, setTransitioning] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Admin token input state
-  const [adminSecret, setAdminSecret] = useState("");
-  const [showSecret, setShowSecret] = useState(false);
-  const [tokenError, setTokenError] = useState("");
-  const [tokenStored, setTokenStored] = useState(false);
+  // Password-only auth gate state
+  const [isAuthenticated, setIsAuthenticated] = useState(() =>
+    isAdminSessionValid(),
+  );
+  const [adminPassword, setAdminPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState("");
+  const [accessGranted, setAccessGranted] = useState(false);
 
-  // Only redirect if: identity present + token was given + backend confirmed NOT admin
+  // If backend confirms not admin after successful password, clear session and go home
   useEffect(() => {
-    const hasToken = !!sessionStorage.getItem("caffeineAdminToken");
-    if (!isLoading && identity && isAdmin === false && hasToken) {
+    if (isAuthenticated && !isLoading && isAdmin === false) {
+      clearAdminSession();
+      setIsAuthenticated(false);
       onGoHome();
     }
-  }, [isAdmin, isLoading, identity, onGoHome]);
+  }, [isAdmin, isLoading, isAuthenticated, onGoHome]);
 
   const navigateTo = useCallback(
     (module: AdminModule) => {
@@ -4523,50 +4582,35 @@ export default function AdminDashboard({
     [activeModule],
   );
 
-  // Store token under the EXACT key useActor.ts reads: "caffeineAdminToken"
-  // If user is already logged in with II, invalidate actor cache so it re-initialises with the new token
   const handleAdminLogin = () => {
-    if (!adminSecret.trim()) {
-      setTokenError("ADMIN TOKEN REQUIRED — Enter your secret access key");
+    if (!adminPassword.trim()) {
+      setPasswordError("PASSWORD REQUIRED — Enter the admin access password");
       return;
     }
-    setTokenError("");
+    if (adminPassword.trim() !== ADMIN_PASSWORD) {
+      setPasswordError("ACCESS DENIED — Incorrect password. Attempt logged.");
+      setAdminPassword("");
+      return;
+    }
+    setPasswordError("");
     try {
-      sessionStorage.setItem("caffeineAdminToken", adminSecret.trim());
-      setTokenStored(true);
+      writeAdminSession();
+      setAccessGranted(true);
     } catch {
-      setTokenError("STORAGE ERROR — Unable to store token. Please try again.");
+      setPasswordError(
+        "STORAGE ERROR — Unable to create session. Please try again.",
+      );
       return;
     }
-    if (identity) {
-      // Already authenticated — reload the page so the actor is rebuilt with the new token
-      window.location.reload();
-    } else {
-      login();
-    }
+    setIsAuthenticated(true);
+    // Re-verify backend admin status with the newly stored token
+    setTimeout(() => {
+      refetchIsAdmin();
+    }, 100);
   };
 
-  // Show boot spinner while Internet Identity SDK is initialising
-  if (isInitializing) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ background: "var(--neural-bg)" }}
-      >
-        <div
-          data-ocid="admin.loading_state"
-          className="font-mono-geist text-xs tracking-[0.3em] uppercase"
-          style={{ color: "rgba(74,126,247,0.6)" }}
-        >
-          INITIALIZING...
-        </div>
-      </div>
-    );
-  }
-
   // ── Cinematic auth gate ────────────────────────────────────────────────────
-  // Show the gate if: not logged in, OR logged in but no token stored yet
-  if (!identity || !sessionStorage.getItem("caffeineAdminToken")) {
+  if (!isAuthenticated) {
     return (
       <div
         className="min-h-screen flex items-center justify-center relative overflow-hidden"
@@ -4690,7 +4734,7 @@ export default function AdminDashboard({
                 fontFamily: "Sora, sans-serif",
               }}
             >
-              Enter your admin secret key, then verify your identity. This panel
+              Enter the admin password to access the control center. This panel
               controls all content, research, intelligence, and operational
               systems.
             </p>
@@ -4705,50 +4749,50 @@ export default function AdminDashboard({
                 fontFamily: "Geist Mono, monospace",
               }}
             >
-              ADMIN SECRET KEY
+              ADMIN PASSWORD
             </div>
             <div className="relative w-full">
               <input
                 data-ocid="admin.login.input"
-                type={showSecret ? "text" : "password"}
-                value={adminSecret}
+                type={showPassword ? "text" : "password"}
+                value={adminPassword}
                 onChange={(e) => {
-                  setAdminSecret(e.target.value);
-                  if (tokenError) setTokenError("");
+                  setAdminPassword(e.target.value);
+                  if (passwordError) setPasswordError("");
                 }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") handleAdminLogin();
                 }}
-                placeholder="Enter admin secret key..."
+                placeholder="Enter admin password..."
                 className="w-full pr-10 py-3 px-4 text-xs rounded-sm outline-none transition-all duration-200"
                 style={{
                   background: "rgba(255,255,255,0.04)",
-                  border: tokenError
+                  border: passwordError
                     ? "1px solid rgba(239,68,68,0.6)"
-                    : tokenStored
+                    : accessGranted
                       ? "1px solid rgba(52,211,153,0.4)"
                       : "1px solid rgba(212,160,23,0.2)",
                   color: "rgba(255,255,255,0.8)",
                   fontFamily: "Geist Mono, monospace",
-                  letterSpacing: showSecret ? "0.05em" : "0.2em",
-                  boxShadow: tokenError
+                  letterSpacing: showPassword ? "0.05em" : "0.2em",
+                  boxShadow: passwordError
                     ? "0 0 12px rgba(239,68,68,0.1)"
                     : "none",
                 }}
               />
               <button
                 type="button"
-                onClick={() => setShowSecret((v) => !v)}
+                onClick={() => setShowPassword((v) => !v)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] transition-opacity opacity-40 hover:opacity-80"
                 style={{
                   color: "rgba(255,255,255,0.6)",
                   fontFamily: "Geist Mono, monospace",
                 }}
               >
-                {showSecret ? "HIDE" : "SHOW"}
+                {showPassword ? "HIDE" : "SHOW"}
               </button>
             </div>
-            {tokenError && (
+            {passwordError && (
               <div
                 className="text-[9px] tracking-[0.15em] uppercase"
                 style={{
@@ -4756,10 +4800,10 @@ export default function AdminDashboard({
                   fontFamily: "Geist Mono, monospace",
                 }}
               >
-                ⚠ {tokenError}
+                ⚠ {passwordError}
               </div>
             )}
-            {tokenStored && !tokenError && (
+            {accessGranted && !passwordError && (
               <div
                 className="text-[9px] tracking-[0.15em] uppercase"
                 style={{
@@ -4767,7 +4811,7 @@ export default function AdminDashboard({
                   fontFamily: "Geist Mono, monospace",
                 }}
               >
-                ✓ TOKEN STORED · PROCEEDING TO IDENTITY VERIFICATION
+                ✓ ACCESS GRANTED · VERIFYING BACKEND AUTHORIZATION
               </div>
             )}
           </div>
@@ -4807,9 +4851,7 @@ export default function AdminDashboard({
                   "0 0 20px rgba(212,160,23,0.08)";
               }}
             >
-              {identity
-                ? "◆ SUBMIT TOKEN & ENTER CONTROL CENTER"
-                : "◆ AUTHENTICATE WITH INTERNET IDENTITY"}
+              ◆ ENTER CONTROL CENTER
             </button>
             <button
               type="button"
@@ -4846,19 +4888,11 @@ export default function AdminDashboard({
             >
               HOW TO ACCESS
             </div>
-            {(identity
-              ? [
-                  "1. Enter the admin secret key in the field above",
-                  "2. Click Submit — you are already authenticated",
-                  "3. The console will open immediately",
-                ]
-              : [
-                  "1. Enter the admin secret key provided during system setup",
-                  "2. Click Authenticate — Internet Identity will open",
-                  "3. Complete identity verification in the popup",
-                  "4. First-time setup: the first principal to use the correct key becomes admin",
-                ]
-            ).map((line) => (
+            {[
+              "1. Enter the admin password in the field above",
+              "2. Click Enter Control Center",
+              "3. Session is valid for 24 hours — no re-login needed",
+            ].map((line) => (
               <div
                 key={line}
                 className="text-[10px] leading-relaxed"
